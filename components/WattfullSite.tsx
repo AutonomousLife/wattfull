@@ -1,8 +1,8 @@
 "use client";
-import { useState, useEffect, useRef, useCallback } from "react";
+
+import type { ReactNode } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
-  LineChart,
-  Line,
   AreaChart,
   Area,
   BarChart,
@@ -16,9 +16,9 @@ import {
   PolarGrid,
   PolarAngleAxis,
   Radar,
+  Line,
 } from "recharts";
 import {
-  Search,
   ChevronDown,
   ChevronRight,
   Zap,
@@ -130,7 +130,21 @@ const crowdsourcedData = [
   { month: "Dec", solar: 68, range: 65 },
 ];
 
-const SectionLabel = ({ children }: any) => (
+type ChildrenProps = { children: ReactNode };
+
+type PillProps = ChildrenProps & { active?: boolean };
+
+type GradeBadgeProps = { grade: string };
+
+type CustomTooltipProps = {
+  active?: boolean;
+  payload?: Array<{ name?: string; value?: unknown; color?: string }>;
+  label?: string | number;
+  prefix?: string;
+  suffix?: string;
+};
+
+const SectionLabel = ({ children }: ChildrenProps) => (
   <span
     style={{
       color: C.green,
@@ -144,7 +158,7 @@ const SectionLabel = ({ children }: any) => (
   </span>
 );
 
-const SectionTitle = ({ children }: any) => (
+const SectionTitle = ({ children }: ChildrenProps) => (
   <h2
     style={{
       fontSize: "clamp(28px, 4vw, 42px)",
@@ -158,7 +172,7 @@ const SectionTitle = ({ children }: any) => (
   </h2>
 );
 
-const SectionDesc = ({ children }: any) => (
+const SectionDesc = ({ children }: ChildrenProps) => (
   <p
     style={{
       fontSize: "clamp(16px, 2vw, 19px)",
@@ -172,7 +186,7 @@ const SectionDesc = ({ children }: any) => (
   </p>
 );
 
-const Pill = ({ children, active }: any) => (
+const Pill = ({ children, active }: PillProps) => (
   <span
     style={{
       display: "inline-block",
@@ -190,8 +204,8 @@ const Pill = ({ children, active }: any) => (
   </span>
 );
 
-const GradeBadge = ({ grade }: any) => {
-  const isA = String(grade).startsWith("A");
+const GradeBadge = ({ grade }: GradeBadgeProps) => {
+  const isA = grade.startsWith("A");
   return (
     <span
       style={{
@@ -218,8 +232,9 @@ const CustomTooltip = ({
   label,
   prefix = "",
   suffix = "",
-}: any) => {
+}: CustomTooltipProps) => {
   if (!active || !payload?.length) return null;
+
   return (
     <div
       style={{
@@ -230,8 +245,8 @@ const CustomTooltip = ({
         boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
       }}
     >
-      <p style={{ fontSize: 12, color: C.textLight, margin: 0 }}>{label}</p>
-      {payload.map((p: any, i: number) => (
+      <p style={{ fontSize: 12, color: C.textLight, margin: 0 }}>{String(label ?? "")}</p>
+      {payload.map((p, i) => (
         <p
           key={i}
           style={{
@@ -242,7 +257,7 @@ const CustomTooltip = ({
           }}
         >
           {p.name}: {prefix}
-          {typeof p.value === "number" ? p.value.toLocaleString() : p.value}
+          {typeof p.value === "number" ? p.value.toLocaleString() : String(p.value ?? "")}
           {suffix}
         </p>
       ))}
@@ -263,36 +278,26 @@ export default function WattfullSite() {
     const h = () => {
       setScrolled(window.scrollY > 40);
       setShowBackTop(window.scrollY > 800);
-      const sections = [
-        "tools",
-        "ev",
-        "solar",
-        "score",
-        "prices",
-        "states",
-        "community",
-        "verified",
-      ];
+
+      const sections = ["tools", "ev", "solar", "score", "prices", "states", "community", "verified"];
       for (const id of sections) {
         const el = document.getElementById(id);
-        if (el) {
-          const r = el.getBoundingClientRect();
-          if (r.top < 300 && r.bottom > 300) {
-            setActiveSection(id);
-            break;
-          }
+        if (!el) continue;
+        const r = el.getBoundingClientRect();
+        if (r.top < 300 && r.bottom > 300) {
+          setActiveSection(id);
+          break;
         }
       }
     };
+
     window.addEventListener("scroll", h, { passive: true });
+    h();
     return () => window.removeEventListener("scroll", h);
   }, []);
 
-  const scrollTo = useCallback((id: any) => {
-    document.getElementById(id)?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
+  const scrollTo = useCallback((id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
     setMobileMenu(false);
   }, []);
 
@@ -304,18 +309,18 @@ export default function WattfullSite() {
     { label: "About", id: "verified" },
   ];
 
-  const containerStyle = {
+  const containerStyle: React.CSSProperties = {
     maxWidth: 1200,
     margin: "0 auto",
     padding: "0 clamp(20px, 5vw, 48px)",
   };
-  const sectionPad = { padding: "clamp(60px, 10vw, 120px) 0" };
+
+  const sectionPad: React.CSSProperties = { padding: "clamp(60px, 10vw, 120px) 0" };
 
   return (
     <div
       style={{
-        fontFamily:
-          "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
         background: C.bg,
         color: C.text,
         minHeight: "100vh",
@@ -331,9 +336,7 @@ export default function WattfullSite() {
           transition: "all 0.3s ease",
           background: scrolled ? "rgba(250,250,248,0.92)" : "transparent",
           backdropFilter: scrolled ? "blur(20px)" : "none",
-          borderBottom: scrolled
-            ? `1px solid ${C.borderLight}`
-            : "1px solid transparent",
+          borderBottom: scrolled ? `1px solid ${C.borderLight}` : "1px solid transparent",
         }}
       >
         <div
@@ -350,14 +353,7 @@ export default function WattfullSite() {
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           >
             <Zap size={22} color={C.green} strokeWidth={2.5} />
-            <span
-              style={{
-                fontSize: 20,
-                fontWeight: 800,
-                color: C.text,
-                letterSpacing: "-0.02em",
-              }}
-            >
+            <span style={{ fontSize: 20, fontWeight: 800, color: C.text, letterSpacing: "-0.02em" }}>
               Wattfull
             </span>
           </div>
@@ -385,7 +381,7 @@ export default function WattfullSite() {
             </div>
 
             <button
-              onClick={() => setMobileMenu(!mobileMenu)}
+              onClick={() => setMobileMenu((v) => !v)}
               className="nav-mobile-btn"
               style={{
                 background: "none",
@@ -395,6 +391,7 @@ export default function WattfullSite() {
                 padding: 4,
                 display: "none",
               }}
+              aria-label="Toggle menu"
             >
               {mobileMenu ? <X size={22} /> : <Menu size={22} />}
             </button>
@@ -402,13 +399,7 @@ export default function WattfullSite() {
         </div>
 
         {mobileMenu && (
-          <div
-            style={{
-              background: C.white,
-              borderBottom: `1px solid ${C.border}`,
-              padding: "16px 0",
-            }}
-          >
+          <div style={{ background: C.white, borderBottom: `1px solid ${C.border}`, padding: "16px 0" }}>
             <div style={containerStyle}>
               {navItems.map((n) => (
                 <button
@@ -458,9 +449,7 @@ export default function WattfullSite() {
               }}
             >
               <Leaf size={14} color={C.green} />
-              <span style={{ fontSize: 13, fontWeight: 600, color: C.greenDark }}>
-                Independent & Unbiased
-              </span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: C.greenDark }}>Independent & Unbiased</span>
             </div>
 
             <h1
@@ -487,8 +476,7 @@ export default function WattfullSite() {
                 maxWidth: 580,
               }}
             >
-              Built for people making the biggest purchases of their lives — and who
-              don't want to get it wrong.
+              Built for people making the biggest purchases of their lives — and who don't want to get it wrong.
             </p>
 
             <div style={{ display: "flex", flexWrap: "wrap", gap: 14, marginTop: 40 }}>
@@ -550,19 +538,10 @@ export default function WattfullSite() {
             ].map((s, i) => (
               <div key={i}>
                 <div style={{ color: C.green, marginBottom: 8 }}>{s.i}</div>
-                <div
-                  style={{
-                    fontSize: 28,
-                    fontWeight: 800,
-                    color: C.text,
-                    letterSpacing: "-0.02em",
-                  }}
-                >
+                <div style={{ fontSize: 28, fontWeight: 800, color: C.text, letterSpacing: "-0.02em" }}>
                   {s.n}
                 </div>
-                <div style={{ fontSize: 13, color: C.textLight, marginTop: 2 }}>
-                  {s.l}
-                </div>
+                <div style={{ fontSize: 13, color: C.textLight, marginTop: 2 }}>{s.l}</div>
               </div>
             ))}
           </div>
@@ -574,9 +553,7 @@ export default function WattfullSite() {
         <div style={containerStyle}>
           <SectionLabel>Platform Tools</SectionLabel>
           <SectionTitle>Everything you need, nothing you don't.</SectionTitle>
-          <SectionDesc>
-            Real data. Real rates. Real results. No national averages, no guesswork.
-          </SectionDesc>
+          <SectionDesc>Real data. Real rates. Real results. No national averages, no guesswork.</SectionDesc>
 
           <div
             style={{
@@ -658,12 +635,8 @@ export default function WattfullSite() {
                 >
                   {t.icon}
                 </div>
-                <h3 style={{ fontSize: 18, fontWeight: 700, marginTop: 20, color: C.text }}>
-                  {t.title}
-                </h3>
-                <p style={{ fontSize: 15, color: C.textMid, lineHeight: 1.6, marginTop: 8 }}>
-                  {t.desc}
-                </p>
+                <h3 style={{ fontSize: 18, fontWeight: 700, marginTop: 20, color: C.text }}>{t.title}</h3>
+                <p style={{ fontSize: 15, color: C.textMid, lineHeight: 1.6, marginTop: 8 }}>{t.desc}</p>
                 <div
                   style={{
                     display: "flex",
@@ -689,8 +662,7 @@ export default function WattfullSite() {
           <SectionLabel>EV Savings Calculator</SectionLabel>
           <SectionTitle>See what you'd actually save.</SectionTitle>
           <SectionDesc>
-            Not hypothetical savings. Your zip code. Your electricity rate. Your gas
-            prices. Every active incentive.
+            Not hypothetical savings. Your zip code. Your electricity rate. Your gas prices. Every active incentive.
           </SectionDesc>
 
           <div
@@ -772,17 +744,11 @@ export default function WattfullSite() {
                         outline: "none",
                       }}
                     >
-                      {[
-                        "Tesla Model 3",
-                        "Tesla Model Y",
-                        "Chevy Bolt EUV",
-                        "Ford Mustang Mach-E",
-                        "Hyundai Ioniq 5",
-                        "Rivian R1S",
-                        "BMW iX",
-                      ].map((v) => (
-                        <option key={v}>{v}</option>
-                      ))}
+                      {["Tesla Model 3", "Tesla Model Y", "Chevy Bolt EUV", "Ford Mustang Mach-E", "Hyundai Ioniq 5", "Rivian R1S", "BMW iX"].map(
+                        (v) => (
+                          <option key={v}>{v}</option>
+                        )
+                      )}
                     </select>
                     <ChevronDown
                       size={16}
@@ -816,30 +782,14 @@ export default function WattfullSite() {
                 </button>
               </div>
 
-              <div
-                style={{
-                  marginTop: 32,
-                  padding: 24,
-                  background: C.greenLight,
-                  borderRadius: 16,
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: C.greenDark,
-                    marginBottom: 16,
-                  }}
-                >
+              <div style={{ marginTop: 32, padding: 24, background: C.greenLight, borderRadius: 16 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: C.greenDark, marginBottom: 16 }}>
                   10-Year Projection
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                   <div>
                     <div style={{ fontSize: 13, color: C.textMid }}>EV Total Cost</div>
-                    <div style={{ fontSize: 24, fontWeight: 800, color: C.greenDark }}>
-                      $12,200
-                    </div>
+                    <div style={{ fontSize: 24, fontWeight: 800, color: C.greenDark }}>$12,200</div>
                   </div>
                   <div>
                     <div style={{ fontSize: 13, color: C.textMid }}>Gas Total Cost</div>
@@ -877,48 +827,18 @@ export default function WattfullSite() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke={C.borderLight} />
-                  <XAxis
-                    dataKey="year"
-                    tick={{ fontSize: 12, fill: C.textLight }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
+                  <XAxis dataKey="year" tick={{ fontSize: 12, fill: C.textLight }} axisLine={false} tickLine={false} />
                   <YAxis
                     tick={{ fontSize: 12, fill: C.textLight }}
                     axisLine={false}
                     tickLine={false}
-                    tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+                    tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`}
                   />
                   <Tooltip content={<CustomTooltip prefix="$" />} />
-                  <Area
-                    type="monotone"
-                    dataKey="gas"
-                    stroke={C.textLight}
-                    strokeWidth={2}
-                    fill="url(#gasGrad)"
-                    name="Gas"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="ev"
-                    stroke={C.green}
-                    strokeWidth={2.5}
-                    fill="url(#evGrad)"
-                    name="EV"
-                  />
+                  <Area type="monotone" dataKey="gas" stroke={C.textLight} strokeWidth={2} fill="url(#gasGrad)" name="Gas" />
+                  <Area type="monotone" dataKey="ev" stroke={C.green} strokeWidth={2.5} fill="url(#evGrad)" name="EV" />
                 </AreaChart>
               </ResponsiveContainer>
-
-              <div style={{ display: "flex", gap: 24, marginTop: 16, justifyContent: "center" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <div style={{ width: 12, height: 3, borderRadius: 2, background: C.green }} />
-                  <span style={{ fontSize: 12, color: C.textMid }}>EV Fuel Cost</span>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <div style={{ width: 12, height: 3, borderRadius: 2, background: C.textLight }} />
-                  <span style={{ fontSize: 12, color: C.textMid }}>Gas Fuel Cost</span>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -929,29 +849,11 @@ export default function WattfullSite() {
         <div style={containerStyle}>
           <SectionLabel>Solar ROI Tools</SectionLabel>
           <SectionTitle>Your roof. Your rates. Your return.</SectionTitle>
-          <SectionDesc>
-            Zip-specific solar modeling with real utility rates. See your actual break-even point and lifetime savings.
-          </SectionDesc>
+          <SectionDesc>Zip-specific solar modeling with real utility rates. See your actual break-even point and lifetime savings.</SectionDesc>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-              gap: 40,
-              marginTop: 48,
-            }}
-          >
-            <div
-              style={{
-                background: C.bg,
-                borderRadius: 16,
-                border: `1px solid ${C.borderLight}`,
-                padding: "28px 24px",
-              }}
-            >
-              <div style={{ fontSize: 15, fontWeight: 700, color: C.text, marginBottom: 24 }}>
-                Solar Investment vs. Cumulative Savings
-              </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 40, marginTop: 48 }}>
+            <div style={{ background: C.bg, borderRadius: 16, border: `1px solid ${C.borderLight}`, padding: "28px 24px" }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: C.text, marginBottom: 24 }}>Solar Investment vs. Cumulative Savings</div>
               <ResponsiveContainer width="100%" height={320}>
                 <AreaChart data={solarROIData}>
                   <defs>
@@ -961,121 +863,36 @@ export default function WattfullSite() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke={C.borderLight} />
-                  <XAxis
-                    dataKey="year"
-                    tick={{ fontSize: 12, fill: C.textLight }}
-                    axisLine={false}
-                    tickLine={false}
-                    label={{
-                      value: "Years",
-                      position: "insideBottom",
-                      offset: -5,
-                      style: { fontSize: 12, fill: C.textLight },
-                    }}
-                  />
+                  <XAxis dataKey="year" tick={{ fontSize: 12, fill: C.textLight }} axisLine={false} tickLine={false} />
                   <YAxis
                     tick={{ fontSize: 12, fill: C.textLight }}
                     axisLine={false}
                     tickLine={false}
-                    tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+                    tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`}
                   />
                   <Tooltip content={<CustomTooltip prefix="$" />} />
-                  <Line
-                    type="monotone"
-                    dataKey="cost"
-                    stroke={C.textLight}
-                    strokeWidth={2}
-                    strokeDasharray="6 4"
-                    dot={false}
-                    name="Investment"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="savings"
-                    stroke={C.green}
-                    strokeWidth={2.5}
-                    fill="url(#savGrad)"
-                    name="Savings"
-                  />
+                  <Line type="monotone" dataKey="cost" stroke={C.textLight} strokeWidth={2} strokeDasharray="6 4" dot={false} name="Investment" />
+                  <Area type="monotone" dataKey="savings" stroke={C.green} strokeWidth={2.5} fill="url(#savGrad)" name="Savings" />
                 </AreaChart>
               </ResponsiveContainer>
-
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 6,
-                  marginTop: 12,
-                  padding: "8px 16px",
-                  background: C.greenLight,
-                  borderRadius: 8,
-                  width: "fit-content",
-                  marginLeft: "auto",
-                  marginRight: "auto",
-                }}
-              >
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 12, padding: "8px 16px", background: C.greenLight, borderRadius: 8, width: "fit-content", marginInline: "auto" }}>
                 <CheckCircle size={14} color={C.green} />
-                <span style={{ fontSize: 13, fontWeight: 600, color: C.greenDark }}>
-                  Break-even at ~10 years
-                </span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: C.greenDark }}>Break-even at ~10 years</span>
               </div>
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               {[
-                {
-                  icon: <DollarSign size={20} />,
-                  title: "Real Utility Rates",
-                  desc: "We pull your actual utility rate — not a national average that means nothing.",
-                },
-                {
-                  icon: <Sun size={20} />,
-                  title: "Roof-Specific Modeling",
-                  desc: "Orientation, shading, pitch — all factored into your personalized estimate.",
-                },
-                {
-                  icon: <Clock size={20} />,
-                  title: "Break-Even Timeline",
-                  desc: "A clear, honest timeline showing exactly when solar starts paying you back.",
-                },
-                {
-                  icon: <BarChart3 size={20} />,
-                  title: "25-Year Projection",
-                  desc: "See the full lifetime value of your system, including degradation.",
-                },
+                { icon: <DollarSign size={20} />, title: "Real Utility Rates", desc: "We pull your actual utility rate — not a national average that means nothing." },
+                { icon: <Sun size={20} />, title: "Roof-Specific Modeling", desc: "Orientation, shading, pitch — all factored into your personalized estimate." },
+                { icon: <Clock size={20} />, title: "Break-Even Timeline", desc: "A clear, honest timeline showing exactly when solar starts paying you back." },
+                { icon: <BarChart3 size={20} />, title: "25-Year Projection", desc: "See the full lifetime value of your system, including degradation." },
               ].map((f, i) => (
-                <div
-                  key={i}
-                  style={{
-                    display: "flex",
-                    gap: 16,
-                    padding: 20,
-                    borderRadius: 14,
-                    border: `1px solid ${C.borderLight}`,
-                    background: C.bg,
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 44,
-                      height: 44,
-                      borderRadius: 12,
-                      background: C.greenLight,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: C.green,
-                      flexShrink: 0,
-                    }}
-                  >
-                    {f.icon}
-                  </div>
+                <div key={i} style={{ display: "flex", gap: 16, padding: 20, borderRadius: 14, border: `1px solid ${C.borderLight}`, background: C.bg }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 12, background: C.greenLight, display: "flex", alignItems: "center", justifyContent: "center", color: C.green, flexShrink: 0 }}>{f.icon}</div>
                   <div>
                     <div style={{ fontSize: 15, fontWeight: 700, color: C.text }}>{f.title}</div>
-                    <div style={{ fontSize: 14, color: C.textMid, lineHeight: 1.55, marginTop: 4 }}>
-                      {f.desc}
-                    </div>
+                    <div style={{ fontSize: 14, color: C.textMid, lineHeight: 1.55, marginTop: 4 }}>{f.desc}</div>
                   </div>
                 </div>
               ))}
@@ -1089,18 +906,9 @@ export default function WattfullSite() {
         <div style={containerStyle}>
           <SectionLabel>Wattfull Score™</SectionLabel>
           <SectionTitle>One score. Six dimensions. No shortcuts.</SectionTitle>
-          <SectionDesc>
-            Our proprietary rating system evaluates every product across the metrics that actually matter.
-          </SectionDesc>
+          <SectionDesc>Our proprietary rating system evaluates every product across the metrics that actually matter.</SectionDesc>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-              gap: 40,
-              marginTop: 48,
-            }}
-          >
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 40, marginTop: 48 }}>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24 }}>
               <ResponsiveContainer width="100%" height={300}>
                 <RadarChart data={wattScoreData} cx="50%" cy="50%">
@@ -1109,19 +917,8 @@ export default function WattfullSite() {
                   <Radar name="Score" dataKey="A" stroke={C.green} fill={C.green} fillOpacity={0.15} strokeWidth={2} />
                 </RadarChart>
               </ResponsiveContainer>
-
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
-                <div
-                  style={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: 14,
-                    background: C.greenLight,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
+                <div style={{ width: 56, height: 56, borderRadius: 14, background: C.greenLight, display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <span style={{ fontSize: 22, fontWeight: 800, color: C.greenDark }}>89</span>
                 </div>
                 <div>
@@ -1171,12 +968,8 @@ export default function WattfullSite() {
                             {v.score}
                           </span>
                         </td>
-                        <td style={{ padding: "14px 16px", textAlign: "center", fontWeight: 600, color: C.textMid }}>
-                          {v.value}
-                        </td>
-                        <td style={{ padding: "14px 16px", textAlign: "center", fontWeight: 600, color: C.textMid }}>
-                          {v.life}
-                        </td>
+                        <td style={{ padding: "14px 16px", textAlign: "center", fontWeight: 600, color: C.textMid }}>{v.value}</td>
+                        <td style={{ padding: "14px 16px", textAlign: "center", fontWeight: 600, color: C.textMid }}>{v.life}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1192,33 +985,12 @@ export default function WattfullSite() {
         <div style={containerStyle}>
           <SectionLabel>Price History</SectionLabel>
           <SectionTitle>Know when to buy.</SectionTitle>
-          <SectionDesc>
-            Track real transaction prices over time. Our algorithm identifies the best windows to purchase.
-          </SectionDesc>
+          <SectionDesc>Track real transaction prices over time. Our algorithm identifies the best windows to purchase.</SectionDesc>
 
-          <div
-            style={{
-              background: C.bg,
-              borderRadius: 16,
-              border: `1px solid ${C.borderLight}`,
-              padding: "28px 24px",
-              marginTop: 48,
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 12,
-                marginBottom: 24,
-              }}
-            >
+          <div style={{ background: C.bg, borderRadius: 16, border: `1px solid ${C.borderLight}`, padding: "28px 24px", marginTop: 48 }}>
+            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 24 }}>
               <div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: C.text }}>
-                  Tesla Model 3 — Average Transaction Price
-                </div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: C.text }}>Tesla Model 3 — Average Transaction Price</div>
                 <div style={{ fontSize: 13, color: C.textMid, marginTop: 2 }}>Jan 2024 – Jan 2026</div>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", background: C.greenLight, borderRadius: 8 }}>
@@ -1241,7 +1013,7 @@ export default function WattfullSite() {
                   tick={{ fontSize: 12, fill: C.textLight }}
                   axisLine={false}
                   tickLine={false}
-                  tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+                  tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`}
                   domain={["auto", "auto"]}
                 />
                 <Tooltip content={<CustomTooltip prefix="$" />} />
@@ -1257,9 +1029,7 @@ export default function WattfullSite() {
         <div style={containerStyle}>
           <SectionLabel>State Report Cards</SectionLabel>
           <SectionTitle>How does your state stack up?</SectionTitle>
-          <SectionDesc>
-            Quarterly updated grades across EV infrastructure, solar incentives, grid cleanliness, and utility friendliness.
-          </SectionDesc>
+          <SectionDesc>Quarterly updated grades across EV infrastructure, solar incentives, grid cleanliness, and utility friendliness.</SectionDesc>
 
           <div style={{ marginTop: 48, border: `1px solid ${C.borderLight}`, borderRadius: 16, overflow: "hidden" }}>
             <div style={{ overflowX: "auto" }}>
@@ -1293,9 +1063,7 @@ export default function WattfullSite() {
             </div>
           </div>
 
-          <p style={{ fontSize: 12, color: C.textLight, marginTop: 16 }}>
-            Last updated: Q4 2025 · Next update: Q1 2026
-          </p>
+          <p style={{ fontSize: 12, color: C.textLight, marginTop: 16 }}>Last updated: Q4 2025 · Next update: Q1 2026</p>
         </div>
       </section>
 
@@ -1304,42 +1072,36 @@ export default function WattfullSite() {
         <div style={containerStyle}>
           <SectionLabel>Real-World Data</SectionLabel>
           <SectionTitle>From real owners. Not press releases.</SectionTitle>
-          <SectionDesc>
-            Crowdsourced solar output, winter EV range, and battery degradation data from thousands of verified owners.
-          </SectionDesc>
+          <SectionDesc>Crowdsourced solar output, winter EV range, and battery degradation data from thousands of verified owners.</SectionDesc>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 40, marginTop: 48 }}>
             <div style={{ background: C.bg, borderRadius: 16, border: `1px solid ${C.borderLight}`, padding: "28px 24px" }}>
               <div style={{ fontSize: 15, fontWeight: 700, color: C.text, marginBottom: 4 }}>Seasonal Performance</div>
               <div style={{ fontSize: 13, color: C.textMid, marginBottom: 24 }}>% of rated capacity by month (owner-reported)</div>
+
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={crowdsourcedData} barGap={2}>
                   <CartesianGrid strokeDasharray="3 3" stroke={C.borderLight} />
                   <XAxis dataKey="month" tick={{ fontSize: 11, fill: C.textLight }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 12, fill: C.textLight }} axisLine={false} tickLine={false} domain={[50, 105]} tickFormatter={(v) => `${v}%`} />
+                  <YAxis
+                    tick={{ fontSize: 12, fill: C.textLight }}
+                    axisLine={false}
+                    tickLine={false}
+                    domain={[50, 105]}
+                    tickFormatter={(v: number) => `${v}%`}
+                  />
                   <Tooltip content={<CustomTooltip suffix="%" />} />
                   <Bar dataKey="solar" fill={C.green} name="Solar Output" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="range" fill={C.accent} name="EV Range" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
-
-              <div style={{ display: "flex", gap: 20, justifyContent: "center", marginTop: 12 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <div style={{ width: 12, height: 12, borderRadius: 3, background: C.green }} />
-                  <span style={{ fontSize: 12, color: C.textMid }}>Solar Output</span>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <div style={{ width: 12, height: 12, borderRadius: 3, background: C.accent }} />
-                  <span style={{ fontSize: 12, color: C.textMid }}>EV Range</span>
-                </div>
-              </div>
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               {[
-                { metric: "Avg Winter Range Loss", value: "27%", detail: "Based on 4,200+ owner reports in sub-30°F conditions", trend: "down" },
-                { metric: "Avg Solar Output vs Rated", value: "89%", detail: "12,800+ systems reporting across 38 states", trend: "up" },
-                { metric: "5-Year Battery Degradation", value: "8.2%", detail: "Median across all tracked EVs with 50k+ miles", trend: "stable" },
+                { metric: "Avg Winter Range Loss", value: "27%", detail: "Based on 4,200+ owner reports in sub-30°F conditions" },
+                { metric: "Avg Solar Output vs Rated", value: "89%", detail: "12,800+ systems reporting across 38 states" },
+                { metric: "5-Year Battery Degradation", value: "8.2%", detail: "Median across all tracked EVs with 50k+ miles" },
               ].map((d, i) => (
                 <div key={i} style={{ padding: 24, borderRadius: 14, border: `1px solid ${C.borderLight}`, background: C.bg }}>
                   <div style={{ fontSize: 13, fontWeight: 600, color: C.textMid }}>{d.metric}</div>
@@ -1347,6 +1109,7 @@ export default function WattfullSite() {
                   <div style={{ fontSize: 13, color: C.textLight, lineHeight: 1.5, marginTop: 8 }}>{d.detail}</div>
                 </div>
               ))}
+
               <div style={{ padding: 16, borderRadius: 12, background: C.greenLight, display: "flex", alignItems: "center", gap: 12 }}>
                 <Users size={18} color={C.green} />
                 <span style={{ fontSize: 14, color: C.greenDark, fontWeight: 600 }}>18,400+ verified contributors</span>
@@ -1369,9 +1132,8 @@ export default function WattfullSite() {
               <SectionTitle>Personally tested. Independently reviewed.</SectionTitle>
             </div>
 
-            <p style={{ fontSize: "clamp(16px, 2vw, 18px)", color: C.textMid, lineHeight: 1.7, marginTop: 20, maxWidth: 540, marginLeft: "auto", marginRight: "auto" }}>
-              Every product with the Wattfull Verified badge has been physically tested by our team using standardized methodology.
-              No sponsored placements. No affiliate influence on ratings.
+            <p style={{ fontSize: "clamp(16px, 2vw, 18px)", color: C.textMid, lineHeight: 1.7, marginTop: 20, maxWidth: 540, marginInline: "auto" }}>
+              Every product with the Wattfull Verified badge has been physically tested by our team using standardized methodology. No sponsored placements. No affiliate influence on ratings.
             </p>
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 16, marginTop: 40 }}>
@@ -1396,7 +1158,7 @@ export default function WattfullSite() {
           <h2 style={{ fontSize: "clamp(26px, 4vw, 40px)", fontWeight: 800, color: C.white, lineHeight: 1.15, letterSpacing: "-0.02em" }}>
             Start making smarter energy decisions.
           </h2>
-          <p style={{ fontSize: 17, color: "rgba(255,255,255,0.6)", marginTop: 16, maxWidth: 460, marginLeft: "auto", marginRight: "auto", lineHeight: 1.6 }}>
+          <p style={{ fontSize: 17, color: "rgba(255,255,255,0.6)", marginTop: 16, maxWidth: 460, marginInline: "auto", lineHeight: 1.6 }}>
             Free tools. Real data. No sales pitch.
           </p>
           <button
@@ -1487,7 +1249,17 @@ export default function WattfullSite() {
             </div>
           </div>
 
-          <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 24, display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+          <div
+            style={{
+              borderTop: `1px solid ${C.border}`,
+              paddingTop: 24,
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: 12,
+            }}
+          >
             <div style={{ fontSize: 13, color: C.textLight }}>© 2026 Wattfull. All rights reserved.</div>
             <div style={{ fontSize: 16, fontWeight: 700, color: C.textMid, fontStyle: "italic", letterSpacing: "-0.01em" }}>
               Don't be wasteful. Be <span style={{ color: C.green }}>Wattfull</span>.
@@ -1516,6 +1288,7 @@ export default function WattfullSite() {
             boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
             zIndex: 50,
           }}
+          aria-label="Back to top"
         >
           <ChevronUp size={20} color={C.text} />
         </button>

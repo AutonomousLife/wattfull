@@ -1,3 +1,4 @@
+"use client";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar, LineChart, Line } from "recharts";
 
@@ -514,14 +515,12 @@ export default function App(){
 
   return(
     <div style={{fontFamily:"'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",background:t.bg,color:t.text,minHeight:"100vh",transition:"background .5s ease, color .5s ease"}}>
-      {/* Dimming overlay */}
       {dimming&&<div style={{position:"fixed",inset:0,background:"#000",zIndex:9999,animation:"dimFade .7s ease",pointerEvents:"none"}}/>}
 
       <nav style={{position:"sticky",top:0,zIndex:100,transition:"all .25s",background:scrolled?t.navBg:"transparent",backdropFilter:scrolled?"blur(16px)":"none",borderBottom:scrolled?`1px solid ${t.borderLight}`:"1px solid transparent"}}>
         <div style={{...container,display:"flex",alignItems:"center",justifyContent:"space-between",height:56}}>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
             <button onClick={()=>navigate("home")} style={{background:"none",border:"none",cursor:"pointer",fontSize:20,fontWeight:800,color:t.text,letterSpacing:"-.02em",padding:0,display:"flex",alignItems:"center",gap:7}}>⚡ Wattfull</button>
-            {/* DARK MODE TOGGLE */}
             <button onClick={toggleDark} aria-label="Toggle dark mode" style={{background:t.card,border:`1px solid ${t.border}`,borderRadius:20,width:40,height:24,position:"relative",cursor:"pointer",transition:"all .3s",display:"flex",alignItems:"center"}}>
               <div style={{width:18,height:18,borderRadius:9,background:dark?t.green:"#F0C040",position:"absolute",transition:"all .4s cubic-bezier(.68,-.55,.27,1.55)",left:dark?19:3,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,boxShadow:dark?`0 0 8px ${t.green}60`:"0 0 8px #F0C04060"}}>{dark?"🌙":"☀️"}</div>
             </button>

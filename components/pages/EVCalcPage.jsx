@@ -1,14 +1,54 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useTheme } from "@/lib/ThemeContext";
 import { Input, Select, Slider, Toggle, Collapsible, Badge, ChartTip } from "@/components/ui";
-import { VEHICLES, CLIMATE_PENALTIES, STATE_DATA, zipToState } from "@/lib/data";
+import { VehicleSearch } from "@/components/ui/VehicleSearch";
+import { VEHICLES, POPULAR_EV_IDS, POPULAR_ICE_IDS, CLIMATE_PENALTIES, STATE_DATA, zipToState } from "@/lib/data";
 import { fmt } from "@/lib/helpers";
 import { ShareBadge } from "@/components/widgets/ShareBadge";
 
+const LS_KEY = "wattfull_ev_calc_v1";
+
+// Simple horizontal cost bar for visual comparison (Task 5)
+function CostBar({ label, fuel, maint, color, maxVal, t }) {
+  const total = fuel + maint;
+  const barPct = Math.min((total / maxVal) * 100, 100);
+  const fuelPct = (fuel / total) * 100;
+  return (
+    <div style={{ marginBottom: 10 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 4 }}>
+        <span style={{ fontWeight: 600, color: t.text }}>{label}</span>
+        <span style={{ color: t.textMid }}>${total.toLocaleString()}/yr</span>
+      </div>
+      <div style={{ height: 22, background: t.borderLight, borderRadius: 6, overflow: "hidden" }}>
+        <div style={{ width: `${barPct}%`, height: "100%", display: "flex", borderRadius: 6 }}>
+          <div style={{ width: `${fuelPct}%`, background: color, opacity: 0.9 }} />
+          <div style={{ flex: 1, background: color, opacity: 0.5 }} />
+        </div>
+      </div>
+      <div style={{ display: "flex", gap: 12, fontSize: 11, color: t.textLight, marginTop: 3 }}>
+        <span>⛽ Fuel: ${fuel.toLocaleString()}</span>
+        <span>🔧 Maint: ${maint.toLocaleString()}</span>
+      </div>
+    </div>
+  );
+}
+
+// Assumptions row helper
+function ARow({ label, value, t }) {
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, padding: "5px 0", borderBottom: `1px solid ${t.borderLight}` }}>
+      <span style={{ color: t.textMid }}>{label}</span>
+      <span style={{ color: t.text, fontWeight: 600 }}>{value}</span>
+    </div>
+  );
+}
+
 export function EVCalcPage() {
   const { t } = useTheme();
+
+  // All calculator inputs (with localStorage defaults)
   const [zip, setZip] = useState("");
   const [st, setSt] = useState(null);
   const [sd, setSd2] = useState(null);
@@ -21,10 +61,43 @@ export function EVCalcPage() {
   const [dc, setDc] = useState(5);
   const [eo, setEo] = useState("");
   const [go, setGo] = useState("");
-  const [incI, setIncI] = useState(true);
+  const [incI, setIncI] = useState(false);   // T2: default OFF
   const [incC, setIncC] = useState(true);
+  const [evMaint, setEvMaint] = useState(800);   // T3: EV annual maintenance
+  const [iceMaint, setIceMaint] = useState(1500); // T3: ICE annual maintenance
   const [res, setRes] = useState(null);
   const [err, setErr] = useState({});
+  const [loaded, setLoaded] = useState(false);
+
+  // T7: Load from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(LS_KEY) || "{}");
+      if (saved.zip)      setZip(saved.zip);
+      if (saved.evId)     setEvId(saved.evId);
+      if (saved.iceId)    setIceId(saved.iceId);
+      if (saved.mi)       setMi(saved.mi);
+      if (saved.yr)       setYr(saved.yr);
+      if (saved.hc != null) setHc(saved.hc);
+      if (saved.pc != null) setPc(saved.pc);
+      if (saved.dc != null) setDc(saved.dc);
+      if (saved.eo != null) setEo(saved.eo);
+      if (saved.go != null) setGo(saved.go);
+      if (saved.incI != null) setIncI(saved.incI);
+      if (saved.incC != null) setIncC(saved.incC);
+      if (saved.evMaint)  setEvMaint(saved.evMaint);
+      if (saved.iceMaint) setIceMaint(saved.iceMaint);
+    } catch (_) {}
+    setLoaded(true);
+  }, []);
+
+  // T7: Save to localStorage whenever inputs change (after initial load)
+  useEffect(() => {
+    if (!loaded) return;
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify({ zip, evId, iceId, mi, yr, hc, pc, dc, eo, go, incI, incC, evMaint, iceMaint }));
+    } catch (_) {}
+  }, [loaded, zip, evId, iceId, mi, yr, hc, pc, dc, eo, go, incI, incC, evMaint, iceMaint]);
 
   useEffect(() => {
     if (zip.length === 5) {
@@ -53,18 +126,22 @@ export function EVCalcPage() {
     const cp = CLIMATE_PENALTIES[sd.z] || 0.1;
     const kwhMi = (ev.kwh / 100) * (incC ? 1 + cp : 1);
     const blend = (hc / 100) * (er / 100) * 1.12 + (pc / 100) * (er / 100 + 0.18) * 1.06 + (dc / 100) * 0.35;
-    const evF = kwhMi * mi * blend;
-    const iceF = (mi / ice.mpg) * gp;
-    const evM = 0.065 * mi;
-    const iceM = 0.1 * mi;
+    const evFuel = kwhMi * mi * blend;
+    const iceFuel = (mi / ice.mpg) * gp;
+
+    // T3: Use user-provided annual maintenance values
+    const evM = Number(evMaint) || 800;
+    const iceM = Number(iceMaint) || 1500;
+
+    // T2: incentives default OFF — only apply if user explicitly toggles on
     let inc = 0;
     if (incI) inc = ev.fc + (sd.ec || 0);
 
     const yd = [];
     let ec2 = 0, ic = 0, be = null;
     for (let y = 1; y <= yr; y++) {
-      ec2 += evF + evM - (y === 1 ? inc : 0);
-      ic += iceF + iceM;
+      ec2 += evFuel + evM - (y === 1 ? inc : 0);
+      ic += iceFuel + iceM;
       if (!be && ic - ec2 > 0) be = y;
       yd.push({ year: y, ev: Math.round(ec2), ice: Math.round(ic), savings: Math.round(ic - ec2) });
     }
@@ -75,10 +152,10 @@ export function EVCalcPage() {
       be,
       evCpm: (ec2 / (mi * yr)).toFixed(3),
       iceCpm: (ic / (mi * yr)).toFixed(3),
-      evF: Math.round(evF),
-      iceF: Math.round(iceF),
-      evM: Math.round(evM),
-      iceM: Math.round(iceM),
+      evFuel: Math.round(evFuel),
+      iceFuel: Math.round(iceFuel),
+      evM,
+      iceM,
       inc,
       kwhMi: kwhMi.toFixed(3),
       blend: blend.toFixed(3),
@@ -94,7 +171,7 @@ export function EVCalcPage() {
     <div>
       <h1 style={{ fontSize: "clamp(24px,4vw,36px)", fontWeight: 800, color: t.text }}>EV Savings Calculator</h1>
       <p style={{ fontSize: 16, color: t.textMid, lineHeight: 1.6, marginTop: 8, maxWidth: 600 }}>
-        Compare total costs using your location's actual energy prices, incentives, and climate.
+        Compare total costs using your location's actual energy prices and your maintenance estimates.
       </p>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 28, marginTop: 28 }}>
@@ -108,8 +185,23 @@ export function EVCalcPage() {
               <Badge type="estimated">${go || sd.g}/gal</Badge>
             </div>
           )}
-          <Select label="EV" value={evId} onChange={setEvId} options={VEHICLES.ev.map((v) => ({ value: v.id, label: `${v.name} — ${v.kwh} kWh/100mi` }))} />
-          <Select label="Gas Vehicle" value={iceId} onChange={setIceId} options={VEHICLES.ice.map((v) => ({ value: v.id, label: `${v.name} — ${v.mpg} MPG` }))} />
+
+          {/* T1: VehicleSearch replaces plain Select */}
+          <VehicleSearch
+            label="EV to evaluate"
+            vehicles={VEHICLES.ev}
+            value={evId}
+            onChange={setEvId}
+            popularIds={POPULAR_EV_IDS}
+          />
+          <VehicleSearch
+            label="Gas vehicle to compare against"
+            vehicles={VEHICLES.ice}
+            value={iceId}
+            onChange={setIceId}
+            popularIds={POPULAR_ICE_IDS}
+          />
+
           <Slider label="Annual Miles" value={mi} onChange={setMi} min={3000} max={40000} step={1000} />
           <Slider label="Years" value={yr} onChange={setYr} min={1} max={15} suffix=" yrs" />
 
@@ -122,15 +214,45 @@ export function EVCalcPage() {
             <div style={{ fontSize: 12, color: t.err, marginBottom: 8 }}>Total: {hc + pc + dc}% (need 100%)</div>
           )}
 
-          <Toggle label="Include incentives" value={incI} onChange={setIncI} />
-          <Toggle label="Climate adjustment" value={incC} onChange={setIncC} />
+          {/* T2: label clarified; default is false */}
+          <Toggle label="Include federal/state credits (if eligible)" value={incI} onChange={setIncI} />
+          {incI && ev && (
+            <div style={{ fontSize: 11, color: t.textLight, marginBottom: 8, marginTop: -8, paddingLeft: 2 }}>
+              Assumes max ${ev.fc.toLocaleString()} federal credit — eligibility not verified
+            </div>
+          )}
+          <Toggle label="Climate efficiency adjustment" value={incC} onChange={setIncC} />
 
-          <Collapsible title="Override Rates">
+          {/* T3: Maintenance cost inputs */}
+          <Collapsible title="Maintenance Cost Estimates">
+            <div style={{ fontSize: 12, color: t.textLight, marginBottom: 10, lineHeight: 1.5 }}>
+              Conservative defaults shown. Adjust based on your situation.
+            </div>
+            <Input label="EV Annual Maintenance" type="number" value={evMaint} onChange={setEvMaint} prefix="$" suffix="/yr" />
+            <Input label="Gas Vehicle Annual Maintenance" type="number" value={iceMaint} onChange={setIceMaint} prefix="$" suffix="/yr" />
+          </Collapsible>
+
+          <Collapsible title="Override Energy Rates">
             <Input label="Electricity" type="number" value={eo} onChange={setEo} suffix="¢/kWh" />
             <Input label="Gas" type="number" value={go} onChange={setGo} prefix="$" suffix="/gal" />
           </Collapsible>
 
-          <button onClick={calc} style={{ width: "100%", background: t.green, color: "#fff", border: "none", borderRadius: 12, padding: "14px 0", fontSize: 15, fontWeight: 700, cursor: "pointer", marginTop: 8, opacity: zip.length === 5 ? 1 : 0.5 }}>
+          <button
+            onClick={calc}
+            style={{
+              width: "100%",
+              background: t.green,
+              color: "#fff",
+              border: "none",
+              borderRadius: 12,
+              padding: "14px 0",
+              fontSize: 15,
+              fontWeight: 700,
+              cursor: "pointer",
+              marginTop: 8,
+              opacity: zip.length === 5 ? 1 : 0.5,
+            }}
+          >
             Calculate Savings
           </button>
         </div>
@@ -141,13 +263,13 @@ export function EVCalcPage() {
             <div style={{ background: t.card, border: `1px solid ${t.borderLight}`, borderRadius: 14, padding: 40, textAlign: "center" }}>
               <div style={{ fontSize: 48, marginBottom: 12 }}>⚡</div>
               <h3 style={{ fontSize: 18, fontWeight: 700, color: t.text }}>Enter details & calculate</h3>
-              <p style={{ fontSize: 14, color: t.textMid, marginTop: 8 }}>Full breakdown with charts and assumptions.</p>
+              <p style={{ fontSize: 14, color: t.textMid, marginTop: 8 }}>Full breakdown with charts, maintenance costs, and all assumptions.</p>
             </div>
           ) : (
             <div>
               {/* Summary Card */}
               <div style={{ background: t.green, borderRadius: 14, padding: 22, color: "#fff", marginBottom: 16 }}>
-                <div style={{ fontSize: 12, opacity: 0.7 }}>{yr}-Year Total Savings</div>
+                <div style={{ fontSize: 12, opacity: 0.7 }}>{yr}-Year Total Savings (EV vs Gas)</div>
                 <div style={{ fontSize: "clamp(30px,5vw,42px)", fontWeight: 800 }}>${res.total.toLocaleString()}</div>
                 <div style={{ display: "flex", gap: 16, marginTop: 12, flexWrap: "wrap", fontSize: 14 }}>
                   <div><span style={{ opacity: 0.6 }}>Break-even:</span> <b>Year {res.be || "—"}</b></div>
@@ -181,32 +303,77 @@ export function EVCalcPage() {
                 </ResponsiveContainer>
               </div>
 
-              {/* Cost Breakdown */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              {/* T5: Annual cost comparison bars */}
+              <div style={{ background: t.white, border: `1px solid ${t.borderLight}`, borderRadius: 14, padding: 18, marginBottom: 16 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: t.text, marginBottom: 14 }}>Annual Cost Comparison</div>
+                {(() => {
+                  const maxVal = Math.max(res.evFuel + res.evM, res.iceFuel + res.iceM) * 1.1;
+                  return (
+                    <>
+                      <CostBar label={ev?.name || "EV"} fuel={res.evFuel} maint={res.evM} color={t.green} maxVal={maxVal} t={t} />
+                      <CostBar label={ice?.name || "ICE"} fuel={res.iceFuel} maint={res.iceM} color={t.textLight} maxVal={maxVal} t={t} />
+                    </>
+                  );
+                })()}
+              </div>
+
+              {/* T3: Cost breakdown with maintenance detail */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
                 <div style={{ padding: 16, background: t.greenLight, borderRadius: 10 }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: t.greenDark }}>EV Annual</div>
-                  <div style={{ fontSize: 13, color: t.textMid, marginTop: 6 }}>Fuel: <b>${res.evF.toLocaleString()}</b></div>
-                  <div style={{ fontSize: 13, color: t.textMid }}>Maint: <b>${res.evM.toLocaleString()}</b></div>
-                  {res.inc > 0 && <div style={{ fontSize: 13, color: t.greenDark }}>Credits: <b>−${res.inc.toLocaleString()}</b></div>}
+                  <div style={{ fontSize: 12, fontWeight: 700, color: t.greenDark }}>EV Annual Costs</div>
+                  <div style={{ fontSize: 13, color: t.textMid, marginTop: 6 }}>Fuel: <b>${res.evFuel.toLocaleString()}</b></div>
+                  <div style={{ fontSize: 13, color: t.textMid }}>Maint: <b>${res.evM.toLocaleString()}/yr</b></div>
+                  <div style={{ fontSize: 11, color: t.textLight, marginTop: 4 }}>
+                    5-yr: ${(res.evM * 5).toLocaleString()} · 10-yr: ${(res.evM * 10).toLocaleString()}
+                  </div>
+                  {res.inc > 0 && (
+                    <div style={{ fontSize: 13, color: t.greenDark, marginTop: 4 }}>Credits: <b>−${res.inc.toLocaleString()}</b></div>
+                  )}
                 </div>
                 <div style={{ padding: 16, background: t.card, borderRadius: 10 }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: t.textMid }}>ICE Annual</div>
-                  <div style={{ fontSize: 13, color: t.textMid, marginTop: 6 }}>Fuel: <b>${res.iceF.toLocaleString()}</b></div>
-                  <div style={{ fontSize: 13, color: t.textMid }}>Maint: <b>${res.iceM.toLocaleString()}</b></div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: t.textMid }}>Gas Vehicle Annual Costs</div>
+                  <div style={{ fontSize: 13, color: t.textMid, marginTop: 6 }}>Fuel: <b>${res.iceFuel.toLocaleString()}</b></div>
+                  <div style={{ fontSize: 13, color: t.textMid }}>Maint: <b>${res.iceM.toLocaleString()}/yr</b></div>
+                  <div style={{ fontSize: 11, color: t.textLight, marginTop: 4 }}>
+                    5-yr: ${(res.iceM * 5).toLocaleString()} · 10-yr: ${(res.iceM * 10).toLocaleString()}
+                  </div>
                 </div>
               </div>
-              <div style={{ marginTop: 16 }}>
-                <ShareBadge
-                  title={`${yr}-Year EV Savings`}
-                  value={`$${res.total.toLocaleString()}`}
-                  subtitle={`${ev.name} vs ${ice.name}`}
-                  details={[
-                    { label: "Break-even", value: `Year ${res.be || "—"}` },
-                    { label: "EV cost/mi", value: `$${res.evCpm}` },
-                    { label: "ICE cost/mi", value: `$${res.iceCpm}` },
-                  ]}
-                />
+
+              {/* T6: Assumptions panel */}
+              <div style={{ marginBottom: 16 }}>
+                <Collapsible title="📋 Calculation Assumptions">
+                  <div style={{ paddingTop: 4 }}>
+                    <ARow label="Location" value={`${st} (ZIP ${zip})`} t={t} />
+                    <ARow label="Electricity rate" value={`${res.er}¢/kWh${eo ? " (overridden)" : " (state avg)"}`} t={t} />
+                    <ARow label="Gas price" value={`$${res.gp}/gal${go ? " (overridden)" : " (state avg)"}`} t={t} />
+                    <ARow label="Annual miles" value={mi.toLocaleString()} t={t} />
+                    <ARow label="Climate efficiency loss" value={incC ? res.cp : "Not applied"} t={t} />
+                    <ARow label="Charging mix" value={`${hc}% home / ${pc}% L2 / ${dc}% DCFC`} t={t} />
+                    <ARow label="EV maintenance" value={`$${res.evM.toLocaleString()}/yr (user estimate)`} t={t} />
+                    <ARow label="ICE maintenance" value={`$${res.iceM.toLocaleString()}/yr (user estimate)`} t={t} />
+                    <ARow
+                      label="Federal/state credits"
+                      value={incI ? `$${res.inc.toLocaleString()} (eligibility not verified)` : "Not included"}
+                      t={t}
+                    />
+                    <div style={{ fontSize: 11, color: t.textLight, marginTop: 8, lineHeight: 1.5 }}>
+                      Maintenance defaults: EV $800/yr, Gas $1,500/yr. Adjust in "Maintenance Cost Estimates" above.
+                    </div>
+                  </div>
+                </Collapsible>
               </div>
+
+              <ShareBadge
+                title={`${yr}-Year EV Savings`}
+                value={`$${res.total.toLocaleString()}`}
+                subtitle={`${ev?.name} vs ${ice?.name}`}
+                details={[
+                  { label: "Break-even", value: `Year ${res.be || "—"}` },
+                  { label: "EV cost/mi", value: `$${res.evCpm}` },
+                  { label: "ICE cost/mi", value: `$${res.iceCpm}` },
+                ]}
+              />
             </div>
           )}
         </div>

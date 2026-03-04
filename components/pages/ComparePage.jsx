@@ -2,7 +2,8 @@
 import { useState } from "react";
 import { useTheme } from "@/lib/ThemeContext";
 import { Select } from "@/components/ui";
-import { VEHICLES, POWER_STATIONS } from "@/lib/data";
+import { VehicleSearch } from "@/components/ui/VehicleSearch";
+import { VEHICLES, POPULAR_EV_IDS, POWER_STATIONS } from "@/lib/data";
 
 export function ComparePage() {
   const { t } = useTheme();
@@ -28,8 +29,8 @@ export function ComparePage() {
     const rows = a && b ? [
       { l: "Efficiency", a: `${a.kwh} kWh/100mi`, b: `${b.kwh} kWh/100mi`, better: a.kwh < b.kwh ? "a" : b.kwh < a.kwh ? "b" : "tie" },
       { l: "MSRP", a: `$${a.msrp.toLocaleString()}`, b: `$${b.msrp.toLocaleString()}`, better: a.msrp < b.msrp ? "a" : "b" },
-      { l: "Federal Credit", a: `$${a.fc.toLocaleString()}`, b: `$${b.fc.toLocaleString()}`, better: a.fc > b.fc ? "a" : "b" },
-      { l: "Net Price", a: `$${(a.msrp - a.fc).toLocaleString()}`, b: `$${(b.msrp - b.fc).toLocaleString()}`, better: (a.msrp - a.fc) < (b.msrp - b.fc) ? "a" : "b" },
+      { l: "Max Federal Credit*", a: `$${a.fc.toLocaleString()}`, b: `$${b.fc.toLocaleString()}`, better: a.fc > b.fc ? "a" : "b" },
+      { l: "Net Price (w/ max credit)*", a: `$${(a.msrp - a.fc).toLocaleString()}`, b: `$${(b.msrp - b.fc).toLocaleString()}`, better: (a.msrp - a.fc) < (b.msrp - b.fc) ? "a" : "b" },
     ] : [];
 
     return (
@@ -37,8 +38,8 @@ export function ComparePage() {
         <h1 style={{ fontSize: "clamp(24px,4vw,36px)", fontWeight: 800, color: t.text }}>Compare Side-by-Side</h1>
         <TabBar />
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-          <Select value={sel1} onChange={setSel1} options={VEHICLES.ev.map((v) => ({ value: v.id, label: v.name }))} />
-          <Select value={sel2} onChange={setSel2} options={VEHICLES.ev.map((v) => ({ value: v.id, label: v.name }))} />
+          <VehicleSearch vehicles={VEHICLES.ev} value={sel1} onChange={setSel1} popularIds={POPULAR_EV_IDS} />
+          <VehicleSearch vehicles={VEHICLES.ev} value={sel2} onChange={setSel2} popularIds={POPULAR_EV_IDS} />
         </div>
         {a && b && (
           <div style={{ background: t.white, border: `1px solid ${t.borderLight}`, borderRadius: 14, overflow: "hidden", marginTop: 8 }}>
@@ -61,6 +62,11 @@ export function ComparePage() {
               </tbody>
             </table>
           </div>
+        )}
+        {a && b && (
+          <p style={{ fontSize: 11, color: t.textLight, marginTop: 8, lineHeight: 1.5 }}>
+            * Federal credit eligibility depends on buyer income, vehicle MSRP, and assembly location. Credits are not automatic — verify at fueleconomy.gov before purchasing.
+          </p>
         )}
       </div>
     );

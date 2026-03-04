@@ -1,5 +1,6 @@
 "use client";
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect, useTransition, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useTheme } from "@/lib/ThemeContext";
 import { Input, Select, Slider, Toggle, Collapsible, Badge, ChartTip } from "@/components/ui";
@@ -47,11 +48,14 @@ function ARow({ label, value, t }) {
   );
 }
 
-export function EVCalcPage({ initialZip = "" }) {
+/** Inner component — uses useSearchParams() so must be inside <Suspense> */
+function EVCalcInner() {
   const { t } = useTheme();
+  const searchParams = useSearchParams();
+  const urlZip = searchParams.get("zip") || "";
 
   // All calculator inputs (with localStorage defaults)
-  const [zip, setZip] = useState(initialZip);
+  const [zip, setZip] = useState(urlZip);
   const [st, setSt] = useState(null);
   const [sd, setSd2] = useState(null);
   const [evId, setEvId] = useState("model3lr");
@@ -77,7 +81,7 @@ export function EVCalcPage({ initialZip = "" }) {
   useEffect(() => {
     try {
       const saved = JSON.parse(localStorage.getItem(LS_KEY) || "{}");
-      if (!initialZip && saved.zip) setZip(saved.zip); // initialZip from hero takes priority
+      if (!urlZip && saved.zip) setZip(saved.zip); // URL ?zip= param takes priority over localStorage
       if (saved.evId)     setEvId(saved.evId);
       if (saved.iceId)    setIceId(saved.iceId);
       if (saved.mi)       setMi(saved.mi);
@@ -409,5 +413,17 @@ export function EVCalcPage({ initialZip = "" }) {
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * Public export — wraps EVCalcInner in Suspense so useSearchParams()
+ * doesn't force the entire route out of static rendering.
+ */
+export function EVCalcPage() {
+  return (
+    <Suspense fallback={null}>
+      <EVCalcInner />
+    </Suspense>
   );
 }

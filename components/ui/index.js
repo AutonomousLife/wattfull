@@ -12,3 +12,4 @@ export { FadeIn } from "./FadeIn";
 export { VehicleSearch } from "./VehicleSearch";
 export { default as DataFreshness } from "./DataFreshness";
 export { default as VoteBadge } from "./VoteBadge";
+export { BackButton } from "./BackButton";

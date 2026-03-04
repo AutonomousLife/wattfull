@@ -1,14 +1,22 @@
 "use client";
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTheme } from "@/lib/ThemeContext";
 import { Stars, AnimCount, FadeIn } from "@/components/ui";
 import { SOLAR_PANELS, POWER_STATIONS } from "@/lib/data";
 import { NewsletterForm } from "@/components/widgets/NewsletterForm";
+import { idToHref } from "@/lib/routes";
 
-export function HomePage({ navigate }) {
+export function HomePage() {
+  const router = useRouter();
   const { t } = useTheme();
   const [heroZip, setHeroZip] = useState("");
+
+  function goToEV() {
+    router.push(heroZip ? `/ev?zip=${heroZip}` : "/ev");
+  }
 
   return (
     <div>
@@ -31,14 +39,28 @@ export function HomePage({ navigate }) {
                 <div style={{ display: "flex", gap: 10, marginTop: 28, flexWrap: "wrap", alignItems: "center" }}>
                   <div style={{ display: "flex", alignItems: "center", border: `1.5px solid ${t.border}`, borderRadius: 12, background: t.white, overflow: "hidden" }}>
                     <span style={{ paddingLeft: 14, color: t.textLight, fontSize: 14 }}>📍</span>
-                    <input value={heroZip} onChange={(e) => setHeroZip(e.target.value)} placeholder="Your ZIP code" style={{ border: "none", outline: "none", padding: "13px 12px", fontSize: 15, background: "transparent", color: t.text, width: 130 }} />
+                    <input
+                      value={heroZip}
+                      onChange={(e) => setHeroZip(e.target.value.replace(/\D/g, "").slice(0, 5))}
+                      onKeyDown={(e) => { if (e.key === "Enter") goToEV(); }}
+                      placeholder="Your ZIP code"
+                      maxLength={5}
+                      inputMode="numeric"
+                      style={{ border: "none", outline: "none", padding: "13px 12px", fontSize: 15, background: "transparent", color: t.text, width: 130 }}
+                    />
                   </div>
-                  <button onClick={() => navigate("ev")} style={{ background: t.green, color: "#fff", border: "none", borderRadius: 12, padding: "13px 24px", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                  <button
+                    onClick={goToEV}
+                    style={{ background: t.green, color: "#fff", border: "none", borderRadius: 12, padding: "13px 24px", fontSize: 15, fontWeight: 700, cursor: "pointer" }}
+                  >
                     Run EV Savings →
                   </button>
-                  <button onClick={() => navigate("solar")} style={{ background: "transparent", color: t.text, border: `1.5px solid ${t.border}`, borderRadius: 12, padding: "13px 24px", fontSize: 15, fontWeight: 600, cursor: "pointer" }}>
+                  <Link
+                    href="/solar"
+                    style={{ background: "transparent", color: t.text, border: `1.5px solid ${t.border}`, borderRadius: 12, padding: "13px 24px", fontSize: 15, fontWeight: 600, cursor: "pointer", textDecoration: "none" }}
+                  >
                     Solar ROI →
-                  </button>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -101,16 +123,16 @@ export function HomePage({ navigate }) {
             { icon: "🔗", title: "Referral Links", desc: "Community codes for Tesla, solar & more.", cta: "referrals" },
           ].map((tool, i) => (
             <FadeIn key={i} delay={i * 0.05}>
-              <div
-                onClick={() => navigate(tool.cta)}
-                style={{ padding: 20, border: `1px solid ${t.borderLight}`, borderRadius: 14, cursor: "pointer", background: t.white, transition: "all .2s" }}
+              <Link
+                href={idToHref(tool.cta)}
+                style={{ padding: 20, border: `1px solid ${t.borderLight}`, borderRadius: 14, cursor: "pointer", background: t.white, transition: "all .2s", textDecoration: "none", display: "block" }}
                 onMouseEnter={(e) => { e.currentTarget.style.borderColor = t.green + "66"; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.08)"; }}
                 onMouseLeave={(e) => { e.currentTarget.style.borderColor = t.borderLight; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}
               >
                 <div style={{ fontSize: 24, marginBottom: 8 }}>{tool.icon}</div>
                 <h3 style={{ fontSize: 15, fontWeight: 700, color: t.text, marginBottom: 4 }}>{tool.title}</h3>
                 <p style={{ fontSize: 13, color: t.textMid, lineHeight: 1.5 }}>{tool.desc}</p>
-              </div>
+              </Link>
             </FadeIn>
           ))}
         </div>
@@ -121,10 +143,10 @@ export function HomePage({ navigate }) {
         <h2 style={{ fontSize: 20, fontWeight: 700, color: t.text, marginBottom: 20 }}>Quick Picks</h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 16 }}>
           {[SOLAR_PANELS[0], POWER_STATIONS[0], SOLAR_PANELS[2]].map((p) => (
-            <div
+            <Link
               key={p.id + p.name}
-              onClick={() => navigate("marketplace")}
-              style={{ padding: 20, background: t.white, border: `1px solid ${t.borderLight}`, borderRadius: 14, cursor: "pointer", transition: "transform .2s" }}
+              href="/gear"
+              style={{ padding: 20, background: t.white, border: `1px solid ${t.borderLight}`, borderRadius: 14, cursor: "pointer", transition: "transform .2s", textDecoration: "none", display: "block" }}
               onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-3px)")}
               onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
             >
@@ -135,7 +157,7 @@ export function HomePage({ navigate }) {
                 <span style={{ fontSize: 12, color: t.textLight }}>({p.reviews.toLocaleString()})</span>
               </div>
               <div style={{ fontSize: 18, fontWeight: 800, color: t.green, marginTop: 6 }}>${p.price}</div>
-            </div>
+            </Link>
           ))}
         </div>
       </section>

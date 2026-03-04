@@ -9,9 +9,11 @@ function AppShell() {
   const { t, dark, toggleDark } = useTheme();
   const [page, setPage] = useState("home");
   const [mobileMenu, setMobileMenu] = useState(false);
+  const [navZip, setNavZip] = useState("");
 
-  const navigate = useCallback((p) => {
+  const navigate = useCallback((p, zip) => {
     setPage(p);
+    if (zip) setNavZip(zip);
     setMobileMenu(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
@@ -56,7 +58,7 @@ function AppShell() {
       {/* Main */}
       <main style={{ maxWidth: 1200, margin: "0 auto", padding: "32px clamp(16px,4vw,48px)" }}>
         {page === "home" && <HomePage navigate={navigate} />}
-        {page === "ev" && <EVCalcPage />}
+        {page === "ev" && <EVCalcPage initialZip={navZip} />}
         {page === "solar" && <SolarCalcPage />}
         {page === "marketplace" && <MarketplacePage />}
         {page === "compare" && <ComparePage />}

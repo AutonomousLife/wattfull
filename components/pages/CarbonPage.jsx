@@ -264,7 +264,10 @@ export function CarbonPage() {
         >
           Impact Comparison
         </h2>
-        <ResponsiveContainer width="100%" height={300}>
+        <div style={{ fontSize: 11, color: t.textLight, marginBottom: 8, textAlign: "right" }}>
+          Y-axis: log scale (values span different magnitudes)
+        </div>
+        <ResponsiveContainer width="100%" height={280}>
           <BarChart
             data={chartData}
             margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
@@ -277,12 +280,17 @@ export function CarbonPage() {
               tickLine={false}
             />
             <YAxis
-              tick={{ fill: t.textMid, fontSize: 12 }}
+              scale="log"
+              domain={[1, "auto"]}
+              allowDataKey
+              tick={{ fill: t.textMid, fontSize: 11 }}
               axisLine={{ stroke: t.borderLight }}
               tickLine={false}
-              tickFormatter={(v) =>
-                v >= 1000 ? `${(v / 1000).toFixed(1)}k` : v
-              }
+              tickFormatter={(v) => {
+                if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(0)}M`;
+                if (v >= 1000) return `${(v / 1000).toFixed(0)}k`;
+                return String(Math.round(v));
+              }}
             />
             <Tooltip
               contentStyle={{
@@ -303,7 +311,7 @@ export function CarbonPage() {
         </ResponsiveContainer>
       </div>
 
-      {/* --- Animated Tree Grid --- */}
+      {/* --- Tree Equivalency (compact) --- */}
       <div
         style={{
           marginTop: 28,
@@ -318,59 +326,66 @@ export function CarbonPage() {
             fontSize: 18,
             fontWeight: 700,
             color: t.text,
-            marginBottom: 6,
-          }}
-        >
-          Tree Absorption Grid
-        </h2>
-        <p
-          style={{
-            fontSize: 13,
-            color: t.textMid,
             marginBottom: 16,
-            lineHeight: 1.5,
           }}
         >
-          Each tree represents{" "}
-          {Math.max(1, Math.round(trees / TOTAL_GRID)).toLocaleString()} real
-          trees needed.{" "}
-          <b>
-            {filledTrees} of {TOTAL_GRID}
-          </b>{" "}
-          cells filled (
-          {trees >= TOTAL_GRID
-            ? "100"
-            : Math.round((trees / TOTAL_GRID) * 100)}
-          %).
-        </p>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(10, 1fr)",
-            gap: 4,
-          }}
-        >
-          {Array.from({ length: TOTAL_GRID }).map((_, i) => {
-            const active = i < filledTrees;
-            return (
-              <div
+          Tree Equivalency
+        </h2>
+        <div style={{ display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 52, lineHeight: 1 }}>{"\u{1F333}"}</span>
+          <div style={{ flex: "1 1 200px" }}>
+            <div style={{ fontSize: 32, fontWeight: 800, color: t.green, lineHeight: 1 }}>
+              {trees.toLocaleString()}
+            </div>
+            <div style={{ fontSize: 13, color: t.textMid, marginTop: 4 }}>
+              trees needed to absorb{" "}
+              <b style={{ color: t.text }}>{totalCO2.toFixed(1)} metric tons</b> of CO&#8322; over {years} yr{years !== 1 ? "s" : ""}
+            </div>
+            {/* Progress bar — scale: 0 to 1,000 trees */}
+            <div style={{ marginTop: 12 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: t.textLight, marginBottom: 4 }}>
+                <span>0</span>
+                <span>1,000 trees</span>
+              </div>
+              <div style={{ height: 10, background: t.card, borderRadius: 5, overflow: "hidden" }}>
+                <div
+                  style={{
+                    width: `${Math.min((trees / 1000) * 100, 100)}%`,
+                    height: "100%",
+                    background: t.green,
+                    borderRadius: 5,
+                    transition: "width 0.6s ease",
+                  }}
+                />
+              </div>
+              {trees > 1000 && (
+                <div style={{ fontSize: 11, color: t.textMid, marginTop: 4 }}>
+                  {trees.toLocaleString()} trees — {Math.round(trees / 1000 * 10) / 10}× the scale above
+                </div>
+              )}
+            </div>
+          </div>
+          {/* Mini grove visualization — up to 20 trees */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 4, maxWidth: 160, alignContent: "flex-start" }}>
+            {Array.from({ length: Math.min(trees, 20) }).map((_, i) => (
+              <span
                 key={i}
                 style={{
-                  aspectRatio: "1",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  borderRadius: 6,
-                  fontSize: "clamp(14px, 2vw, 22px)",
-                  background: active ? t.greenLight : t.card,
-                  opacity: active ? 1 : 0.3,
-                  transition: `opacity 0.4s ease ${i * 15}ms, background 0.4s ease ${i * 15}ms`,
+                  fontSize: 20,
+                  lineHeight: 1,
+                  opacity: 1,
+                  transition: `opacity 0.3s ease ${i * 40}ms`,
                 }}
               >
                 {"\u{1F333}"}
-              </div>
-            );
-          })}
+              </span>
+            ))}
+            {trees > 20 && (
+              <span style={{ fontSize: 11, color: t.textMid, alignSelf: "center", paddingLeft: 2 }}>
+                +{(trees - 20).toLocaleString()}
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </div>

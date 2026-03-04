@@ -2,6 +2,7 @@
 import Image from "next/image";
 import { useTheme } from "@/lib/ThemeContext";
 import { Stars, Badge } from "@/components/ui";
+import VoteBadge from "@/components/ui/VoteBadge";
 
 export function ProductCard({ product, type, onSelect, selected }) {
   const { t } = useTheme();
@@ -43,9 +44,10 @@ export function ProductCard({ product, type, onSelect, selected }) {
           {type === "panel" ? `${product.watts}W · ${product.weight}` : `${product.capacity} · ${product.weight}`}
         </span>
       </div>
-      <div style={{ fontSize: 13, color: t.textMid, lineHeight: 1.5 }}>
+      <div style={{ fontSize: 13, color: t.textMid, lineHeight: 1.5, marginBottom: 10 }}>
         <span style={{ fontWeight: 600 }}>Best for: </span>{product.bestFor}
       </div>
+      <VoteBadge itemType="product" itemId={product.id} />
       </div>
     </div>
   );

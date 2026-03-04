@@ -28,7 +28,7 @@ export function MarketplacePage() {
         ))}
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "340px 1fr", gap: 24 }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 12, maxHeight: 720, overflowY: "auto", paddingRight: 8 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, maxHeight: 720, overflowY: "auto", paddingRight: 8, paddingLeft: 3, paddingTop: 3, paddingBottom: 3 }}>
           {items.map((p) => (
             <ProductCard key={p.id} product={p} type={tab === "panels" ? "panel" : "station"} onSelect={setSel} selected={p.id === (tab === "panels" ? sp : ss)} />
           ))}

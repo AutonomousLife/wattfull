@@ -1,5 +1,3 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
 # dependencies
 /node_modules
 /.pnp
@@ -10,6 +8,9 @@
 !.yarn/releases
 !.yarn/versions
 
+# testing
+/coverage
+
 # next.js
 /.next/
 /out/
@@ -17,38 +18,26 @@
 # production
 /build
 
-# testing
-/coverage
+# misc
+.DS_Store
+*.pem
 
-# caches
-.cache/
-.turbo/
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
 
-# claude workspace
-.claude/
-
-# environment variables
-.env*
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# env files
+.env*.local
 
 # vercel
 .vercel
 
-# logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-*.log
-
-# misc system files
-.DS_Store
-Thumbs.db
-*.pem
-
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# claude
+.claude/settings.local.json
+.claude/worktrees/

@@ -9,3 +9,4 @@ export { Collapsible } from "./Collapsible";
 export { ChartTip } from "./ChartTip";
 export { AnimCount } from "./AnimCount";
 export { FadeIn } from "./FadeIn";
+export { VehicleSearch } from "./VehicleSearch";

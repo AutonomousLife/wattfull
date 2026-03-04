@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useTheme } from "@/lib/ThemeContext";
 import { Stars } from "@/components/ui";
-import { amazonLink } from "@/lib/helpers";
+import { amazonLink, amazonDP } from "@/lib/helpers";
 
 export function ProductDetail({ product, type }) {
   const { t } = useTheme();
@@ -33,7 +33,7 @@ export function ProductDetail({ product, type }) {
           </div>
           <div style={{ textAlign: "right" }}>
             <div style={{ fontSize: 28, fontWeight: 800, color: t.green }}>${product.price}</div>
-            <a href={amazonLink(product.amazonSearch)} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: t.green, fontWeight: 600, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4, marginTop: 4, padding: "6px 14px", border: `1.5px solid ${t.green}`, borderRadius: 8, transition: "all .2s" }}>
+            <a href={product.asin ? amazonDP(product.asin) : amazonLink(product.amazonSearch)} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: t.green, fontWeight: 600, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4, marginTop: 4, padding: "6px 14px", border: `1.5px solid ${t.green}`, borderRadius: 8, transition: "all .2s" }}>
               View on Amazon →
             </a>
           </div>
@@ -83,7 +83,7 @@ export function ProductDetail({ product, type }) {
       </div>
       {/* Footer CTA */}
       <div style={{ padding: "12px 24px 16px", borderTop: `1px solid ${t.borderLight}`, display: "flex", gap: 8, justifyContent: "flex-end" }}>
-        <a href={amazonLink(product.amazonSearch)} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, fontWeight: 600, color: "#fff", background: t.green, padding: "10px 20px", borderRadius: 8, textDecoration: "none", transition: "opacity .2s" }}>
+        <a href={product.asin ? amazonDP(product.asin) : amazonLink(product.amazonSearch)} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, fontWeight: 600, color: "#fff", background: t.green, padding: "10px 20px", borderRadius: 8, textDecoration: "none", transition: "opacity .2s" }}>
           Check Price on Amazon →
         </a>
       </div>

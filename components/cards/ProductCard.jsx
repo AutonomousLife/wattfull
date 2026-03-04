@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useTheme } from "@/lib/ThemeContext";
 import { Stars, Badge } from "@/components/ui";
 
@@ -11,12 +12,18 @@ export function ProductCard({ product, type, onSelect, selected }) {
         background: selected ? t.greenLight : t.white,
         border: `1.5px solid ${selected ? t.green : t.borderLight}`,
         borderRadius: 14,
-        padding: 20,
+        overflow: "hidden",
         cursor: "pointer",
         transition: "all .2s",
         transform: selected ? "scale(1.01)" : "scale(1)",
       }}
     >
+      {product.image && (
+        <div style={{ position: "relative", width: "100%", height: 120 }}>
+          <Image src={product.image} alt={product.name} fill style={{ objectFit: "cover" }} sizes="(max-width:600px) 100vw, 320px" />
+        </div>
+      )}
+      <div style={{ padding: 20 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
         <div>
           <div style={{ fontSize: 11, fontWeight: 600, color: t.textLight, textTransform: "uppercase", letterSpacing: ".04em" }}>{product.brand}</div>
@@ -38,6 +45,7 @@ export function ProductCard({ product, type, onSelect, selected }) {
       </div>
       <div style={{ fontSize: 13, color: t.textMid, lineHeight: 1.5 }}>
         <span style={{ fontWeight: 600 }}>Best for: </span>{product.bestFor}
+      </div>
       </div>
     </div>
   );

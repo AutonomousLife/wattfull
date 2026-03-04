@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Image from "next/image";
 import { useTheme } from "@/lib/ThemeContext";
 import { Stars, AnimCount, FadeIn } from "@/components/ui";
 import { SOLAR_PANELS, POWER_STATIONS } from "@/lib/data";
@@ -41,11 +42,24 @@ export function HomePage({ navigate }) {
                 </div>
               </div>
             </div>
+            {/* 📷 Hero image — add /public/images/hero-ev.jpg (recommended: 720×540 WebP).
+                Until then, a styled placeholder is shown. */}
             <div style={{ flex: "1 1 35%", display: "flex", justifyContent: "center", alignItems: "center" }}>
-              <div style={{ position: "relative", width: 200, height: 200 }}>
-                <div style={{ position: "absolute", top: 0, left: 0, width: 180, height: 180, borderRadius: "50%", background: t.greenLight, opacity: 0.6 }} />
-                <div style={{ position: "absolute", top: 30, left: 30, width: 140, height: 140, borderRadius: "50%", background: t.green, opacity: 0.1 }} />
-                <div style={{ position: "absolute", top: 60, left: 55, fontSize: 64 }}>⚡</div>
+              <div style={{ position: "relative", width: "100%", maxWidth: 420, aspectRatio: "4/3", borderRadius: 20, overflow: "hidden", background: t.greenLight }}>
+                <Image
+                  src="/images/hero-ev.jpg"
+                  alt="Electric vehicle charging"
+                  fill
+                  priority
+                  style={{ objectFit: "cover" }}
+                  sizes="(max-width: 768px) 0px, 420px"
+                  onError={(e) => { e.currentTarget.style.display = "none"; }}
+                />
+                {/* Fallback visible when image is missing */}
+                <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                  <span style={{ fontSize: 72 }}>⚡</span>
+                  <span style={{ fontSize: 13, color: t.green, fontWeight: 600 }}>Clean Energy</span>
+                </div>
               </div>
             </div>
           </div>

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useTheme } from "@/lib/ThemeContext";
 import { Input, Select, Slider, Toggle, Collapsible, Badge, ChartTip } from "@/components/ui";
@@ -7,6 +7,8 @@ import { VehicleSearch } from "@/components/ui/VehicleSearch";
 import { VEHICLES, POPULAR_EV_IDS, POPULAR_ICE_IDS, CLIMATE_PENALTIES, STATE_DATA, zipToState } from "@/lib/data";
 import { fmt } from "@/lib/helpers";
 import { ShareBadge } from "@/components/widgets/ShareBadge";
+import { runCalc } from "@/app/actions/calc";
+import DataFreshness from "@/components/ui/DataFreshness";
 
 const LS_KEY = "wattfull_ev_calc_v1";
 
@@ -68,6 +70,8 @@ export function EVCalcPage() {
   const [res, setRes] = useState(null);
   const [err, setErr] = useState({});
   const [loaded, setLoaded] = useState(false);
+  const [serverRates, setServerRates] = useState(null);  // real rates from DB
+  const [isPending, startTransition] = useTransition();
 
   // T7: Load from localStorage on mount
   useEffect(() => {
@@ -121,8 +125,9 @@ export function EVCalcPage() {
     setErr(e);
     if (Object.keys(e).length) return;
 
-    const er = eo !== "" ? Number(eo) : sd.e;
-    const gp = go !== "" ? Number(go) : sd.g;
+    // Prefer server-verified rates > user override > state fallback
+    const er = eo !== "" ? Number(eo) : (serverRates?.electricityCentsPerKwh ?? sd.e);
+    const gp = go !== "" ? Number(go) : (serverRates?.gasDollarsPerGallon ?? sd.g);
     const cp = CLIMATE_PENALTIES[sd.z] || 0.1;
     const kwhMi = (ev.kwh / 100) * (incC ? 1 + cp : 1);
     const blend = (hc / 100) * (er / 100) * 1.12 + (pc / 100) * (er / 100 + 0.18) * 1.06 + (dc / 100) * 0.35;
@@ -179,12 +184,37 @@ export function EVCalcPage() {
         <div style={{ background: t.white, border: `1px solid ${t.borderLight}`, borderRadius: 14, padding: 22 }}>
           <Input label="ZIP Code" value={zip} onChange={setZip} error={err.zip} placeholder="e.g. 90210" />
           {st && sd && (
-            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 14 }}>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8, alignItems: "center" }}>
               <Badge type="real">{st}</Badge>
-              <Badge type="estimated">{eo || sd.e}¢/kWh</Badge>
-              <Badge type="estimated">${go || sd.g}/gal</Badge>
+              <Badge type={serverRates ? "real" : "estimated"}>
+                {serverRates ? serverRates.electricityCentsPerKwh.toFixed(1) : (eo || sd.e)}¢/kWh
+              </Badge>
+              <Badge type={serverRates ? "real" : "estimated"}>
+                ${serverRates ? serverRates.gasDollarsPerGallon.toFixed(2) : (go || sd.g)}/gal
+              </Badge>
+              {serverRates && <Badge type="real">EIA verified</Badge>}
             </div>
           )}
+          {st && !serverRates && (
+            <button
+              onClick={() => {
+                startTransition(async () => {
+                  try {
+                    const r = await runCalc({ zip, evId, iceId, milesPerYear: mi, ownershipYears: yr });
+                    if (r?.ratesUsed) setServerRates(r.ratesUsed);
+                  } catch (_) {}
+                });
+              }}
+              disabled={isPending}
+              style={{
+                fontSize: 12, color: t.green, background: "transparent", border: `1px solid ${t.green}`,
+                borderRadius: 8, padding: "4px 10px", cursor: "pointer", marginBottom: 12, opacity: isPending ? 0.6 : 1,
+              }}
+            >
+              {isPending ? "Loading…" : "📍 Load real rates for my ZIP"}
+            </button>
+          )}
+          <DataFreshness />
 
           {/* T1: VehicleSearch replaces plain Select */}
           <VehicleSearch

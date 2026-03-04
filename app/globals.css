@@ -41,11 +41,16 @@ body {
   cursor: pointer;
   outline: none;
 }
+.wf-slider::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+}
 .wf-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   width: 20px;
   height: 20px;
+  margin-top: -8px; /* (track 4px − thumb 20px) / 2 = −8px for perfect centering */
   border-radius: 50%;
   background: var(--wf-slider-color, #4A7C59);
   border: 3px solid #fff;

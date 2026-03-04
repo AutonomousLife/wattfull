@@ -47,11 +47,11 @@ function ARow({ label, value, t }) {
   );
 }
 
-export function EVCalcPage() {
+export function EVCalcPage({ initialZip = "" }) {
   const { t } = useTheme();
 
   // All calculator inputs (with localStorage defaults)
-  const [zip, setZip] = useState("");
+  const [zip, setZip] = useState(initialZip);
   const [st, setSt] = useState(null);
   const [sd, setSd2] = useState(null);
   const [evId, setEvId] = useState("model3lr");
@@ -77,7 +77,7 @@ export function EVCalcPage() {
   useEffect(() => {
     try {
       const saved = JSON.parse(localStorage.getItem(LS_KEY) || "{}");
-      if (saved.zip)      setZip(saved.zip);
+      if (!initialZip && saved.zip) setZip(saved.zip); // initialZip from hero takes priority
       if (saved.evId)     setEvId(saved.evId);
       if (saved.iceId)    setIceId(saved.iceId);
       if (saved.mi)       setMi(saved.mi);

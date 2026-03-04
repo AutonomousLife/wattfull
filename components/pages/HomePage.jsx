@@ -31,9 +31,17 @@ export function HomePage({ navigate }) {
                 <div style={{ display: "flex", gap: 10, marginTop: 28, flexWrap: "wrap", alignItems: "center" }}>
                   <div style={{ display: "flex", alignItems: "center", border: `1.5px solid ${t.border}`, borderRadius: 12, background: t.white, overflow: "hidden" }}>
                     <span style={{ paddingLeft: 14, color: t.textLight, fontSize: 14 }}>📍</span>
-                    <input value={heroZip} onChange={(e) => setHeroZip(e.target.value)} placeholder="Your ZIP code" style={{ border: "none", outline: "none", padding: "13px 12px", fontSize: 15, background: "transparent", color: t.text, width: 130 }} />
+                    <input
+                      value={heroZip}
+                      onChange={(e) => setHeroZip(e.target.value.replace(/\D/g, "").slice(0, 5))}
+                      onKeyDown={(e) => { if (e.key === "Enter") navigate("ev", heroZip); }}
+                      placeholder="Your ZIP code"
+                      maxLength={5}
+                      inputMode="numeric"
+                      style={{ border: "none", outline: "none", padding: "13px 12px", fontSize: 15, background: "transparent", color: t.text, width: 130 }}
+                    />
                   </div>
-                  <button onClick={() => navigate("ev")} style={{ background: t.green, color: "#fff", border: "none", borderRadius: 12, padding: "13px 24px", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                  <button onClick={() => navigate("ev", heroZip)} style={{ background: t.green, color: "#fff", border: "none", borderRadius: 12, padding: "13px 24px", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
                     Run EV Savings →
                   </button>
                   <button onClick={() => navigate("solar")} style={{ background: "transparent", color: t.text, border: `1.5px solid ${t.border}`, borderRadius: 12, padding: "13px 24px", fontSize: 15, fontWeight: 600, cursor: "pointer" }}>

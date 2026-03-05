@@ -32,7 +32,7 @@
   /* Sheen intensities */
   --sheen-hi:  rgba(255,255,255,0.28);
   --sheen-lo:  rgba(255,255,255,0.14);
-  --reflect-hi: rgba(255,255,255,0.42);
+  --reflect-hi: rgba(255,255,255,0.52);
 }
 
 [data-theme="dark"] {
@@ -45,9 +45,9 @@
   --sh-lg: 0 12px 40px rgba(0,0,0,.48), 0 4px 12px rgba(0,0,0,.28);
   --sh-xl: 0 24px 64px rgba(0,0,0,.56), 0 8px 24px rgba(0,0,0,.32);
 
-  --sheen-hi:  rgba(255,255,255,0.13);
-  --sheen-lo:  rgba(255,255,255,0.07);
-  --reflect-hi: rgba(255,255,255,0.20);
+  --sheen-hi:  rgba(255,255,255,0.18);
+  --sheen-lo:  rgba(255,255,255,0.09);
+  --reflect-hi: rgba(255,255,255,0.36);
 }
 
 @theme inline {
@@ -63,6 +63,23 @@ body {
   color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
   transition: background 0.3s ease, color 0.3s ease;
+  -webkit-tap-highlight-color: transparent; /* kills the blue mobile flash */
+}
+
+/* ─── Global button press feel ───────────────────────────────────────────── */
+/*
+  Any button / role=button that doesn't already have a custom active state
+  gets a subtle scale-down + dim so it feels physically pressed.
+  GlassButton overrides this via .wf-lift:active below.
+*/
+button, [role="button"] {
+  -webkit-tap-highlight-color: transparent;
+}
+button:active:not(:disabled):not(.wf-lift),
+[role="button"]:active:not(.wf-lift) {
+  transform: scale(0.96);
+  opacity: 0.85;
+  transition: transform 80ms ease, opacity 80ms ease;
 }
 
 /* ─── Signature contour-map motif ────────────────────────────────────────── */
@@ -150,7 +167,7 @@ body {
   z-index: 2;
 }
 .wf-sheen.wf-clicked::after {
-  animation: wf-reflect var(--dur-slow) var(--ease) forwards;
+  animation: wf-reflect 340ms var(--ease) forwards;
 }
 @keyframes wf-reflect {
   0%   { transform: scale(0);   opacity: 1; }
@@ -218,18 +235,23 @@ body {
 .wf-toast-enter { animation: wf-toast-in  var(--dur-med) var(--ease) forwards; }
 .wf-toast-exit  { animation: wf-toast-out var(--dur-med) var(--ease) forwards; }
 
-/* ─── Lift on hover (micro-interaction) ──────────────────────────────────── */
+/* ─── Lift on hover + press (micro-interaction) ──────────────────────────── */
 .wf-lift {
   transition:
     transform  var(--dur-fast) var(--ease),
-    box-shadow var(--dur-fast) var(--ease);
+    box-shadow var(--dur-fast) var(--ease),
+    opacity    var(--dur-fast) var(--ease);
 }
 .wf-lift:hover {
   transform: translateY(-2px);
   box-shadow: var(--sh-lg);
 }
+/* Press: physically push down + compress + dim slightly */
 .wf-lift:active {
-  transform: translateY(0);
+  transform: translateY(1px) scale(0.975);
+  box-shadow: var(--sh-xs);
+  opacity: 0.88;
+  transition-duration: 80ms; /* snappier response on press */
 }
 
 /* ─── Reduced motion overrides ───────────────────────────────────────────── */
@@ -251,9 +273,16 @@ body {
   [data-theme="dark"] .wf-skeleton {
     background: rgba(255,255,255,0.06);
   }
-  .wf-lift:hover {
+  .wf-lift:hover,
+  .wf-lift:active {
     transform: none;
     box-shadow: var(--sh-md);
+    opacity: 1;
+  }
+  button:active:not(:disabled):not(.wf-lift),
+  [role="button"]:active:not(.wf-lift) {
+    transform: none;
+    opacity: 1;
   }
   .wf-toast-enter,
   .wf-toast-exit {

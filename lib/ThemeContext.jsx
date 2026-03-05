@@ -5,13 +5,16 @@ import { THEME } from "@/lib/data/theme";
 const ThemeContext = createContext(null);
 
 export function ThemeProvider({ children }) {
-  const [dark, setDark] = useState(false);
-
-  useEffect(() => {
+  // Lazy initializer: read from localStorage/system preference synchronously
+  // so the VERY FIRST React render uses the correct theme — no flash.
+  // The inline script in layout.tsx already set data-theme on <html>;
+  // here we just match it so React inline styles agree from frame 1.
+  const [dark, setDark] = useState(() => {
+    if (typeof window === "undefined") return false; // SSR: default light
     const saved = localStorage.getItem("wattfull-dark");
-    if (saved !== null) setDark(saved === "true");
-    else if (window.matchMedia("(prefers-color-scheme: dark)").matches) setDark(true);
-  }, []);
+    if (saved !== null) return saved === "true";
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  });
 
   useEffect(() => {
     localStorage.setItem("wattfull-dark", String(dark));

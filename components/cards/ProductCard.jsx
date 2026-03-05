@@ -5,12 +5,13 @@ import { Stars, Badge } from "@/components/ui";
 import VoteBadge from "@/components/ui/VoteBadge";
 import { amazonDP } from "@/lib/helpers";
 
-// Amazon product image via ASIN.
-// Uses m.media-amazon.com (newer CDN) + referrerPolicy="no-referrer" so the
-// browser sends no Referer header — prevents Amazon's CDN from blocking external hotlinks.
+// Route Amazon product images through our server-side proxy (/api/img).
+// Direct CDN hotlinks fail (Amazon returns a 1×1 transparent pixel, HTTP 200,
+// so onError never fires). The proxy fetches from Amazon server-side
+// (no Referer header), checks image size to reject blanks, and caches results.
 function asinImg(asin) {
   if (!asin) return null;
-  return `https://m.media-amazon.com/images/P/${asin}.01.LZZZZZZZ.jpg`;
+  return `/api/img?asin=${asin}`;
 }
 
 const TYPE_ICON = { panel: "☀️", station: "⚡" };
@@ -49,7 +50,6 @@ export function ProductCard({ product, type, onSelect, selected }) {
             src={imgSrc}
             alt={product.name}
             loading="lazy"
-            referrerPolicy="no-referrer"
             style={{ width: "100%", height: "100%", objectFit: "contain", padding: "8px" }}
             onError={() => setImgFailed(true)}
           />

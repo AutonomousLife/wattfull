@@ -4,11 +4,10 @@ import { useTheme } from "@/lib/ThemeContext";
 import { Stars } from "@/components/ui";
 import { amazonLink, amazonDP } from "@/lib/helpers";
 
+// Route through /api/img — server-side proxy that bypasses Amazon hotlink blocks.
 function asinImg(asin) {
   if (!asin) return null;
-  // m.media-amazon.com is Amazon's current CDN; referrerPolicy="no-referrer" on the
-  // <img> prevents the Referer header that triggers Amazon's hotlink block.
-  return `https://m.media-amazon.com/images/P/${asin}.01.LZZZZZZZ.jpg`;
+  return `/api/img?asin=${asin}`;
 }
 
 export function ProductDetail({ product, type }) {
@@ -63,7 +62,6 @@ export function ProductDetail({ product, type }) {
               src={imgSrc}
               alt={product.name}
               loading="lazy"
-              referrerPolicy="no-referrer"
               style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain", padding: 16 }}
               onError={() => setImgFailed(true)}
             />

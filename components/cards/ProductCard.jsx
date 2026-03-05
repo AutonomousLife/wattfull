@@ -1,17 +1,23 @@
 "use client";
+import { useState } from "react";
 import { useTheme } from "@/lib/ThemeContext";
 import { Stars, Badge } from "@/components/ui";
 import VoteBadge from "@/components/ui/VoteBadge";
 import { amazonDP } from "@/lib/helpers";
 
-// Derive the Amazon product image URL from an ASIN
+// Amazon product image via ASIN.
+// Uses m.media-amazon.com (newer CDN) + referrerPolicy="no-referrer" so the
+// browser sends no Referer header — prevents Amazon's CDN from blocking external hotlinks.
 function asinImg(asin) {
   if (!asin) return null;
-  return `https://images-na.ssl-images-amazon.com/images/P/${asin}.01.LZZZZZZZ.jpg`;
+  return `https://m.media-amazon.com/images/P/${asin}.01.LZZZZZZZ.jpg`;
 }
+
+const TYPE_ICON = { panel: "☀️", station: "⚡" };
 
 export function ProductCard({ product, type, onSelect, selected }) {
   const { t } = useTheme();
+  const [imgFailed, setImgFailed] = useState(false);
   const imgSrc = product.image || asinImg(product.asin);
 
   return (
@@ -28,26 +34,35 @@ export function ProductCard({ product, type, onSelect, selected }) {
       }}
     >
       {/* Product image */}
-      {imgSrc && (
-        <div style={{
-          width: "100%",
-          height: 160,
-          background: t.card,
-          overflow: "hidden",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          borderBottom: `1px solid ${t.borderLight}`,
-        }}>
+      <div style={{
+        width: "100%",
+        height: 160,
+        background: t.card,
+        overflow: "hidden",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        borderBottom: `1px solid ${t.borderLight}`,
+      }}>
+        {imgSrc && !imgFailed ? (
           <img
             src={imgSrc}
             alt={product.name}
             loading="lazy"
+            referrerPolicy="no-referrer"
             style={{ width: "100%", height: "100%", objectFit: "contain", padding: "8px" }}
-            onError={(e) => { e.currentTarget.parentElement.style.display = "none"; }}
+            onError={() => setImgFailed(true)}
           />
-        </div>
-      )}
+        ) : (
+          /* Styled placeholder when image unavailable */
+          <div style={{ textAlign: "center", opacity: 0.45 }}>
+            <div style={{ fontSize: 36 }}>{TYPE_ICON[type] ?? "📦"}</div>
+            <div style={{ fontSize: 11, color: t.textFaint, marginTop: 4, fontWeight: 600 }}>
+              {product.brand}
+            </div>
+          </div>
+        )}
+      </div>
 
       <div style={{ padding: 20 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>

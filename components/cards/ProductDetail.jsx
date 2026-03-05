@@ -6,7 +6,9 @@ import { amazonLink, amazonDP } from "@/lib/helpers";
 
 function asinImg(asin) {
   if (!asin) return null;
-  return `https://images-na.ssl-images-amazon.com/images/P/${asin}.01.LZZZZZZZ.jpg`;
+  // m.media-amazon.com is Amazon's current CDN; referrerPolicy="no-referrer" on the
+  // <img> prevents the Referer header that triggers Amazon's hotlink block.
+  return `https://m.media-amazon.com/images/P/${asin}.01.LZZZZZZZ.jpg`;
 }
 
 export function ProductDetail({ product, type }) {
@@ -44,46 +46,45 @@ export function ProductDetail({ product, type }) {
     <div style={{ background: t.white, border: `1px solid ${t.borderLight}`, borderRadius: 16, overflow: "hidden" }}>
 
       {/* ── Product image hero ─────────────────────────────────────────── */}
-      {imgSrc && !imgFailed && (
-        <div style={{
-          width: "100%",
-          height: 240,
-          background: t.card,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          borderBottom: `1px solid ${t.borderLight}`,
-          overflow: "hidden",
-          position: "relative",
-        }}>
-          <img
-            src={imgSrc}
-            alt={product.name}
-            loading="lazy"
-            style={{
-              maxWidth: "100%",
-              maxHeight: "100%",
-              objectFit: "contain",
-              padding: 16,
-            }}
-            onError={() => setImgFailed(true)}
-          />
-          {/* Affiliate badge */}
-          <div style={{
-            position: "absolute",
-            bottom: 10,
-            right: 12,
-            fontSize: 10,
-            color: t.textFaint,
-            background: t.card,
-            borderRadius: 6,
-            padding: "2px 8px",
-            border: `1px solid ${t.borderLight}`,
-          }}>
-            via Amazon
+      <div style={{
+        width: "100%",
+        height: 240,
+        background: t.card,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        borderBottom: `1px solid ${t.borderLight}`,
+        overflow: "hidden",
+        position: "relative",
+      }}>
+        {imgSrc && !imgFailed ? (
+          <>
+            <img
+              src={imgSrc}
+              alt={product.name}
+              loading="lazy"
+              referrerPolicy="no-referrer"
+              style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain", padding: 16 }}
+              onError={() => setImgFailed(true)}
+            />
+            <div style={{
+              position: "absolute", bottom: 10, right: 12,
+              fontSize: 10, color: t.textFaint, background: t.card,
+              borderRadius: 6, padding: "2px 8px", border: `1px solid ${t.borderLight}`,
+            }}>
+              via Amazon
+            </div>
+          </>
+        ) : (
+          /* Placeholder when no image or image failed */
+          <div style={{ textAlign: "center", opacity: 0.4 }}>
+            <div style={{ fontSize: 52 }}>{type === "panel" ? "☀️" : "⚡"}</div>
+            <div style={{ fontSize: 12, color: t.textFaint, marginTop: 6, fontWeight: 600 }}>
+              {product.brand}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <div style={{ padding: 24, borderBottom: `1px solid ${t.borderLight}` }}>

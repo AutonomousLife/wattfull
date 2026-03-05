@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, AreaChart, Area, ReferenceLine, Legend,
@@ -150,18 +150,18 @@ function VehicleComparePanel({ v1, t1, v2, t2, t }) {
       }}>
         <div style={{ position: "absolute", left: "12%", top: "50%", transform: "translate(-50%,-50%)", width: 180, height: 180, borderRadius: "50%", background: c1, opacity: 0.07, filter: "blur(40px)", pointerEvents: "none" }} />
         <div style={{ position: "absolute", right: "12%", top: "50%", transform: "translate(50%,-50%)",  width: 180, height: 180, borderRadius: "50%", background: c2, opacity: 0.07, filter: "blur(40px)", pointerEvents: "none" }} />
-        <div style={{ display: "flex", alignItems: "flex-end", gap: 10 }}>
+        <div style={{ display: "flex", alignItems: "stretch", gap: 10 }}>
           <div style={{ flex: 1, textAlign: "center" }}>
-            <CarSilhouette color={c1} />
+            <VehiclePhoto vehicleId={v1.id} name={v1.name} height={110} accentColor={c1} />
             <div style={{ marginTop: 8, fontSize: 13, fontWeight: 700, color: t.text }}>{v1.name}</div>
             <div style={{ fontSize: 22, fontWeight: 900, color: c1, marginTop: 4 }}>{ts1}</div>
             <div style={{ fontSize: 10, color: t.textLight }}>score</div>
           </div>
-          <div style={{ flexShrink: 0, paddingBottom: 40, textAlign: "center" }}>
-            <div style={{ width: 40, height: 40, borderRadius: "50%", background: t.card, border: `2px solid ${t.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 900, color: t.text }}>VS</div>
+          <div style={{ flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ width: 38, height: 38, borderRadius: "50%", background: t.card, border: `2px solid ${t.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 900, color: t.text }}>VS</div>
           </div>
           <div style={{ flex: 1, textAlign: "center" }}>
-            <CarSilhouette color={c2} flip />
+            <VehiclePhoto vehicleId={v2.id} name={v2.name} height={110} flip accentColor={c2} />
             <div style={{ marginTop: 8, fontSize: 13, fontWeight: 700, color: t.text }}>{v2.name}</div>
             <div style={{ fontSize: 22, fontWeight: 900, color: c2, marginTop: 4 }}>{ts2}</div>
             <div style={{ fontSize: 10, color: t.textLight }}>score</div>
@@ -180,84 +180,121 @@ function VehicleComparePanel({ v1, t1, v2, t2, t }) {
   );
 }
 
-// ── Car Silhouette SVG ────────────────────────────────────────────────────
-function CarSilhouette({ color, flip = false }) {
-  const dark = "#0f172a";
-  const hub  = "#475569";
+// ── Wikipedia article title map for each vehicle ID ───────────────────────
+const WIKI_ARTICLES = {
+  // Tesla
+  model3rwd: "Tesla Model 3", model3lr: "Tesla Model 3", model3perf: "Tesla Model 3",
+  modelyrwd: "Tesla Model Y", modely: "Tesla Model Y", modelyperf: "Tesla Model Y",
+  models: "Tesla Model S", modelx: "Tesla Model X",
+  // Hyundai
+  ioniq5rwd: "Hyundai Ioniq 5", ioniq5: "Hyundai Ioniq 5",
+  ioniq6rwd: "Hyundai Ioniq 6", ioniq6awd: "Hyundai Ioniq 6",
+  konael: "Hyundai Kona",
+  // Kia
+  ev6rwd: "Kia EV6", ev6awd: "Kia EV6", ev6gt: "Kia EV6",
+  ev9: "Kia EV9",
+  // Chevy / Ford
+  bolt: "Chevrolet Equinox EV", blazerev: "Chevrolet Blazer EV",
+  mache: "Ford Mustang Mach-E", f150lightning: "Ford F-150 Lightning",
+  // VW / BMW / Polestar
+  id4: "Volkswagen ID.4", bmwi4: "BMW i4", polestar2: "Polestar 2",
+  // Rivian / Others
+  rivianr1t: "Rivian R1T", rivianr1s: "Rivian R1S",
+  nisanariya: "Nissan Ariya", subarosolt: "Subaru Solterra",
+  toyotabz4x: "Toyota bZ4X", hondaprologue: "Honda Prologue",
+  cadillaclyriq: "Cadillac Lyriq", mercedeseqb: "Mercedes-Benz EQB",
+  // ICE — Toyota
+  camry: "Toyota Camry", corolla: "Toyota Corolla",
+  rav4: "Toyota RAV4", rav4hybrid: "Toyota RAV4 Hybrid",
+  prius: "Toyota Prius", tacoma: "Toyota Tacoma", highlander: "Toyota Highlander",
+  // ICE — Honda
+  civic: "Honda Civic", crv: "Honda CR-V", accord: "Honda Accord",
+  // ICE — American
+  f150gas: "Ford F-150", silverado: "Chevrolet Silverado", gmcsierra: "GMC Sierra",
+  // ICE — Others
+  altima: "Nissan Altima", cx5: "Mazda CX-5",
+  tucson: "Hyundai Tucson", sorento: "Kia Sorento", bmw330i: "BMW 3 Series",
+};
+
+// Module-level cache so repeated renders don't re-fetch
+const _photoCache = {};
+
+// ── VehiclePhoto — fetches real car photo from Wikipedia REST API ─────────
+function VehiclePhoto({ vehicleId, name, height = 140, flip = false, accentColor }) {
+  const { t } = useTheme();
+  const [src, setSrc]         = useState(_photoCache[vehicleId] ?? null);
+  const [loading, setLoading] = useState(!_photoCache[vehicleId]);
+
+  useEffect(() => {
+    if (_photoCache[vehicleId] !== undefined) {
+      setSrc(_photoCache[vehicleId]);
+      setLoading(false);
+      return;
+    }
+    const article = WIKI_ARTICLES[vehicleId];
+    if (!article) { _photoCache[vehicleId] = null; setLoading(false); return; }
+
+    fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(article)}`)
+      .then((r) => r.json())
+      .then((data) => {
+        // Bump thumbnail to a larger size (Wikipedia thumbs default to ~320px)
+        let url = data.thumbnail?.source ?? null;
+        if (url) url = url.replace(/\/\d+px-/, "/640px-");
+        _photoCache[vehicleId] = url;
+        setSrc(url);
+        setLoading(false);
+      })
+      .catch(() => { _photoCache[vehicleId] = null; setLoading(false); });
+  }, [vehicleId]);
+
+  const frame = {
+    width: "100%", height,
+    borderRadius: 10,
+    overflow: "hidden",
+    background: t.card,
+    display: "flex", alignItems: "center", justifyContent: "center",
+    position: "relative",
+  };
+
+  if (loading) {
+    return (
+      <div style={frame} className="wf-skeleton" />
+    );
+  }
+
+  if (!src) {
+    // Fallback: gradient with car name
+    return (
+      <div style={{
+        ...frame,
+        background: accentColor
+          ? `linear-gradient(135deg, ${accentColor}18, ${accentColor}08)`
+          : t.card,
+        border: `1px solid ${t.borderLight}`,
+        flexDirection: "column", gap: 6,
+      }}>
+        <span style={{ fontSize: 28 }}>🚗</span>
+        <span style={{ fontSize: 12, fontWeight: 600, color: t.textMid, textAlign: "center", padding: "0 12px" }}>{name}</span>
+      </div>
+    );
+  }
+
   return (
-    <svg
-      viewBox="0 0 300 105"
-      xmlns="http://www.w3.org/2000/svg"
-      style={{
-        width: "100%",
-        maxWidth: 240,
-        display: "block",
-        margin: "0 auto",
-        transform: flip ? "scaleX(-1)" : "none",
-        filter: `drop-shadow(0 8px 20px ${color}40)`,
-      }}
-    >
-      {/* Ground glow */}
-      <ellipse cx="150" cy="101" rx="128" ry="5" fill={color} opacity="0.18" />
-
-      {/* Main body */}
-      <rect x="14" y="56" width="268" height="33" rx="7" fill={color} />
-
-      {/* Cabin */}
-      <path d="M74 56 Q86 26 116 20 L184 20 Q214 26 226 56 Z" fill={color} />
-
-      {/* Front windshield */}
-      <path d="M188 22 L184 20 L212 26 L226 56 L196 56 Z" fill="rgba(255,255,255,0.20)" />
-
-      {/* Center window */}
-      <path d="M118 22 L116 20 L184 20 L186 22 L196 56 L104 56 Z" fill="rgba(255,255,255,0.20)" />
-
-      {/* Rear window */}
-      <path d="M88 27 Q82 22 116 20 L118 22 L104 56 L76 56 Z" fill="rgba(255,255,255,0.14)" />
-
-      {/* Hood slope (front extension) */}
-      <path d="M228 56 L268 61 L280 89 L228 89 Z" fill={color} opacity="0.88" />
-
-      {/* Headlight strip */}
-      <rect x="271" y="67" width="13" height="9" rx="3.5" fill="#fef9c3" opacity="0.96" />
-      {/* Headlight glow */}
-      <ellipse cx="278" cy="71" rx="9" ry="5" fill="#fef3c7" opacity="0.30" />
-
-      {/* Tail light */}
-      <rect x="15" y="63" width="7" height="12" rx="3" fill="#fca5a5" opacity="0.92" />
-
-      {/* Rear wheel */}
-      <circle cx="68"  cy="90" r="16" fill={dark} />
-      <circle cx="68"  cy="90" r="8"  fill={hub} />
-      <circle cx="68"  cy="90" r="3.5" fill="#94a3b8" />
-
-      {/* Front wheel */}
-      <circle cx="232" cy="90" r="16" fill={dark} />
-      <circle cx="232" cy="90" r="8"  fill={hub} />
-      <circle cx="232" cy="90" r="3.5" fill="#94a3b8" />
-
-      {/* Wheel spoke details */}
-      {[0,60,120,180,240,300].map((deg) => (
-        <line
-          key={deg}
-          x1={68 + Math.cos(deg * Math.PI / 180) * 3.5}
-          y1={90 + Math.sin(deg * Math.PI / 180) * 3.5}
-          x2={68 + Math.cos(deg * Math.PI / 180) * 8}
-          y2={90 + Math.sin(deg * Math.PI / 180) * 8}
-          stroke="#64748b" strokeWidth="1.5"
-        />
-      ))}
-      {[0,60,120,180,240,300].map((deg) => (
-        <line
-          key={deg}
-          x1={232 + Math.cos(deg * Math.PI / 180) * 3.5}
-          y1={90  + Math.sin(deg * Math.PI / 180) * 3.5}
-          x2={232 + Math.cos(deg * Math.PI / 180) * 8}
-          y2={90  + Math.sin(deg * Math.PI / 180) * 8}
-          stroke="#64748b" strokeWidth="1.5"
-        />
-      ))}
-    </svg>
+    <div style={{ ...frame, background: t.card }}>
+      <img
+        src={src}
+        alt={name}
+        loading="lazy"
+        style={{
+          width: "100%", height: "100%",
+          objectFit: "contain",
+          transform: flip ? "scaleX(-1)" : "none",
+          padding: "8px 4px",
+          display: "block",
+        }}
+        onError={() => { _photoCache[vehicleId] = null; setSrc(null); }}
+      />
+    </div>
   );
 }
 
@@ -269,24 +306,22 @@ function CarStandoff({ ev, ice, t }) {
       background: t.featuredBg,
       border: `1.5px solid ${t.featuredBorder}`,
       borderRadius: "var(--r-xl)",
-      padding: "28px 24px 20px",
+      padding: "24px 20px 20px",
       marginBottom: 20,
       overflow: "hidden",
     }}>
       {/* Ambient glows */}
-      <div style={{ position: "absolute", left: "12%", top: "50%", transform: "translate(-50%,-50%)", width: 220, height: 220, borderRadius: "50%", background: t.green, opacity: 0.07, filter: "blur(50px)", pointerEvents: "none" }} />
-      <div style={{ position: "absolute", right: "12%", top: "50%", transform: "translate(50%,-50%)",  width: 220, height: 220, borderRadius: "50%", background: "#64748b", opacity: 0.07, filter: "blur(50px)", pointerEvents: "none" }} />
+      <div style={{ position: "absolute", left: "14%", top: "40%", transform: "translate(-50%,-50%)", width: 240, height: 180, borderRadius: "50%", background: t.green, opacity: 0.08, filter: "blur(50px)", pointerEvents: "none" }} />
+      <div style={{ position: "absolute", right: "14%", top: "40%", transform: "translate(50%,-50%)", width: 240, height: 180, borderRadius: "50%", background: "#64748b", opacity: 0.07, filter: "blur(50px)", pointerEvents: "none" }} />
 
       {/* Road stripe */}
-      <div style={{ position: "absolute", bottom: 18, left: "25%", right: "25%", height: 3, background: `repeating-linear-gradient(90deg, ${t.featuredBorder} 0, ${t.featuredBorder} 20px, transparent 20px, transparent 36px)`, borderRadius: 2, opacity: 0.5 }} />
+      <div style={{ position: "absolute", bottom: 14, left: "22%", right: "22%", height: 2, background: `repeating-linear-gradient(90deg, ${t.featuredBorder} 0, ${t.featuredBorder} 18px, transparent 18px, transparent 32px)`, opacity: 0.6 }} />
 
-      <div style={{ display: "flex", alignItems: "flex-end", gap: 12 }}>
+      <div style={{ display: "flex", alignItems: "stretch", gap: 12 }}>
         {/* EV side */}
         <div style={{ flex: 1, minWidth: 0, textAlign: "center" }}>
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: ".08em", textTransform: "uppercase", color: t.green, marginBottom: 10 }}>
-            ⚡ Electric
-          </div>
-          <CarSilhouette color={t.green} />
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: ".08em", textTransform: "uppercase", color: t.green, marginBottom: 8 }}>⚡ Electric</div>
+          <VehiclePhoto vehicleId={ev.id} name={ev.name} height={150} accentColor={t.green} />
           <div style={{ marginTop: 10 }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: t.text, letterSpacing: "-.01em" }}>{ev.name}</div>
             <div style={{ fontSize: 12, color: t.textMid, marginTop: 2 }}>${ev.msrp.toLocaleString()} MSRP</div>
@@ -294,14 +329,12 @@ function CarStandoff({ ev, ice, t }) {
         </div>
 
         {/* VS badge */}
-        <div style={{ flexShrink: 0, textAlign: "center", paddingBottom: 36 }}>
+        <div style={{ flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{
-            width: 48, height: 48, borderRadius: "50%",
-            background: t.card,
-            border: `2px solid ${t.border}`,
+            width: 44, height: 44, borderRadius: "50%",
+            background: t.card, border: `2px solid ${t.border}`,
             display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 14, fontWeight: 900, color: t.text,
-            boxShadow: t.shadowMd,
+            fontSize: 13, fontWeight: 900, color: t.text, boxShadow: t.shadowMd,
           }}>
             VS
           </div>
@@ -309,10 +342,8 @@ function CarStandoff({ ev, ice, t }) {
 
         {/* Gas side */}
         <div style={{ flex: 1, minWidth: 0, textAlign: "center" }}>
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: ".08em", textTransform: "uppercase", color: "#64748b", marginBottom: 10 }}>
-            ⛽ Gas
-          </div>
-          <CarSilhouette color="#64748b" flip />
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: ".08em", textTransform: "uppercase", color: "#64748b", marginBottom: 8 }}>⛽ Gas</div>
+          <VehiclePhoto vehicleId={ice.id} name={ice.name} height={150} flip accentColor="#64748b" />
           <div style={{ marginTop: 10 }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: t.text, letterSpacing: "-.01em" }}>{ice.name}</div>
             <div style={{ fontSize: 12, color: t.textMid, marginTop: 2 }}>${ice.msrp.toLocaleString()} MSRP</div>

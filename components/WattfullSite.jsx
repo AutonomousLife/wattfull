@@ -77,7 +77,6 @@ function AppShell() {
             <div style={{ fontSize: 12, color: t.textLight, marginTop: 4 }}>Independent energy analysis tools</div>
           </div>
           <div style={{ fontSize: 12, color: t.textLight, display: "flex", gap: 16, alignItems: "center" }}>
-            <span>No tracking</span>
             <span>Open methodology</span>
             <button onClick={() => navigate("methodology")} style={{ background: "none", border: "none", color: t.green, cursor: "pointer", fontSize: 12, fontWeight: 600 }}>How it works</button>
           </div>

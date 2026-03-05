@@ -1,13 +1,53 @@
 @import "tailwindcss";
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   WATTFULL DESIGN SYSTEM — CSS Custom Properties
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 :root {
+  /* Surface */
   --background: #FAFAF8;
   --foreground: #1E1E1E;
+
+  /* Radius scale */
+  --r-sm:  8px;
+  --r-md:  12px;
+  --r-lg:  18px;
+  --r-xl:  28px;
+  --r-2xl: 40px;
+
+  /* Shadow scale — subtle, premium */
+  --sh-xs: 0 1px 2px rgba(0,0,0,.04);
+  --sh-sm: 0 1px 3px rgba(0,0,0,.05), 0 1px 2px rgba(0,0,0,.04);
+  --sh-md: 0 4px 16px rgba(0,0,0,.07), 0 1px 4px rgba(0,0,0,.04);
+  --sh-lg: 0 12px 40px rgba(0,0,0,.09), 0 4px 12px rgba(0,0,0,.05);
+  --sh-xl: 0 24px 64px rgba(0,0,0,.11), 0 8px 24px rgba(0,0,0,.06);
+
+  /* Motion tokens */
+  --dur-fast: 160ms;
+  --dur-med:  220ms;
+  --dur-slow: 500ms;
+  --ease:     cubic-bezier(.2,.8,.2,1);
+
+  /* Sheen intensities */
+  --sheen-hi:  rgba(255,255,255,0.28);
+  --sheen-lo:  rgba(255,255,255,0.14);
+  --reflect-hi: rgba(255,255,255,0.42);
 }
 
 [data-theme="dark"] {
   --background: #111113;
   --foreground: #E8E8EC;
+
+  --sh-xs: 0 1px 2px rgba(0,0,0,.22);
+  --sh-sm: 0 1px 3px rgba(0,0,0,.28), 0 1px 2px rgba(0,0,0,.20);
+  --sh-md: 0 4px 16px rgba(0,0,0,.38), 0 1px 4px rgba(0,0,0,.22);
+  --sh-lg: 0 12px 40px rgba(0,0,0,.48), 0 4px 12px rgba(0,0,0,.28);
+  --sh-xl: 0 24px 64px rgba(0,0,0,.56), 0 8px 24px rgba(0,0,0,.32);
+
+  --sheen-hi:  rgba(255,255,255,0.13);
+  --sheen-lo:  rgba(255,255,255,0.07);
+  --reflect-hi: rgba(255,255,255,0.20);
 }
 
 @theme inline {
@@ -17,6 +57,7 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* ─── Base ───────────────────────────────────────────────────────────────── */
 body {
   background: var(--background);
   color: var(--foreground);
@@ -24,7 +65,205 @@ body {
   transition: background 0.3s ease, color 0.3s ease;
 }
 
-/* ── Custom range slider ─────────────────────────────────────────── */
+/* ─── Signature contour-map motif ────────────────────────────────────────── */
+/* Concentric ring pattern at ~4% opacity — used behind hero + section bands */
+.wf-motif {
+  background-image: repeating-radial-gradient(
+    circle at 62% 38%,
+    transparent 0,
+    transparent 26px,
+    rgba(74,124,89,0.042) 26px,
+    rgba(74,124,89,0.042) 27.5px
+  );
+}
+[data-theme="dark"] .wf-motif {
+  background-image: repeating-radial-gradient(
+    circle at 62% 38%,
+    transparent 0,
+    transparent 26px,
+    rgba(106,175,123,0.055) 26px,
+    rgba(106,175,123,0.055) 27.5px
+  );
+}
+
+/* ─── Glass surfaces ─────────────────────────────────────────────────────── */
+.wf-glass {
+  background: rgba(255,255,255,0.72);
+  backdrop-filter: blur(22px) saturate(180%);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.52);
+  box-shadow: var(--sh-md), inset 0 1px 0 rgba(255,255,255,0.62);
+}
+[data-theme="dark"] .wf-glass {
+  background: rgba(28,28,32,0.80);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: var(--sh-md), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+
+/* ─── Cursor-follow sheen effect ─────────────────────────────────────────── */
+/*
+   Apply .wf-sheen to elements that should have the specular highlight.
+   JavaScript (useSheen hook) sets --mx / --my (hover position)
+   and --cx / --cy (click position) as inline CSS vars on the element.
+   .wf-clicked triggers the reflection burst animation.
+*/
+.wf-sheen {
+  position: relative;
+  overflow: hidden;
+  transform: translateZ(0); /* promote to composite layer */
+  -webkit-transform: translateZ(0);
+}
+
+/* Hover sheen — radial gradient tracking pointer */
+.wf-sheen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at var(--mx, 50%) var(--my, 50%),
+    var(--sheen-hi) 0%,
+    transparent 58%
+  );
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease);
+  pointer-events: none;
+  z-index: 1;
+  border-radius: inherit;
+}
+.wf-sheen:hover::before {
+  opacity: 1;
+}
+
+/* Click reflection burst */
+.wf-sheen::after {
+  content: '';
+  position: absolute;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  left: calc(var(--cx, 50%) - 80px);
+  top:  calc(var(--cy, 50%) - 80px);
+  background: radial-gradient(circle, var(--reflect-hi) 0%, transparent 68%);
+  transform: scale(0);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+.wf-sheen.wf-clicked::after {
+  animation: wf-reflect var(--dur-slow) var(--ease) forwards;
+}
+@keyframes wf-reflect {
+  0%   { transform: scale(0);   opacity: 1; }
+  100% { transform: scale(3.2); opacity: 0; }
+}
+
+/* ─── Skeleton shimmer ───────────────────────────────────────────────────── */
+.wf-skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(0,0,0,0.04) 25%,
+    rgba(0,0,0,0.08) 37%,
+    rgba(0,0,0,0.04) 63%
+  );
+  background-size: 400% 100%;
+  animation: wf-shimmer 1.4s ease infinite;
+  border-radius: var(--r-md);
+}
+[data-theme="dark"] .wf-skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.04) 25%,
+    rgba(255,255,255,0.08) 37%,
+    rgba(255,255,255,0.04) 63%
+  );
+  background-size: 400% 100%;
+  animation: wf-shimmer 1.4s ease infinite;
+}
+@keyframes wf-shimmer {
+  0%   { background-position: 100% 50%; }
+  100% { background-position:   0% 50%; }
+}
+
+/* ─── Scroll reveal ──────────────────────────────────────────────────────── */
+.wf-reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity  var(--dur-slow) var(--ease),
+    transform var(--dur-slow) var(--ease);
+  will-change: opacity, transform;
+}
+.wf-reveal.wf-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.wf-reveal-fade {
+  opacity: 0;
+  transition: opacity var(--dur-slow) var(--ease);
+  will-change: opacity;
+}
+.wf-reveal-fade.wf-visible {
+  opacity: 1;
+}
+
+/* ─── Toast animations ───────────────────────────────────────────────────── */
+@keyframes wf-toast-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+@keyframes wf-toast-out {
+  from { opacity: 1; transform: translateY(0)    scale(1); }
+  to   { opacity: 0; transform: translateY(-8px) scale(0.96); }
+}
+.wf-toast-enter { animation: wf-toast-in  var(--dur-med) var(--ease) forwards; }
+.wf-toast-exit  { animation: wf-toast-out var(--dur-med) var(--ease) forwards; }
+
+/* ─── Lift on hover (micro-interaction) ──────────────────────────────────── */
+.wf-lift {
+  transition:
+    transform  var(--dur-fast) var(--ease),
+    box-shadow var(--dur-fast) var(--ease);
+}
+.wf-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sh-lg);
+}
+.wf-lift:active {
+  transform: translateY(0);
+}
+
+/* ─── Reduced motion overrides ───────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .wf-reveal,
+  .wf-reveal-fade {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .wf-sheen::before,
+  .wf-sheen::after {
+    display: none;
+  }
+  .wf-skeleton {
+    animation: none;
+    background: rgba(0,0,0,0.06);
+  }
+  [data-theme="dark"] .wf-skeleton {
+    background: rgba(255,255,255,0.06);
+  }
+  .wf-lift:hover {
+    transform: none;
+    box-shadow: var(--sh-md);
+  }
+  .wf-toast-enter,
+  .wf-toast-exit {
+    animation: none;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CUSTOM RANGE SLIDER
+   ═══════════════════════════════════════════════════════════════════════════ */
 .wf-slider {
   -webkit-appearance: none;
   appearance: none;
@@ -50,7 +289,7 @@ body {
   appearance: none;
   width: 20px;
   height: 20px;
-  margin-top: -8px; /* (track 4px − thumb 20px) / 2 = −8px for perfect centering */
+  margin-top: -8px;
   border-radius: 50%;
   background: var(--wf-slider-color, #4A7C59);
   border: 3px solid #fff;
@@ -91,3 +330,4 @@ body {
   );
 }
 [data-theme="dark"] .wf-slider::-moz-range-track { background: #2A2A30; }
+[data-theme="dark"] .wf-slider::-webkit-slider-thumb { border-color: #1E1E22; }

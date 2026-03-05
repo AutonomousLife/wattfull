@@ -185,7 +185,7 @@ export function HomePage() {
                 <div style={{ width: 18, height: 18, borderRadius: 5, background: t.green, display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <Icon name="Shield" size={11} color="#fff" strokeWidth={2.5} />
                 </div>
-                <span style={{ fontSize: 12, fontWeight: 650, color: t.green }}>Independent · No Ads · Open Methodology</span>
+                <span style={{ fontSize: 12, fontWeight: 650, color: t.green }}>Independent · Open Methodology · Real Data</span>
               </div>
 
               {/* H1 */}
@@ -349,7 +349,6 @@ export function HomePage() {
             and charger mix — not a national average. So we made a tool that shows all of it."
           </p>
           <div style={{ display: "flex", justifyContent: "center", gap: 8, flexWrap: "wrap" }}>
-            <StatPill icon="Shield" value="No ads" variant="green" />
             <StatPill icon="Database" value="Open data" variant="green" />
             <StatPill icon="Eye" value="No black boxes" variant="green" />
           </div>

@@ -181,6 +181,7 @@ function VehicleComparePanel({ v1, t1, v2, t2, t }) {
 }
 
 // ── Wikipedia article title map for each vehicle ID ───────────────────────
+// Titles must exactly match Wikipedia article names so pageimages API returns results.
 const WIKI_ARTICLES = {
   // Tesla
   model3rwd: "Tesla Model 3", model3lr: "Tesla Model 3", model3perf: "Tesla Model 3",
@@ -189,12 +190,13 @@ const WIKI_ARTICLES = {
   // Hyundai
   ioniq5rwd: "Hyundai Ioniq 5", ioniq5: "Hyundai Ioniq 5",
   ioniq6rwd: "Hyundai Ioniq 6", ioniq6awd: "Hyundai Ioniq 6",
-  konael: "Hyundai Kona",
+  konael: "Hyundai Kona Electric",
   // Kia
   ev6rwd: "Kia EV6", ev6awd: "Kia EV6", ev6gt: "Kia EV6",
   ev9: "Kia EV9",
   // Chevy / Ford
-  bolt: "Chevrolet Equinox EV", blazerev: "Chevrolet Blazer EV",
+  bolt: "Chevrolet Bolt EV",           // ← was wrongly "Chevrolet Equinox EV"
+  blazerev: "Chevrolet Blazer EV",
   mache: "Ford Mustang Mach-E", f150lightning: "Ford F-150 Lightning",
   // VW / BMW / Polestar
   id4: "Volkswagen ID.4", bmwi4: "BMW i4", polestar2: "Polestar 2",
@@ -209,23 +211,40 @@ const WIKI_ARTICLES = {
   prius: "Toyota Prius", tacoma: "Toyota Tacoma", highlander: "Toyota Highlander",
   // ICE — Honda
   civic: "Honda Civic", crv: "Honda CR-V", accord: "Honda Accord",
-  // ICE — American
+  // ICE — American trucks
   f150gas: "Ford F-150", silverado: "Chevrolet Silverado", gmcsierra: "GMC Sierra",
   // ICE — Others
   altima: "Nissan Altima", cx5: "Mazda CX-5",
   tucson: "Hyundai Tucson", sorento: "Kia Sorento", bmw330i: "BMW 3 Series",
 };
 
-// Module-level cache so repeated renders don't re-fetch
+// Module-level cache — survives re-renders, cleared on page refresh
 const _photoCache = {};
 
-// ── VehiclePhoto — fetches real car photo from Wikipedia REST API ─────────
+// Fetch car photo via MediaWiki action API (more reliable than REST summary).
+// Uses prop=pageimages which explicitly returns the article's designated lead
+// image at a requested pixel width. Supports origin=* for browser CORS.
+async function fetchWikiPhoto(title) {
+  const url =
+    `https://en.wikipedia.org/w/api.php?action=query` +
+    `&titles=${encodeURIComponent(title)}` +
+    `&prop=pageimages&pithumbsize=640&piprop=thumbnail` +
+    `&format=json&origin=*`;
+  const res  = await fetch(url);
+  const data = await res.json();
+  const pages = data?.query?.pages ?? {};
+  const page  = Object.values(pages)[0];
+  return page?.thumbnail?.source ?? null;
+}
+
+// ── VehiclePhoto — fetches real car photo from Wikipedia ──────────────────
 function VehiclePhoto({ vehicleId, name, height = 140, flip = false, accentColor }) {
   const { t } = useTheme();
   const [src, setSrc]         = useState(_photoCache[vehicleId] ?? null);
-  const [loading, setLoading] = useState(!_photoCache[vehicleId]);
+  const [loading, setLoading] = useState(_photoCache[vehicleId] === undefined);
 
   useEffect(() => {
+    // Already cached (even if null = "no image found")
     if (_photoCache[vehicleId] !== undefined) {
       setSrc(_photoCache[vehicleId]);
       setLoading(false);
@@ -234,17 +253,20 @@ function VehiclePhoto({ vehicleId, name, height = 140, flip = false, accentColor
     const article = WIKI_ARTICLES[vehicleId];
     if (!article) { _photoCache[vehicleId] = null; setLoading(false); return; }
 
-    fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(article)}`)
-      .then((r) => r.json())
-      .then((data) => {
-        // Bump thumbnail to a larger size (Wikipedia thumbs default to ~320px)
-        let url = data.thumbnail?.source ?? null;
-        if (url) url = url.replace(/\/\d+px-/, "/640px-");
-        _photoCache[vehicleId] = url;
-        setSrc(url);
+    let cancelled = false;
+    fetchWikiPhoto(article)
+      .then((imgUrl) => {
+        if (cancelled) return;
+        _photoCache[vehicleId] = imgUrl;
+        setSrc(imgUrl);
         setLoading(false);
       })
-      .catch(() => { _photoCache[vehicleId] = null; setLoading(false); });
+      .catch(() => {
+        if (cancelled) return;
+        _photoCache[vehicleId] = null;
+        setLoading(false);
+      });
+    return () => { cancelled = true; }; // cleanup if vehicleId changes mid-fetch
   }, [vehicleId]);
 
   const frame = {

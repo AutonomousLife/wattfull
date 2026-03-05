@@ -241,8 +241,8 @@ export function SiteShell({ children }) {
                 <span style={{ fontSize: 15, fontWeight: 800, color: t.text, letterSpacing: "-.02em" }}>Wattfull</span>
               </div>
               <div style={{ fontSize: 12, color: t.textLight, lineHeight: 1.6, maxWidth: 280 }}>
-                Independent energy analysis tools. No ads, no affiliates, no tracking.
-                Every assumption visible and editable.
+                Real-world energy calculators powered by government data.
+                Every assumption visible and adjustable.
               </div>
             </div>
 
@@ -296,7 +296,6 @@ export function SiteShell({ children }) {
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
               {[
-                { icon: "Shield", text: "No tracking" },
                 { icon: "Database", text: "EIA · EPA · NREL data" },
                 { icon: "Eye", text: "Open methodology" },
               ].map(({ icon, text }) => (

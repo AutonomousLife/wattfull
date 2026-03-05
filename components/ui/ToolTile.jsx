@@ -38,56 +38,69 @@ export function ToolTile({ icon, title, desc, href, featured = false, cta, chips
             background: t.featuredBg,
             border: `1.5px solid ${t.featuredBorder}`,
             borderRadius: "var(--r-xl)",
-            padding: "28px 32px",
+            padding: "24px 28px",
             overflow: "hidden",
-            display: "flex",
-            alignItems: "center",
-            gap: 28,
             boxShadow: t.shadowLg,
-            minHeight: 160,
           }}
         >
-          {/* Icon block */}
-          <div style={{
-            flexShrink: 0,
-            width: 68,
-            height: 68,
-            borderRadius: "var(--r-lg)",
-            background: t.greenGlass,
-            border: `1.5px solid ${t.featuredBorder}`,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            boxShadow: `0 2px 12px ${t.green}22`,
-          }}>
-            <Icon name={icon} size={32} color={t.green} strokeWidth={1.5} />
+          {/* ── Top row: icon + eyebrow + title + desc ── */}
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 18, marginBottom: 18 }}>
+            {/* Icon */}
+            <div style={{
+              flexShrink: 0,
+              width: 52,
+              height: 52,
+              borderRadius: "var(--r-lg)",
+              background: t.greenGlass,
+              border: `1.5px solid ${t.featuredBorder}`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: `0 2px 10px ${t.green}22`,
+              marginTop: 2,
+            }}>
+              <Icon name={icon} size={26} color={t.green} strokeWidth={1.5} />
+            </div>
+
+            {/* Text */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: ".08em",
+                textTransform: "uppercase",
+                color: t.green,
+                marginBottom: 5,
+              }}>
+                Featured Tool
+              </div>
+              <div style={{
+                fontSize: "clamp(16px, 2.2vw, 20px)",
+                fontWeight: 750,
+                color: t.text,
+                letterSpacing: "-.02em",
+                lineHeight: 1.2,
+                marginBottom: 5,
+              }}>
+                {title}
+              </div>
+              <div style={{ fontSize: 13, color: t.textMid, lineHeight: 1.55 }}>
+                {desc}
+              </div>
+            </div>
           </div>
 
-          {/* Content */}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: ".08em",
-              textTransform: "uppercase",
-              color: t.green,
-              marginBottom: 8,
-            }}>
-              FEATURED TOOL
-            </div>
-            <div style={{ fontSize: "clamp(18px,2.5vw,22px)", fontWeight: 750, color: t.text, letterSpacing: "-.02em", lineHeight: 1.2 }}>
-              {title}
-            </div>
-            <div style={{ fontSize: 14, color: t.textMid, marginTop: 6, lineHeight: 1.5, maxWidth: 400 }}>
-              {desc}
-            </div>
-
+          {/* ── Bottom row: chips (left) + CTA (right) ── */}
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+            flexWrap: "wrap",
+          }}>
             {/* Chips */}
-            {chips && chips.length > 0 && (
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 12 }}>
+            {chips && chips.length > 0 ? (
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                 {chips.map((chip, i) => (
                   <span key={i} style={{
                     fontSize: 11,
@@ -102,35 +115,29 @@ export function ToolTile({ icon, title, desc, href, featured = false, cta, chips
                   </span>
                 ))}
               </div>
-            )}
-          </div>
+            ) : <div />}
 
-          {/* CTA arrow */}
-          <div style={{
-            flexShrink: 0,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 8,
-          }}>
-            <div style={{
-              width: 44,
-              height: 44,
-              borderRadius: "50%",
-              background: t.green,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              boxShadow: `0 3px 12px ${t.green}55`,
-            }}>
-              <Icon name="ArrowRight" size={20} color="#fff" strokeWidth={2.5} />
+            {/* CTA */}
+            <div style={{ display: "flex", alignItems: "center", gap: 7, flexShrink: 0 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: t.green }}>
+                {cta || "Open Calculator"}
+              </span>
+              <div style={{
+                width: 30,
+                height: 30,
+                borderRadius: "50%",
+                background: t.green,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: `0 2px 10px ${t.green}55`,
+              }}>
+                <Icon name="ArrowRight" size={15} color="#fff" strokeWidth={2.5} />
+              </div>
             </div>
-            <span style={{ fontSize: 11, fontWeight: 600, color: t.green, whiteSpace: "nowrap" }}>
-              {cta || "Open Tool →"}
-            </span>
           </div>
 
-          {/* Decorative background ring */}
+          {/* Decorative rings */}
           <div style={{
             position: "absolute",
             right: -40,
@@ -140,7 +147,7 @@ export function ToolTile({ icon, title, desc, href, featured = false, cta, chips
             height: 200,
             borderRadius: "50%",
             border: `1px solid ${t.featuredBorder}`,
-            opacity: 0.4,
+            opacity: 0.35,
             pointerEvents: "none",
           }} />
           <div style={{
@@ -152,7 +159,7 @@ export function ToolTile({ icon, title, desc, href, featured = false, cta, chips
             height: 280,
             borderRadius: "50%",
             border: `1px solid ${t.featuredBorder}`,
-            opacity: 0.25,
+            opacity: 0.2,
             pointerEvents: "none",
           }} />
         </div>

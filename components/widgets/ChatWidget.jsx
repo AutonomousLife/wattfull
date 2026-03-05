@@ -6,9 +6,11 @@ import { FAQ } from "@/lib/data/faq";
 
 const SUGGESTIONS = [
   "Is solar worth it in Texas?",
-  "Compare Tesla Model 3 vs Camry",
-  "How does the EV tax credit work?",
   "How much can I save with an EV?",
+  "How does the EV tax credit work?",
+  "Best portable power station?",
+  "How long does an EV battery last?",
+  "What's the cheapest EV to own?",
 ];
 
 // Search FAQ dataset — returns best match or null
@@ -46,45 +48,107 @@ export function ChatWidget({ navigate }) {
   const respond = (q) => {
     const ql = q.toLowerCase();
 
-    // 1. State-specific solar query
-    if (ql.includes("solar") && (ql.includes("worth") || ql.includes("good") || ql.includes("roi"))) {
+    // ── Greetings ─────────────────────────────────────────────────────────
+    if (/^(hello|hi|hey|howdy|sup|what's up|yo)\b/.test(ql)) {
+      return "Hey! I'm Wattbot 👋 Ask me anything about EVs, solar, power stations, or energy costs. Try: \"Is solar worth it in Arizona?\" or \"What's the cheapest EV to own?\"";
+    }
+    if (ql.includes("thank")) {
+      return "Happy to help! Come back anytime — energy decisions are complicated and I'm always here.";
+    }
+
+    // ── State-specific solar query ─────────────────────────────────────────
+    if (ql.includes("solar") && (ql.includes("worth") || ql.includes("good") || ql.includes("roi") || ql.includes("payback"))) {
       const stMatch = Object.keys(STATE_DATA).find((s) => ql.includes(s.toLowerCase()));
       if (stMatch) {
         const d = STATE_DATA[stMatch];
-        return `In ${stMatch}, you get about ${d.s} sun-hours/day with electricity at ${d.e}¢/kWh. ${
-          d.s >= 5 ? "That's excellent solar potential!" : d.s >= 4 ? "Decent solar potential." : "Solar is possible but not ideal."
-        } ${d.nm === "full" ? "Full net metering helps a lot." : d.nm === "partial" ? "Partial net metering available." : "No net metering unfortunately."} ${
-          d.sc > 0 ? `Plus a $${d.sc} state credit!` : ""
-        } Want exact numbers? Try our Solar ROI Calculator!`;
+        const sunRating = d.s >= 5.5 ? "🌟 Excellent" : d.s >= 4.5 ? "✅ Good" : d.s >= 3.5 ? "⚠️ Decent" : "❌ Low";
+        return `${sunRating} solar potential in ${stMatch}! ${d.s} peak sun-hours/day, electricity at ${d.e}¢/kWh. ${
+          d.nm === "full" ? "Full net metering — great for ROI." : d.nm === "partial" ? "Partial net metering available." : "No net metering, so batteries help."
+        }${d.sc > 0 ? ` State solar credit: $${d.sc}.` : ""} Want exact payback numbers? Try our Solar ROI Calculator!`;
       }
     }
 
-    // 2. State data lookup
+    // ── EV savings for a specific state ───────────────────────────────────
+    if ((ql.includes("ev") || ql.includes("electric car")) && ql.includes("save")) {
+      const stMatch = Object.keys(STATE_DATA).find((s) => ql.includes(s.toLowerCase()));
+      if (stMatch) {
+        const d = STATE_DATA[stMatch];
+        const fuelPerMile = (d.e / 100) * 0.28; // rough: 28 kWh/100mi
+        const gasSaveMi   = (d.g / 30) - fuelPerMile;
+        const annualSave  = Math.round(gasSaveMi * 12000);
+        return `In ${stMatch}, electricity is ${d.e}¢/kWh and gas is $${d.g}/gal. An average EV driver saves roughly $${annualSave.toLocaleString()}/year on fuel.${
+          d.ec > 0 ? ` Plus a $${d.ec} state EV incentive!` : ""
+        } Use our EV Calculator for your exact vehicle and miles driven.`;
+      }
+    }
+
+    // ── General state data lookup ──────────────────────────────────────────
     const stateMatch = Object.keys(STATE_DATA).find((s) => ql.includes(s.toLowerCase()));
     if (stateMatch) {
       const d = STATE_DATA[stateMatch];
-      return `${stateMatch}: Electricity ${d.e}¢/kWh, gas $${d.g}/gal, ${d.s} sun-hrs/day, ${d.z} climate. ${
-        d.ec > 0 ? `EV incentive: $${d.ec}.` : "No state EV incentive."
-      } ${d.nm} net metering. Grid is ${d.gc}% renewable.`;
+      return `📍 ${stateMatch} — Electricity: ${d.e}¢/kWh · Gas: $${d.g}/gal · Sun: ${d.s} hrs/day · Climate: ${d.z}. ${
+        d.ec > 0 ? `EV state credit: $${d.ec}. ` : "No state EV credit. "
+      }${d.nm} net metering. Grid is ${d.gc}% renewable. See full state details on our States page!`;
     }
 
-    // 3. FAQ keyword search
+    // ── Specific vehicle questions ─────────────────────────────────────────
+    if (ql.includes("model 3") || ql.includes("model3")) {
+      return "The Tesla Model 3 RWD starts at ~$38,990 and gets ~350 miles of range. It's one of the most efficient EVs at 25 kWh/100mi and qualifies for the $7,500 federal tax credit. The Supercharger network is the best in the industry for road trips. Long Range AWD adds range but pushes MSRP toward $45k.";
+    }
+    if (ql.includes("ioniq 6") || ql.includes("ioniq6")) {
+      return "The Hyundai Ioniq 6 is arguably the best value EV for efficiency-focused buyers — 24 kWh/100mi and up to 361 miles of range. 800V ultra-fast charging hits 10–80% in about 18 minutes. Qualifies for federal credit. Starting around $38,615 for the RWD Standard Range.";
+    }
+    if (ql.includes("chevy bolt") || ql.includes("bolt ev")) {
+      return "The Chevy Bolt EV is one of the best deals in EVs — around $26,500 new. After the $7,500 federal credit, effective cost is near $19,000. Gets 259 miles of range with solid efficiency. The limitation: 55 kW DC fast charging (slower than newer EVs). Perfect for daily commuting and city driving.";
+    }
+    if (ql.includes("f-150 lightning") || ql.includes("f150 lightning") || ql.includes("lightning")) {
+      return "The Ford F-150 Lightning starts at ~$49,995 and offers 240–320 miles of range. Its Pro Power Onboard can run a job site or power your home during an outage. Heavy towing reduces range 40–50% — factor this in if you tow frequently.";
+    }
+    if (ql.includes("rivian") || ql.includes("r1t") || ql.includes("r1s")) {
+      return "Rivian's R1T truck and R1S SUV are premium adventure EVs ($68k–$100k+). Exceptional off-road capability and range (300–400+ miles). Rivian's own fast-charging network is expanding. Not eligible for federal tax credit (MSRP too high for car cap). Best for buyers who want truck capability with EV efficiency.";
+    }
+
+    // ── Cheapest EV to own ────────────────────────────────────────────────
+    if ((ql.includes("cheap") || ql.includes("affordable") || ql.includes("best value")) && (ql.includes("ev") || ql.includes("electric"))) {
+      return "The most affordable EVs to own: 1) Chevy Bolt EV (~$19k after federal credit) — best total value. 2) Nissan Leaf (from ~$20k) — reliable, good city car. 3) Tesla Model 3 RWD (~$31k after credit) — best efficiency and range. Used EVs are even cheaper — a 2022 Bolt can be found for $15–18k with minimal battery degradation.";
+    }
+
+    // ── Power station recs ────────────────────────────────────────────────
+    if (ql.includes("power station") || ql.includes("portable power") || ql.includes("jackery") || ql.includes("ecoflow") || ql.includes("anker solix")) {
+      return "Top portable power station picks: 🥇 Anker SOLIX C1000 (~$500 on sale) — best all-around value with LiFePO4 longevity. 🏠 EcoFlow DELTA 2 Max — for home backup with expandable capacity. 🎒 EcoFlow River 3 Plus — ultra-portable for camping. For solar panel pairing, stay within the same brand's ecosystem for easy compatibility. Check our Gear Reviews for full breakdowns!";
+    }
+
+    // ── Solar panel recs ──────────────────────────────────────────────────
+    if ((ql.includes("solar panel") || ql.includes("portable panel")) && (ql.includes("best") || ql.includes("recommend") || ql.includes("which"))) {
+      return "Best portable solar panels: 🥇 Renogy 200W Suitcase — most reliable, works with any station. Jackery SolarSaga 200W — pairs perfectly with Jackery stations. EcoFlow 220W Bifacial — generates power on cloudy days from reflected light. For efficiency in limited space, look for 22%+ mono panels. Two 100W panels often beat one 200W for flexibility.";
+    }
+
+    // ── Compare / vs queries ──────────────────────────────────────────────
+    if (ql.includes(" vs ") || ql.includes("compare")) {
+      return "EV vs gas savings depend heavily on your location — electricity rates, gas prices, and state incentives vary a lot. On average, EV owners save $1,000–2,500/year in fuel + $500–1,500/year in maintenance. Use our Compare page — pick any two vehicles and we'll run the full numbers for your state.";
+    }
+
+    // ── Home charging setup ───────────────────────────────────────────────
+    if (ql.includes("home charger") || ql.includes("level 2") || (ql.includes("install") && ql.includes("charg"))) {
+      return "Home Level 2 charger installation typically costs $800–2,000 total (charger + electrician). ChargePoint Home Flex and Emporia EV Charger are top picks at $300–400. You'll need a 240V/50A circuit — most electricians can add one in a few hours. Many utilities offer $500–1,000 rebates on L2 charger installation.";
+    }
+
+    // ── Carbon / environment ──────────────────────────────────────────────
+    if (ql.includes("carbon") || ql.includes("emission") || ql.includes("environment") || ql.includes("co2") || ql.includes("green")) {
+      return "Even on the average U.S. grid (~42% renewable), an EV produces roughly half the lifetime CO₂ of a gas car. In states like Washington, Vermont, or California with cleaner grids, EVs cut emissions by 70–80%. As the grid gets cleaner each year, your EV gets greener automatically — a gas car can never improve.";
+    }
+
+    // ── Tax credit / incentive questions ─────────────────────────────────
+    if (ql.includes("tax credit") || ql.includes("$7500") || ql.includes("7500") || ql.includes("incentive") || ql.includes("rebate")) {
+      return "The federal EV tax credit is up to $7,500 (new EVs) or $4,000 (used EVs). Key limits: income ≤$150k single / $300k joint, MSRP ≤$55k cars / $80k trucks, and North American final assembly required. You can now take it as an instant discount at the dealer (since 2024) instead of waiting for tax season. Check fueleconomy.gov for eligible vehicles.";
+    }
+
+    // ── FAQ keyword search ────────────────────────────────────────────────
     const faqAnswer = faqLookup(q);
     if (faqAnswer) return faqAnswer;
 
-    // 4. Specific fallbacks
-    if (ql.includes("compare") || ql.includes("vs") || (ql.includes("ev") && ql.includes("save"))) {
-      return "EV savings depend heavily on your location — electricity rates, gas prices, and incentives vary by state. On average, EV owners save $1,000–2,500/year in fuel costs. Use our EV Calculator with your ZIP for exact numbers.";
-    }
-    if (ql.includes("power station") || ql.includes("portable power")) {
-      return "For power stations, the Anker SOLIX C1000 is our top pick for most people — great value at ~$500 on sale with LiFePO4 longevity. Need home backup? EcoFlow DELTA 2 Max. Ultra-portable? EcoFlow River 3 Plus. Check our Gear Reviews for detailed breakdowns!";
-    }
-    if (ql.includes("hello") || ql.includes("hi") || ql.includes("hey")) {
-      return "Hey there! What energy question can I help with? I know about EVs, solar panels, power stations, and state-by-state energy data.";
-    }
-    if (ql.includes("thank")) return "You're welcome! Feel free to ask anything else about energy savings.";
-
-    return "I can help with: EV savings estimates, solar panel ROI, power station recommendations, maintenance costs, and state energy data. Try asking something like 'What are electricity rates in California?' or 'How does battery degradation work?'";
+    // ── Default ───────────────────────────────────────────────────────────
+    return "I can help with: EV savings by state, solar ROI, power station recommendations, charging setup, battery lifespan, federal tax credits, and more. Try asking something like \"How much would I save with a Tesla in Florida?\" or \"Is solar worth it in Ohio?\"";
   };
 
   const send = () => {

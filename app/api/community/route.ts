@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { db, userLinks } from "@/lib/db/index";
 import { eq } from "drizzle-orm";
 import { sha256 } from "@/lib/core/scoring";
@@ -49,7 +49,20 @@ export async function GET() {
       .where(eq(userLinks.status, "approved"))
       .orderBy(userLinks.createdAt);
 
-    return NextResponse.json({ referrals: rows });
+    return NextResponse.json({
+      referrals: rows.map((row) => ({
+        id: row.id,
+        type: row.category,
+        name: row.title,
+        code: row.code,
+        desc: row.submittedBy || "Community referral submission",
+        upvotes: 0,
+        date: row.createdAt
+          ? new Date(row.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+          : "Recently added",
+        url: row.url || null,
+      })),
+    });
   } catch {
     return NextResponse.json({ referrals: [] });
   }
@@ -127,3 +140,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
+

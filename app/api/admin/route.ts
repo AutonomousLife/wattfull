@@ -1,13 +1,5 @@
-/**
- * Admin API — protected by Authorization header.
- *
- * Set ADMIN_PASSWORD in Vercel env vars (defaults to "admin" in dev).
- *
- * GET  /api/admin            — full data export (user_links, email_subscribers, data_status)
- * POST /api/admin            — { action: "approve"|"reject"|"delete", id: number }
- *
- * curl example:
- *   curl -H "Authorization: Bearer admin" http://localhost:3000/api/admin
+﻿/**
+ * Admin API - protected by auth cookie or Authorization header.
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -17,10 +9,10 @@ import { eq } from "drizzle-orm";
 function isAuthorized(req: NextRequest): boolean {
   const password = process.env.ADMIN_PASSWORD ?? "admin";
   const auth = req.headers.get("authorization") ?? "";
-  return auth === `Bearer ${password}`;
+  const cookie = req.cookies.get("wf_admin")?.value ?? "";
+  return auth === `Bearer ${password}` || cookie === password;
 }
 
-/** GET /api/admin — full data export */
 export async function GET(req: NextRequest) {
   if (!isAuthorized(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -38,35 +30,29 @@ export async function GET(req: NextRequest) {
     dataStatus: freshness,
     summary: {
       totalLinks: links.length,
-      pendingLinks: links.filter((r) => r.status === "pending").length,
-      approvedLinks: links.filter((r) => r.status === "approved").length,
+      pendingLinks: links.filter((row) => row.status === "pending").length,
+      approvedLinks: links.filter((row) => row.status === "approved").length,
       totalEmails: emails.length,
     },
   });
 }
 
-/** POST /api/admin — approve, reject, or delete a link */
 export async function POST(req: NextRequest) {
   if (!isAuthorized(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
   try {
     const { action, id } = await req.json();
     const numId = Number(id);
 
     if (action === "approve") {
-      await db
-        .update(userLinks)
-        .set({ status: "approved", reviewedAt: new Date() })
-        .where(eq(userLinks.id, numId));
+      await db.update(userLinks).set({ status: "approved", reviewedAt: new Date() }).where(eq(userLinks.id, numId));
       return NextResponse.json({ success: true });
     }
 
     if (action === "reject") {
-      await db
-        .update(userLinks)
-        .set({ status: "rejected", reviewedAt: new Date() })
-        .where(eq(userLinks.id, numId));
+      await db.update(userLinks).set({ status: "rejected", reviewedAt: new Date() }).where(eq(userLinks.id, numId));
       return NextResponse.json({ success: true });
     }
 

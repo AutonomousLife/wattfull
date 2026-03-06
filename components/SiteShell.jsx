@@ -265,7 +265,7 @@ export function SiteShell({ children }) {
                 </div>
               ))}
             </div>
-            <div style={{ fontSize: 11, color: t.textFaint }}>© {new Date().getFullYear()} Wattfull</div>
+            <div style={{ fontSize: 11, color: t.textFaint }}>© 2026 Wattfull</div>
           </div>
         </div>
       </footer>
@@ -274,3 +274,4 @@ export function SiteShell({ children }) {
     </div>
   );
 }
+

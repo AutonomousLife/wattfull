@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect, useTransition, Suspense, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
@@ -15,12 +15,12 @@ import DataFreshness from "@/components/ui/DataFreshness";
 const LS_KEY = "wattfull_ev_calc_v2";
 
 const VERDICT_CFG = {
-  favorable:   { color: "#10b981", bg: "#d1fae5", darkBg: "#064e3b", label: "EV Financially Favorable",   icon: "✅" },
-  neutral:     { color: "#f59e0b", bg: "#fef3c7", darkBg: "#451a03", label: "Roughly Neutral",            icon: "⚖️" },
-  unfavorable: { color: "#ef4444", bg: "#fee2e2", darkBg: "#450a0a", label: "EV Financially Unfavorable", icon: "⚠️" },
+  favorable:   { color: "#10b981", bg: "#d1fae5", darkBg: "#064e3b", label: "EV Financially Favorable",   icon: "âœ…" },
+  neutral:     { color: "#f59e0b", bg: "#fef3c7", darkBg: "#451a03", label: "Roughly Neutral",            icon: "âš–ï¸" },
+  unfavorable: { color: "#ef4444", bg: "#fee2e2", darkBg: "#450a0a", label: "EV Financially Unfavorable", icon: "âš ï¸" },
 };
 
-/* ─── helpers ────────────────────────────────────────────────────── */
+/* â”€â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function CostBar({ label, fuel, maint, color, maxVal, t }) {
   const total = fuel + maint;
   const barPct = Math.min((total / maxVal) * 100, 100);
@@ -38,8 +38,8 @@ function CostBar({ label, fuel, maint, color, maxVal, t }) {
         </div>
       </div>
       <div style={{ display: "flex", gap: 12, fontSize: 11, color: t.textLight, marginTop: 3 }}>
-        <span>⛽ Fuel: ${fuel.toLocaleString()}</span>
-        <span>🔧 Maint: ${maint.toLocaleString()}</span>
+        <span>â›½ Fuel: ${fuel.toLocaleString()}</span>
+        <span>ðŸ”§ Maint: ${maint.toLocaleString()}</span>
       </div>
     </div>
   );
@@ -54,7 +54,7 @@ function ARow({ label, value, t }) {
   );
 }
 
-/* ─── Wattfull Verdict Card ──────────────────────────────────────── */
+/* â”€â”€â”€ Wattfull Verdict Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function WattfullVerdict({ res, ev, ice, yr, mi, t }) {
   const vc = VERDICT_CFG[res.verdictType];
   return (
@@ -88,8 +88,8 @@ function WattfullVerdict({ res, ev, ice, yr, mi, t }) {
           { label: "Annual Savings", value: `${res.annualSavings >= 0 ? "+" : ""}$${Math.abs(res.annualSavings).toLocaleString()}` },
           { label: "5-Year Savings", value: `${res.fiveYearSavings >= 0 ? "+" : ""}$${Math.abs(res.fiveYearSavings).toLocaleString()}` },
           { label: "Break-even", value: res.be ? `Year ${res.be}` : "No break-even" },
-          { label: "EV ¢/mi", value: `${(res.evCpm * 100).toFixed(1)}¢` },
-          { label: "Gas ¢/mi", value: `${(res.iceCpm * 100).toFixed(1)}¢` },
+          { label: "EV Â¢/mi", value: `${(res.evCpm * 100).toFixed(1)}Â¢` },
+          { label: "Gas Â¢/mi", value: `${(res.iceCpm * 100).toFixed(1)}Â¢` },
         ].map((m, i) => (
           <div key={i} style={{ background: t.card, borderRadius: 8, padding: "10px 12px" }}>
             <div style={{ fontSize: 10, color: t.textLight, marginBottom: 3 }}>{m.label}</div>
@@ -103,7 +103,7 @@ function WattfullVerdict({ res, ev, ice, yr, mi, t }) {
         <div style={{ fontSize: 11, fontWeight: 700, color: t.textLight, marginBottom: 8, letterSpacing: ".06em", textTransform: "uppercase" }}>Why this verdict</div>
         {res.reasons.map((r, i) => (
           <div key={i} style={{ fontSize: 13, color: t.textMid, display: "flex", gap: 6, marginBottom: 5 }}>
-            <span style={{ color: vc.color, flexShrink: 0 }}>•</span>
+            <span style={{ color: vc.color, flexShrink: 0 }}>â€¢</span>
             <span>{r}</span>
           </div>
         ))}
@@ -112,24 +112,24 @@ function WattfullVerdict({ res, ev, ice, yr, mi, t }) {
   );
 }
 
-/* ─── What Would Change This Result ─────────────────────────────── */
+/* â”€â”€â”€ What Would Change This Result â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function WhatWouldChange({ res, t }) {
   const rows = [];
 
   if (res.breakEvenElec !== null && res.breakEvenElec > 0 && res.breakEvenElec < 80) {
     if (res.breakEvenElec > res.er) {
       rows.push({
-        icon: "⚡",
+        icon: "âš¡",
         text: `EV savings disappear if electricity exceeds `,
-        highlight: `${res.breakEvenElec}¢/kWh`,
-        sub: `(currently ${res.er}¢ — you have ${(res.breakEvenElec - res.er).toFixed(1)}¢ of headroom)`,
+        highlight: `${res.breakEvenElec}Â¢/kWh`,
+        sub: `(currently ${res.er}Â¢ â€” you have ${(res.breakEvenElec - res.er).toFixed(1)}Â¢ of headroom)`,
       });
     } else {
       rows.push({
-        icon: "⚡",
-        text: `High electricity already hurts — break-even rate was `,
-        highlight: `${res.breakEvenElec}¢/kWh`,
-        sub: `(you're paying ${res.er}¢)`,
+        icon: "âš¡",
+        text: `High electricity already hurts â€” break-even rate was `,
+        highlight: `${res.breakEvenElec}Â¢/kWh`,
+        sub: `(you're paying ${res.er}Â¢)`,
       });
     }
   }
@@ -137,7 +137,7 @@ function WhatWouldChange({ res, t }) {
   if (res.savingsPer1kMi !== 0) {
     const dir = res.savingsPer1kMi > 0 ? "adds" : "costs";
     rows.push({
-      icon: "🚗",
+      icon: "ðŸš—",
       text: `Each extra 1,000 miles/year `,
       highlight: `${dir} $${Math.abs(res.savingsPer1kMi)}`,
       sub: "in annual savings",
@@ -146,7 +146,7 @@ function WhatWouldChange({ res, t }) {
 
   if (res.savingsPerGas10c > 0) {
     rows.push({
-      icon: "⛽",
+      icon: "â›½",
       text: `Each $0.10 rise in gas prices adds `,
       highlight: `+$${res.savingsPerGas10c}`,
       sub: "to annual EV savings",
@@ -155,7 +155,7 @@ function WhatWouldChange({ res, t }) {
 
   if (!res.incI && res.potentialCredits > 0) {
     rows.push({
-      icon: "💰",
+      icon: "ðŸ’°",
       text: `Enabling tax credits would improve total savings by `,
       highlight: `$${res.potentialCredits.toLocaleString()}`,
       sub: "eligibility not verified",
@@ -184,23 +184,23 @@ function WhatWouldChange({ res, t }) {
   );
 }
 
-/* ─── Energy Equivalencies ───────────────────────────────────────── */
+/* â”€â”€â”€ Energy Equivalencies â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function Equivalencies({ annualSavings, t }) {
   if (Math.abs(annualSavings) < 100) return null;
   const abs = Math.abs(annualSavings);
   const sign = annualSavings >= 0 ? "saves" : "costs extra";
   const items = [
-    { icon: "☕", label: "months of coffee", val: Math.round(abs / 5 / 30) },
-    { icon: "✈️", label: "domestic flights", val: Math.round(abs / 250) },
-    { icon: "📱", label: "phone charges", val: Math.round(abs / 0.04).toLocaleString() },
-    { icon: "🛒", label: "weeks of groceries", val: Math.round(abs / 100) },
+    { icon: "â˜•", label: "months of coffee", val: Math.round(abs / 5 / 30) },
+    { icon: "âœˆï¸", label: "domestic flights", val: Math.round(abs / 250) },
+    { icon: "ðŸ“±", label: "phone charges", val: Math.round(abs / 0.04).toLocaleString() },
+    { icon: "ðŸ›’", label: "weeks of groceries", val: Math.round(abs / 100) },
   ].filter(i => parseFloat(String(i.val).replace(/,/g, "")) > 0);
 
   return (
     <div style={{ background: t.card, border: `1px solid ${t.borderLight}`, borderRadius: 14, padding: 18, marginBottom: 16 }}>
       <div style={{ fontSize: 14, fontWeight: 700, color: t.text, marginBottom: 4 }}>Your Annual Savings in Context</div>
       <div style={{ fontSize: 12, color: t.textLight, marginBottom: 12 }}>
-        This calculator {sign} roughly <b style={{ color: t.text }}>${abs.toLocaleString()}/year</b>, which equals…
+        This calculator {sign} roughly <b style={{ color: t.text }}>${abs.toLocaleString()}/year</b>, which equalsâ€¦
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(130px,1fr))", gap: 10 }}>
         {items.map((item, i) => (
@@ -215,7 +215,7 @@ function Equivalencies({ annualSavings, t }) {
   );
 }
 
-/* ─── Vehicle Rankings ───────────────────────────────────────────── */
+/* â”€â”€â”€ Vehicle Rankings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function VehicleRanking({ rankings, ice, mi, evId, onSelectEv, t }) {
   const [expanded, setExpanded] = useState(false);
   const shown = expanded ? rankings : rankings.slice(0, 5);
@@ -224,7 +224,7 @@ function VehicleRanking({ rankings, ice, mi, evId, onSelectEv, t }) {
     <div style={{ background: t.card, border: `1px solid ${t.borderLight}`, borderRadius: 14, padding: 18, marginBottom: 16 }}>
       <div style={{ fontSize: 14, fontWeight: 700, color: t.text, marginBottom: 2 }}>Best EVs For Your Situation</div>
       <div style={{ fontSize: 12, color: t.textLight, marginBottom: 12 }}>
-        vs {ice?.name} · {mi.toLocaleString()} mi/yr · ranked by annual savings
+        vs {ice?.name} Â· {mi.toLocaleString()} mi/yr Â· ranked by annual savings
       </div>
       {shown.map((v, i) => {
         const isSelected = v.id === evId;
@@ -272,22 +272,22 @@ function VehicleRanking({ rankings, ice, mi, evId, onSelectEv, t }) {
           onClick={() => setExpanded(e => !e)}
           style={{ fontSize: 12, color: t.green, background: "none", border: "none", cursor: "pointer", marginTop: 4, padding: "4px 0" }}
         >
-          {expanded ? "Show less ↑" : `Show ${rankings.length - 5} more EVs ↓`}
+          {expanded ? "Show less â†‘" : `Show ${rankings.length - 5} more EVs â†“`}
         </button>
       )}
     </div>
   );
 }
 
-/* ─── Data Sources Strip ─────────────────────────────────────────── */
+/* â”€â”€â”€ Data Sources Strip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function DataSourcesStrip({ t }) {
   return (
     <div style={{ borderTop: `1px solid ${t.borderLight}`, paddingTop: 12, marginTop: 4 }}>
       <div style={{ fontSize: 10, color: t.textLight, lineHeight: 1.8 }}>
         <b style={{ color: t.textMid }}>Data sources:</b>{" "}
-        Vehicle efficiency: EPA · Electricity prices: EIA (state avg or ZIP-level) · Gas prices: state datasets · Incentives: IRS / DSIRE ·{" "}
-        <b style={{ color: t.textMid }}>Last updated:</b> {new Date().toLocaleDateString("en-US", { month: "short", year: "numeric" })} ·{" "}
-        <b style={{ color: t.textMid }}>Note:</b> Estimates only — actual results vary.
+        Vehicle efficiency: EPA Â· Electricity prices: EIA (state avg or ZIP-level) Â· Gas prices: state datasets Â· Incentives: IRS / DSIRE Â·{" "}
+        <b style={{ color: t.textMid }}>Last updated:</b> new Date().toISOString().slice(0, 7) Â·{" "}
+        <b style={{ color: t.textMid }}>Note:</b> Estimates only â€” actual results vary.
       </div>
     </div>
   );
@@ -330,7 +330,7 @@ function mapCalcResult(result) {
   };
 }
 
-/* ─── EVCalcInner ────────────────────────────────────────────────── */
+/* â”€â”€â”€ EVCalcInner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function EVCalcInner() {
   const { t } = useTheme();
   const searchParams = useSearchParams();
@@ -415,7 +415,7 @@ function EVCalcInner() {
   const requestCalculation = async (updateResults = true) => {
     const e = {};
     if (!/^\d{5}$/.test(zip) || !st) e.zip = "Valid 5-digit ZIP";
-    if (mi < 1000 || mi > 50000) e.mi = "1k–50k";
+    if (mi < 1000 || mi > 50000) e.mi = "1kâ€“50k";
     if (hc + pc + dc !== 100) e.ch = "Must total 100%";
     setErr(e);
     if (Object.keys(e).length) return;
@@ -483,14 +483,14 @@ function EVCalcInner() {
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 28, marginTop: 28 }}>
 
-        {/* ── Input Panel ── */}
+        {/* â”€â”€ Input Panel â”€â”€ */}
         <div style={{ background: t.white, border: `1px solid ${t.borderLight}`, borderRadius: 14, padding: 22 }}>
           <Input label="ZIP Code" value={zip} onChange={setZip} error={err.zip} placeholder="e.g. 90210" />
           {st && sd && (
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8, alignItems: "center" }}>
               <Badge type="real">{st}</Badge>
               <Badge type={serverRates ? "real" : "estimated"}>
-                {serverRates ? serverRates.electricityCentsPerKwh.toFixed(1) : (eo || sd.e)}¢/kWh
+                {serverRates ? serverRates.electricityCentsPerKwh.toFixed(1) : (eo || sd.e)}Â¢/kWh
               </Badge>
               <Badge type={serverRates ? "real" : "estimated"}>
                 ${serverRates ? serverRates.gasDollarsPerGallon.toFixed(2) : (go || sd.g)}/gal
@@ -513,7 +513,7 @@ function EVCalcInner() {
                 borderRadius: 8, padding: "4px 10px", cursor: "pointer", marginBottom: 12, opacity: isPending ? 0.6 : 1,
               }}
             >
-              {isPending ? "Loading…" : "📍 Load real rates for my ZIP"}
+              {isPending ? "Loadingâ€¦" : "ðŸ“ Load real rates for my ZIP"}
             </button>
           )}
           <DataFreshness />
@@ -538,9 +538,9 @@ function EVCalcInner() {
             <div style={{ fontSize: 12, fontWeight: 600, color: t.textMid, marginBottom: 6 }}>Driving Style</div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6 }}>
               {[
-                { id: "efficient", label: "Efficient", icon: "🐢", sub: "−12%" },
-                { id: "normal",    label: "Normal",    icon: "🚗", sub: "EPA" },
-                { id: "aggressive",label: "Spirited",  icon: "🦅", sub: "+17%" },
+                { id: "efficient", label: "Efficient", icon: "ðŸ¢", sub: "âˆ’12%" },
+                { id: "normal",    label: "Normal",    icon: "ðŸš—", sub: "EPA" },
+                { id: "aggressive",label: "Spirited",  icon: "ðŸ¦…", sub: "+17%" },
               ].map(opt => (
                 <button
                   key={opt.id}
@@ -566,7 +566,7 @@ function EVCalcInner() {
           <Toggle label="Include federal/state credits (if eligible)" value={incI} onChange={setIncI} />
           {incI && ev && (
             <div style={{ fontSize: 11, color: t.textLight, marginBottom: 8, marginTop: -8, paddingLeft: 2 }}>
-              Assumes max ${ev.fc.toLocaleString()} federal credit — eligibility not verified
+              Assumes max ${ev.fc.toLocaleString()} federal credit â€” eligibility not verified
             </div>
           )}
           <Toggle label="Climate efficiency adjustment" value={incC} onChange={setIncC} />
@@ -580,7 +580,7 @@ function EVCalcInner() {
           </Collapsible>
 
           <Collapsible title="Override Energy Rates">
-            <Input label="Electricity" type="number" value={eo} onChange={setEo} suffix="¢/kWh" />
+            <Input label="Electricity" type="number" value={eo} onChange={setEo} suffix="Â¢/kWh" />
             <Input label="Gas" type="number" value={go} onChange={setGo} prefix="$" suffix="/gal" />
           </Collapsible>
 
@@ -603,19 +603,19 @@ function EVCalcInner() {
             onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.01)"; }}
             onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; }}
           >
-            Calculate Savings →
+            Calculate Savings â†’
           </button>
         </div>
 
-        {/* ── Results Panel ── */}
+        {/* â”€â”€ Results Panel â”€â”€ */}
         <div>
           {!res ? (
             <div style={{ background: t.card, border: `1px solid ${t.borderLight}`, borderRadius: 14, padding: 40, textAlign: "center" }}>
-              <div style={{ fontSize: 48, marginBottom: 12 }}>⚡</div>
+              <div style={{ fontSize: 48, marginBottom: 12 }}>âš¡</div>
               <h3 style={{ fontSize: 18, fontWeight: 700, color: t.text }}>Enter details & calculate</h3>
-              <p style={{ fontSize: 14, color: t.textMid, marginTop: 8 }}>Verdict, chart, assumptions, and ranked alternatives — all based on your inputs.</p>
+              <p style={{ fontSize: 14, color: t.textMid, marginTop: 8 }}>Verdict, chart, assumptions, and ranked alternatives â€” all based on your inputs.</p>
               <div style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 8 }}>
-                {["📍 Enter your ZIP code", "🚗 Pick an EV and gas vehicle", "📏 Set your annual mileage", "✅ Hit Calculate"].map((s, i) => (
+                {["ðŸ“ Enter your ZIP code", "ðŸš— Pick an EV and gas vehicle", "ðŸ“ Set your annual mileage", "âœ… Hit Calculate"].map((s, i) => (
                   <div key={i} style={{ fontSize: 13, color: t.textMid, display: "flex", alignItems: "center", gap: 8, justifyContent: "center" }}>
                     <span>{s}</span>
                   </div>
@@ -631,7 +631,7 @@ function EVCalcInner() {
               <div style={{ background: t.white, border: `1px solid ${t.borderLight}`, borderRadius: 14, padding: 18, marginBottom: 16 }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: t.text, marginBottom: 4 }}>Cumulative Costs Over Time</div>
                 <div style={{ fontSize: 12, color: t.textLight, marginBottom: 12 }}>
-                  {ev?.name} vs {ice?.name} · gap = your total savings
+                  {ev?.name} vs {ice?.name} Â· gap = your total savings
                 </div>
                 <ResponsiveContainer width="100%" height={220}>
                   <AreaChart data={res.yd}>
@@ -680,10 +680,10 @@ function EVCalcInner() {
                   <div style={{ fontSize: 13, color: t.textMid, marginTop: 6 }}>Fuel: <b>${res.evFuel.toLocaleString()}</b></div>
                   <div style={{ fontSize: 13, color: t.textMid }}>Maint: <b>${res.evM.toLocaleString()}/yr</b></div>
                   <div style={{ fontSize: 11, color: t.textLight, marginTop: 4 }}>
-                    5-yr: ${(res.evM * 5).toLocaleString()} · 10-yr: ${(res.evM * 10).toLocaleString()}
+                    5-yr: ${(res.evM * 5).toLocaleString()} Â· 10-yr: ${(res.evM * 10).toLocaleString()}
                   </div>
                   {res.inc > 0 && (
-                    <div style={{ fontSize: 13, color: "#065f46", marginTop: 4 }}>Credits: <b>−${res.inc.toLocaleString()}</b></div>
+                    <div style={{ fontSize: 13, color: "#065f46", marginTop: 4 }}>Credits: <b>âˆ’${res.inc.toLocaleString()}</b></div>
                   )}
                 </div>
                 <div style={{ padding: 16, background: t.card, borderRadius: 10 }}>
@@ -691,7 +691,7 @@ function EVCalcInner() {
                   <div style={{ fontSize: 13, color: t.textMid, marginTop: 6 }}>Fuel: <b>${res.iceFuel.toLocaleString()}</b></div>
                   <div style={{ fontSize: 13, color: t.textMid }}>Maint: <b>${res.iceM.toLocaleString()}/yr</b></div>
                   <div style={{ fontSize: 11, color: t.textLight, marginTop: 4 }}>
-                    5-yr: ${(res.iceM * 5).toLocaleString()} · 10-yr: ${(res.iceM * 10).toLocaleString()}
+                    5-yr: ${(res.iceM * 5).toLocaleString()} Â· 10-yr: ${(res.iceM * 10).toLocaleString()}
                   </div>
                 </div>
               </div>
@@ -711,13 +711,13 @@ function EVCalcInner() {
 
               {/* 8. Assumptions */}
               <div style={{ marginBottom: 16 }}>
-                <Collapsible title="📋 Calculation Assumptions">
+                <Collapsible title="ðŸ“‹ Calculation Assumptions">
                   <div style={{ paddingTop: 4 }}>
                     <ARow label="Location" value={`${st} (ZIP ${zip})`} t={t} />
-                    <ARow label="Electricity rate" value={`${res.er}¢/kWh${eo ? " (overridden)" : " (state avg)"}`} t={t} />
+                    <ARow label="Electricity rate" value={`${res.er}Â¢/kWh${eo ? " (overridden)" : " (state avg)"}`} t={t} />
                     <ARow label="Gas price" value={`$${res.gp}/gal${go ? " (overridden)" : " (state avg)"}`} t={t} />
                     <ARow label="Annual miles" value={mi.toLocaleString()} t={t} />
-                    <ARow label="Driving style" value={driveStyle === "efficient" ? "Efficient (−12%)" : driveStyle === "aggressive" ? "Spirited (+17%)" : "Normal (EPA rated)"} t={t} />
+                    <ARow label="Driving style" value={driveStyle === "efficient" ? "Efficient (âˆ’12%)" : driveStyle === "aggressive" ? "Spirited (+17%)" : "Normal (EPA rated)"} t={t} />
                     <ARow label="Climate efficiency penalty" value={incC ? res.cp : "Not applied"} t={t} />
                     <ARow label="Charging mix" value={`${hc}% home / ${pc}% L2 / ${dc}% DCFC`} t={t} />
                     <ARow label="EV maintenance" value={`$${res.evM.toLocaleString()}/yr`} t={t} />
@@ -737,7 +737,7 @@ function EVCalcInner() {
                 details={[
                   { label: "Verdict", value: VERDICT_CFG[res.verdictType]?.label },
                   { label: "Annual savings", value: `$${res.annualSavings.toLocaleString()}` },
-                  { label: "Break-even", value: `Year ${res.be || "—"}` },
+                  { label: "Break-even", value: `Year ${res.be || "â€”"}` },
                 ]}
               />
 
@@ -757,3 +757,4 @@ export function EVCalcPage() {
     </Suspense>
   );
 }
+

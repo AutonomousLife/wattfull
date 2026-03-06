@@ -1,26 +1,12 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { useTheme } from "@/lib/ThemeContext";
 import { Stars } from "@/components/ui";
 import { amazonLink, amazonDP } from "@/lib/helpers";
 
-function asinImg(asin) {
-  if (!asin) return null;
-  return `/api/img?asin=${asin}`;
-}
-
 export function ProductDetail({ product, type }) {
   const { t } = useTheme();
   const [tab, setTab] = useState("verdict");
-  const imgSources = useMemo(() => [asinImg(product.asin), product.image].filter(Boolean), [product.asin, product.image]);
-  const [imgIndex, setImgIndex] = useState(0);
-  const imgSrc = imgSources[imgIndex] ?? null;
-  const imageScale = product.detailImageScale ?? product.imageScale ?? 1;
-  const imagePosition = product.detailImagePosition ?? product.imagePosition ?? "center center";
-
-  useEffect(() => {
-    setImgIndex(0);
-  }, [product.id]);
 
   const tabs = [
     { id: "verdict", label: "Our Take" },
@@ -49,57 +35,6 @@ export function ProductDetail({ product, type }) {
 
   return (
     <div style={{ background: t.white, border: `1px solid ${t.borderLight}`, borderRadius: 16, overflow: "hidden" }}>
-      <div
-        style={{
-          width: "100%",
-          height: 240,
-          background: t.card,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          overflow: "hidden",
-          padding: 16,
-        }}
-      >
-        {imgSrc ? (
-          <div
-            style={{
-              width: "100%",
-              height: "100%",
-              borderRadius: 16,
-              overflow: "hidden",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              background: "linear-gradient(180deg, rgba(245,248,241,0.98) 0%, rgba(232,239,229,0.96) 100%)",
-            }}
-          >
-            <img
-              src={imgSrc}
-              alt={product.name}
-              loading="lazy"
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: type === "station" ? "cover" : "contain",
-                objectPosition: imagePosition,
-                transform: `scale(${imageScale})`,
-                transformOrigin: "center",
-              }}
-              onError={() => {
-                if (imgIndex < imgSources.length - 1) setImgIndex((n) => n + 1);
-                else setImgIndex(-1);
-              }}
-            />
-          </div>
-        ) : (
-          <div style={{ textAlign: "center", opacity: 0.4 }}>
-            <div style={{ fontSize: 24, fontWeight: 700, color: t.textLight }}>{type === "panel" ? "Solar" : "Power"}</div>
-            <div style={{ fontSize: 12, color: t.textFaint, marginTop: 6, fontWeight: 600 }}>{product.brand}</div>
-          </div>
-        )}
-      </div>
-
       <div style={{ padding: 24, borderBottom: `1px solid ${t.borderLight}` }}>
         <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
           <div>

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTheme } from "@/lib/ThemeContext";
 import { Stars } from "@/components/ui";
 import { amazonLink, amazonDP } from "@/lib/helpers";
@@ -12,7 +12,15 @@ function asinImg(asin) {
 export function ProductDetail({ product, type }) {
   const { t } = useTheme();
   const [tab, setTab] = useState("verdict");
-  const [imgFailed, setImgFailed] = useState(false);
+  const imgSources = useMemo(() => [asinImg(product.asin), product.image].filter(Boolean), [product.asin, product.image]);
+  const [imgIndex, setImgIndex] = useState(0);
+  const imgSrc = imgSources[imgIndex] ?? null;
+  const imageScale = product.detailImageScale ?? product.imageScale ?? 1;
+  const imagePosition = product.detailImagePosition ?? product.imagePosition ?? "center center";
+
+  useEffect(() => {
+    setImgIndex(0);
+  }, [product.id]);
 
   const tabs = [
     { id: "verdict", label: "Our Take" },
@@ -38,7 +46,6 @@ export function ProductDetail({ product, type }) {
       ];
 
   const href = product.asin ? amazonDP(product.asin) : amazonLink(product.amazonSearch);
-  const imgSrc = product.image || asinImg(product.asin);
 
   return (
     <div style={{ background: t.white, border: `1px solid ${t.borderLight}`, borderRadius: 16, overflow: "hidden" }}>
@@ -51,34 +58,40 @@ export function ProductDetail({ product, type }) {
           alignItems: "center",
           justifyContent: "center",
           overflow: "hidden",
-          position: "relative",
+          padding: 16,
         }}
       >
-        {imgSrc && !imgFailed ? (
-          <>
+        {imgSrc ? (
+          <div
+            style={{
+              width: "100%",
+              height: "100%",
+              borderRadius: 16,
+              overflow: "hidden",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "linear-gradient(180deg, rgba(245,248,241,0.98) 0%, rgba(232,239,229,0.96) 100%)",
+            }}
+          >
             <img
               src={imgSrc}
               alt={product.name}
               loading="lazy"
-              style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain", padding: 16 }}
-              onError={() => setImgFailed(true)}
-            />
-            <div
               style={{
-                position: "absolute",
-                bottom: 10,
-                right: 12,
-                fontSize: 10,
-                color: t.textFaint,
-                background: t.card,
-                borderRadius: 6,
-                padding: "2px 8px",
-                border: `1px solid ${t.borderLight}`,
+                width: "100%",
+                height: "100%",
+                objectFit: type === "station" ? "cover" : "contain",
+                objectPosition: imagePosition,
+                transform: `scale(${imageScale})`,
+                transformOrigin: "center",
               }}
-            >
-              product image
-            </div>
-          </>
+              onError={() => {
+                if (imgIndex < imgSources.length - 1) setImgIndex((n) => n + 1);
+                else setImgIndex(-1);
+              }}
+            />
+          </div>
         ) : (
           <div style={{ textAlign: "center", opacity: 0.4 }}>
             <div style={{ fontSize: 24, fontWeight: 700, color: t.textLight }}>{type === "panel" ? "Solar" : "Power"}</div>

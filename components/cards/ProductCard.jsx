@@ -3,18 +3,13 @@ import { useState } from "react";
 import { useTheme } from "@/lib/ThemeContext";
 import { Stars, Badge } from "@/components/ui";
 import VoteBadge from "@/components/ui/VoteBadge";
-import { amazonDP } from "@/lib/helpers";
 
-// Route Amazon product images through our server-side proxy (/api/img).
-// Direct CDN hotlinks fail (Amazon returns a 1×1 transparent pixel, HTTP 200,
-// so onError never fires). The proxy fetches from Amazon server-side
-// (no Referer header), checks image size to reject blanks, and caches results.
 function asinImg(asin) {
   if (!asin) return null;
   return `/api/img?asin=${asin}`;
 }
 
-const TYPE_ICON = { panel: "☀️", station: "⚡" };
+const TYPE_ICON = { panel: "Solar", station: "Power" };
 
 export function ProductCard({ product, type, onSelect, selected }) {
   const { t } = useTheme();
@@ -34,32 +29,29 @@ export function ProductCard({ product, type, onSelect, selected }) {
         transform: selected ? "scale(1.01)" : "scale(1)",
       }}
     >
-      {/* Product image */}
-      <div style={{
-        width: "100%",
-        height: 160,
-        background: t.card,
-        overflow: "hidden",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        borderBottom: `1px solid ${t.borderLight}`,
-      }}>
+      <div
+        style={{
+          width: "100%",
+          height: 160,
+          background: t.card,
+          overflow: "hidden",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         {imgSrc && !imgFailed ? (
           <img
             src={imgSrc}
             alt={product.name}
             loading="lazy"
-            style={{ width: "100%", height: "100%", objectFit: "contain", padding: "8px" }}
+            style={{ width: "100%", height: "100%", objectFit: "contain", padding: "10px 12px" }}
             onError={() => setImgFailed(true)}
           />
         ) : (
-          /* Styled placeholder when image unavailable */
           <div style={{ textAlign: "center", opacity: 0.45 }}>
-            <div style={{ fontSize: 36 }}>{TYPE_ICON[type] ?? "📦"}</div>
-            <div style={{ fontSize: 11, color: t.textFaint, marginTop: 4, fontWeight: 600 }}>
-              {product.brand}
-            </div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: t.textLight }}>{TYPE_ICON[type] ?? "Gear"}</div>
+            <div style={{ fontSize: 11, color: t.textFaint, marginTop: 4, fontWeight: 600 }}>{product.brand}</div>
           </div>
         )}
       </div>
@@ -81,7 +73,7 @@ export function ProductCard({ product, type, onSelect, selected }) {
             <Badge key={tag} type="tag">{tag}</Badge>
           ))}
           <span style={{ fontSize: 12, color: t.textMid, padding: "3px 0" }}>
-            {type === "panel" ? `${product.watts}W · ${product.weight}` : `${product.capacity} · ${product.weight}`}
+            {type === "panel" ? `${product.watts}W | ${product.weight}` : `${product.capacity} | ${product.weight}`}
           </span>
         </div>
         <div style={{ fontSize: 13, color: t.textMid, lineHeight: 1.5, marginBottom: 10 }}>

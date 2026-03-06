@@ -273,7 +273,7 @@ function VehiclePhoto({ vehicleId, name, height = 140, flip = false, accentColor
     width: "100%", height,
     borderRadius: 10,
     overflow: "hidden",
-    background: t.card,
+    background: "transparent",
     display: "flex", alignItems: "center", justifyContent: "center",
     position: "relative",
   };
@@ -302,16 +302,15 @@ function VehiclePhoto({ vehicleId, name, height = 140, flip = false, accentColor
   }
 
   return (
-    <div style={{ ...frame, background: t.card }}>
+    <div style={frame}>
       <img
         src={src}
         alt={name}
         loading="lazy"
         style={{
           width: "100%", height: "100%",
-          objectFit: "contain",
+          objectFit: "cover",
           transform: flip ? "scaleX(-1)" : "none",
-          padding: "8px 4px",
           display: "block",
         }}
         onError={() => { _photoCache[vehicleId] = null; setSrc(null); }}

@@ -1,10 +1,11 @@
-export { HomePage } from "./HomePage";
+﻿export { HomePage } from "./HomePage";
 export { EVCalcPage } from "./EVCalcPage";
 export { SolarCalcPage } from "./SolarCalcPage";
 export { MarketplacePage } from "./MarketplacePage";
 export { ComparePage } from "./ComparePage";
 export { WhatCanIRunPage } from "./WhatCanIRunPage";
 export { CarbonPage } from "./CarbonPage";
-export { StatesPage } from "./StatesPage";
+export { StatesPageV2 as StatesPage } from "./StatesPageV2";
 export { ReferralPage } from "./ReferralPage";
-export { MethodologyPage } from "./MethodologyPage";
+export { MethodologyPageV2 as MethodologyPage } from "./MethodologyPageV2";
+

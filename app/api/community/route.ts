@@ -1,10 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, userLinks } from "@/lib/db/index";
-import { eq, and, gte, count } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { sha256 } from "@/lib/core/scoring";
 
-// In-memory rate limiter (per cold-start instance): max 3 submissions / IP / hour
 const rateLimitMap = new Map<string, number[]>();
+const localPendingLinks: Array<{
+  id: number;
+  category: string;
+  title: string;
+  url: string | null;
+  code: string;
+  submittedBy: string;
+  ipHash: string;
+  status: "pending";
+  createdAt: Date;
+}> = [];
+const HAS_DATABASE_URL = Boolean(process.env.DATABASE_URL);
+
 function isRateLimited(ipHash: string): boolean {
   const now = Date.now();
   const windowMs = 60 * 60 * 1000;
@@ -14,19 +26,22 @@ function isRateLimited(ipHash: string): boolean {
   return false;
 }
 
-// Suspicious TLDs that are commonly used for spam
 const SPAM_TLDS = new Set([".xyz", ".tk", ".ml", ".gq", ".cf", ".ga", ".top", ".click", ".loan", ".win", ".bid"]);
+
 function isSpamUrl(url: string): boolean {
   try {
     const { hostname } = new URL(url.startsWith("http") ? url : `https://${url}`);
-    return SPAM_TLDS.has("." + hostname.split(".").pop());
+    return SPAM_TLDS.has(`.${hostname.split(".").pop()}`);
   } catch {
     return false;
   }
 }
 
-/** GET /api/community — return approved community links */
 export async function GET() {
+  if (!HAS_DATABASE_URL) {
+    return NextResponse.json({ referrals: [] });
+  }
+
   try {
     const rows = await db
       .select()
@@ -40,11 +55,14 @@ export async function GET() {
   }
 }
 
-/** POST /api/community — submit a new link */
 export async function POST(req: NextRequest) {
   try {
-    const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
-    const ipHash = await sha256(ip + (process.env.ADMIN_PASSWORD ?? "wf"));
+    const ip =
+      req.headers.get("x-forwarded-for")?.split(",")[0].trim() ??
+      req.headers.get("x-real-ip")?.trim() ??
+      "unknown";
+    const agent = req.headers.get("user-agent")?.slice(0, 120) ?? "unknown-agent";
+    const ipHash = await sha256(`${ip}|${agent}|${process.env.ADMIN_PASSWORD ?? "wf"}`);
 
     if (isRateLimited(ipHash)) {
       return NextResponse.json({ error: "Too many submissions. Try again later." }, { status: 429 });
@@ -52,9 +70,8 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
 
-    // Honeypot
     if (body.website) {
-      return NextResponse.json({ success: true }); // silent
+      return NextResponse.json({ success: true });
     }
 
     const { type, name, code, desc, url } = body;
@@ -62,43 +79,48 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "All fields required." }, { status: 400 });
     }
     if (code.length < 3 || code.length > 60) {
-      return NextResponse.json({ error: "Code must be 3–60 characters." }, { status: 400 });
+      return NextResponse.json({ error: "Code must be 3-60 characters." }, { status: 400 });
     }
     if (url && isSpamUrl(url)) {
       return NextResponse.json({ error: "URL not accepted." }, { status: 400 });
     }
 
-    // Duplicate domain check
-    if (url) {
-      try {
-        const { hostname } = new URL(url.startsWith("http") ? url : `https://${url}`);
-        const existing = await db
-          .select({ id: userLinks.id })
-          .from(userLinks)
-          .limit(1);
-        // Simple: if same code already exists, reject
-        const dupCode = await db
-          .select({ id: userLinks.id })
-          .from(userLinks)
-          .where(eq(userLinks.code, String(code).replace(/[^a-zA-Z0-9\-_]/g, "").slice(0, 60)))
-          .limit(1);
-        if (dupCode.length > 0) {
-          return NextResponse.json({ error: "Code already submitted." }, { status: 400 });
-        }
-      } catch {
-        // ignore URL parse errors
-      }
-    }
-
-    await db.insert(userLinks).values({
+    const sanitizedCode = String(code).replace(/[^a-zA-Z0-9\-_]/g, "").slice(0, 60);
+    const payload = {
       category: String(type).slice(0, 30),
       title: String(name).slice(0, 100),
-      code: String(code).replace(/[^a-zA-Z0-9\-_]/g, "").slice(0, 60),
+      code: sanitizedCode,
       url: url ? String(url).slice(0, 500) : null,
       submittedBy: String(desc).slice(0, 200),
       ipHash,
-      status: "pending",
-    });
+      status: "pending" as const,
+    };
+
+    if (!HAS_DATABASE_URL) {
+      const dupCode = localPendingLinks.some((entry) => entry.code === sanitizedCode);
+      if (dupCode) {
+        return NextResponse.json({ error: "Code already submitted." }, { status: 400 });
+      }
+
+      localPendingLinks.push({
+        id: Date.now(),
+        ...payload,
+        createdAt: new Date(),
+      });
+
+      return NextResponse.json({ success: true, pendingStorage: "memory" });
+    }
+
+    const dupCode = await db
+      .select({ id: userLinks.id })
+      .from(userLinks)
+      .where(eq(userLinks.code, sanitizedCode))
+      .limit(1);
+    if (dupCode.length > 0) {
+      return NextResponse.json({ error: "Code already submitted." }, { status: 400 });
+    }
+
+    await db.insert(userLinks).values(payload);
 
     return NextResponse.json({ success: true });
   } catch {

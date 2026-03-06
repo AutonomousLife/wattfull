@@ -10,7 +10,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "db:seed": "tsx lib/db/seed.ts"
+    "db:seed": "tsx lib/db/seed.ts",
+    "test": "tsx tests/run-tests.mts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
@@ -36,3 +37,4 @@
     "typescript": "^5"
   }
 }
+

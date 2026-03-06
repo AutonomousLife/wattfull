@@ -3,23 +3,13 @@ import { notFound } from "next/navigation";
 import { db, vehicles } from "@/lib/db/index";
 import { eq } from "drizzle-orm";
 import { calculateComparison } from "@/lib/core/calc";
+import { resolveStateFromZip } from "@/lib/geo";
 
 export const revalidate = 86400; // 24 hours
 
-interface Props { params: { zip: string; comparison: string } }
-
-const ZIP3_STATE: Record<string, string> = {
-  "941": "CA", "900": "CA", "100": "NY", "600": "IL", "770": "TX",
-  "331": "FL", "480": "MI", "550": "MN", "800": "CO", "020": "MA",
-  "190": "PA", "301": "GA", "700": "LA", "850": "AZ", "971": "OR",
-  "980": "WA",
-};
-function inferState(zip: string): string | undefined {
-  return ZIP3_STATE[zip.substring(0, 3)];
-}
+interface Props { params: Promise<{ zip: string; comparison: string }> }
 
 async function resolveVehicles(comparison: string) {
-  // Format: "tesla-model-3-long-range-vs-toyota-camry"
   const parts = comparison.split("-vs-");
   if (parts.length !== 2) return null;
   const [slug1, slug2] = parts;
@@ -33,7 +23,7 @@ async function resolveVehicles(comparison: string) {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { zip, comparison } = params;
+  const { zip, comparison } = await params;
   const result = await resolveVehicles(comparison);
   if (!result?.v1 || !result?.v2) return { title: "Comparison not found — Wattfull" };
 
@@ -51,7 +41,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function EvVsGasPage({ params }: Props) {
-  const { zip, comparison } = params;
+  const { zip, comparison } = await params;
 
   if (!/^\d{5}$/.test(zip)) notFound();
 
@@ -59,12 +49,11 @@ export default async function EvVsGasPage({ params }: Props) {
   if (!resolved?.v1 || !resolved?.v2) notFound();
 
   const { v1, v2 } = resolved;
-  const state = inferState(zip);
+  const state = resolveStateFromZip(zip) ?? undefined;
 
   let calcResult = null;
   let calcError = null;
   try {
-    // Determine which is EV and which is ICE for calc input
     const ev = v1.type === "ev" ? v1 : v2.type === "ev" ? v2 : null;
     const ice = v1.type === "ice" ? v1 : v2.type === "ice" ? v2 : null;
 
@@ -76,10 +65,10 @@ export default async function EvVsGasPage({ params }: Props) {
         iceId: ice.id,
         milesPerYear: 12000,
         ownershipYears: 5,
-      } as any);
+      });
     }
-  } catch (e) {
-    calcError = String(e);
+  } catch (error) {
+    calcError = String(error);
   }
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://wattfull.com";
@@ -116,7 +105,6 @@ export default async function EvVsGasPage({ params }: Props) {
 
       {calcResult ? (
         <>
-          {/* Score Banner */}
           <div style={{
             background: calcResult.totalCostEv < calcResult.totalCostIce ? "#ecfdf5" : "#f8fafc",
             border: `2px solid ${calcResult.totalCostEv < calcResult.totalCostIce ? "#10b981" : "#e2e8f0"}`,
@@ -132,7 +120,6 @@ export default async function EvVsGasPage({ params }: Props) {
             <div style={{ fontSize: 15, color: "#475569", marginTop: 8 }}>{calcResult.verdict}</div>
           </div>
 
-          {/* Side-by-side cost table */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 28 }}>
             {[
               { v: v1, total: v1.type === "ev" ? calcResult.totalCostEv : calcResult.totalCostIce, isWinner: v1.type === "ev" ? calcResult.totalCostEv < calcResult.totalCostIce : calcResult.totalCostIce < calcResult.totalCostEv },
@@ -148,7 +135,7 @@ export default async function EvVsGasPage({ params }: Props) {
                   textAlign: "center",
                 }}
               >
-                {isWinner && <div style={{ fontSize: 11, fontWeight: 700, color: "#10b981", marginBottom: 8, letterSpacing: 1 }}>✓ LOWER COST</div>}
+                {isWinner && <div style={{ fontSize: 11, fontWeight: 700, color: "#10b981", marginBottom: 8, letterSpacing: 1 }}>? LOWER COST</div>}
                 <div style={{ fontWeight: 700, fontSize: 16, color: "#0f172a", marginBottom: 8 }}>{v.name}</div>
                 <div style={{ fontSize: 32, fontWeight: 800, color: isWinner ? "#10b981" : "#0f172a" }}>
                   ${total.toLocaleString()}
@@ -161,19 +148,17 @@ export default async function EvVsGasPage({ params }: Props) {
             ))}
           </div>
 
-          {/* Rates Used */}
           <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 12, padding: 20, marginBottom: 24 }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: "#0f172a", marginBottom: 12 }}>Rates Used for ZIP {zip}</div>
             <div style={{ display: "flex", gap: 24, flexWrap: "wrap", fontSize: 14 }}>
-              <div>⚡ Electricity: <strong>{calcResult.ratesUsed.electricityCentsPerKwh}¢/kWh</strong></div>
-              <div>⛽ Gas: <strong>${calcResult.ratesUsed.gasDollarsPerGallon}/gal</strong></div>
+              <div>? Electricity: <strong>{calcResult.ratesUsed.electricityCentsPerKwh}¢/kWh</strong></div>
+              <div>? Gas: <strong>${calcResult.ratesUsed.gasDollarsPerGallon}/gal</strong></div>
               <div>Confidence: <strong style={{ color: calcResult.confidenceLevel === "high" ? "#10b981" : calcResult.confidenceLevel === "medium" ? "#f59e0b" : "#94a3b8" }}>
                 {calcResult.confidenceLevel}
               </strong></div>
             </div>
           </div>
 
-          {/* Incentives */}
           {calcResult.incentiveLineItems.length > 0 && (
             <div style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 12, padding: 16, marginBottom: 24, fontSize: 13 }}>
               <strong style={{ color: "#92400e" }}>Incentives (not applied to totals)</strong>
@@ -187,7 +172,6 @@ export default async function EvVsGasPage({ params }: Props) {
             </div>
           )}
 
-          {/* Assumptions */}
           <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 12, padding: 20, fontSize: 13, color: "#64748b" }}>
             <strong style={{ color: "#0f172a" }}>Assumptions Used</strong>
             <ul style={{ marginTop: 8, paddingLeft: 20, lineHeight: 1.8 }}>
@@ -201,11 +185,10 @@ export default async function EvVsGasPage({ params }: Props) {
           <p style={{ color: "#94a3b8" }}>
             {calcError ? "Calculation unavailable — one or both vehicles may be ICE-only (EV vs ICE comparison requires one of each)." : "Loading comparison data..."}
           </p>
-          <a href="/" style={{ color: "#10b981", marginTop: 12, display: "inline-block" }}>Use the full comparison tool →</a>
+          <a href="/" style={{ color: "#10b981", marginTop: 12, display: "inline-block" }}>Use the full comparison tool ?</a>
         </div>
       )}
 
-      {/* Internal links */}
       <div style={{ marginTop: 32, fontSize: 13, color: "#94a3b8" }}>
         <div style={{ marginBottom: 8 }}>Also compare:</div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
@@ -219,3 +202,4 @@ export default async function EvVsGasPage({ params }: Props) {
     </>
   );
 }
+

@@ -21,8 +21,22 @@ export function MarketplacePage() {
         Independent assessments from real owner reviews and field reports.
       </p>
       <div style={{ display: "inline-flex", gap: 4, padding: 4, background: t.card, borderRadius: 10, marginTop: 20, marginBottom: 24 }}>
-        {[{ id: "panels", label: "☀️ Solar Panels" }, { id: "stations", label: "🔋 Power Stations" }].map((tb) => (
-          <button key={tb.id} onClick={() => setTab(tb.id)} style={{ padding: "10px 20px", borderRadius: 8, fontSize: 14, fontWeight: tab === tb.id ? 700 : 500, background: tab === tb.id ? t.white : "transparent", color: tab === tb.id ? t.text : t.textMid, border: "none", cursor: "pointer", boxShadow: tab === tb.id ? `0 1px 4px ${t.shadow}` : "none" }}>
+        {[{ id: "panels", label: "Solar Panels" }, { id: "stations", label: "Power Stations" }].map((tb) => (
+          <button
+            key={tb.id}
+            onClick={() => setTab(tb.id)}
+            style={{
+              padding: "10px 20px",
+              borderRadius: 8,
+              fontSize: 14,
+              fontWeight: tab === tb.id ? 700 : 500,
+              background: tab === tb.id ? t.white : "transparent",
+              color: tab === tb.id ? t.text : t.textMid,
+              border: "none",
+              cursor: "pointer",
+              boxShadow: tab === tb.id ? `0 1px 4px ${t.shadow}` : "none",
+            }}
+          >
             {tb.label}
           </button>
         ))}

@@ -1,11 +1,12 @@
 "use client";
-import { useState, useEffect, useTransition, Suspense } from "react";
+import { useState, useEffect, useTransition, Suspense, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
 import { useTheme } from "@/lib/ThemeContext";
 import { Input, Select, Slider, Toggle, Collapsible, Badge, ChartTip } from "@/components/ui";
 import { VehicleSearch } from "@/components/ui/VehicleSearch";
-import { VEHICLES, POPULAR_EV_IDS, POPULAR_ICE_IDS, CLIMATE_PENALTIES, STATE_DATA, zipToState } from "@/lib/data";
+import { VEHICLES, POPULAR_EV_IDS, POPULAR_ICE_IDS, STATE_DATA } from "@/lib/data";
+import { resolveStateFromZip } from "@/lib/geo";
 import { fmt } from "@/lib/helpers";
 import { ShareBadge } from "@/components/widgets/ShareBadge";
 import { runCalc } from "@/app/actions/calc";
@@ -13,7 +14,6 @@ import DataFreshness from "@/components/ui/DataFreshness";
 
 const LS_KEY = "wattfull_ev_calc_v2";
 
-const DRIVE_MULTIPLIERS = { efficient: 0.88, normal: 1.0, aggressive: 1.17 };
 const VERDICT_CFG = {
   favorable:   { color: "#10b981", bg: "#d1fae5", darkBg: "#064e3b", label: "EV Financially Favorable",   icon: "✅" },
   neutral:     { color: "#f59e0b", bg: "#fef3c7", darkBg: "#451a03", label: "Roughly Neutral",            icon: "⚖️" },
@@ -293,6 +293,43 @@ function DataSourcesStrip({ t }) {
   );
 }
 
+function mapCalcResult(result) {
+  if (!result?.operating || !result?.analysis) return null;
+
+  return {
+    yd: result.operating.byYear.map((row) => ({
+      year: row.year,
+      ev: row.evCum,
+      ice: row.iceCum,
+      savings: row.savings,
+    })),
+    be: result.operating.breakEvenYear,
+    total: result.operating.totalSavings,
+    annualSavings: result.operating.annualSavings,
+    fiveYearSavings: result.operating.fiveYearSavings,
+    verdictType: result.analysis.verdictType,
+    evCpm: result.operating.evCostPerMile,
+    iceCpm: result.operating.iceCostPerMile,
+    evFuel: result.operating.evFuelAnnual,
+    iceFuel: result.operating.iceFuelAnnual,
+    evM: result.operating.evMaintAnnual,
+    iceM: result.operating.iceMaintAnnual,
+    inc: result.operating.incentivesApplied,
+    incI: result.inputs?.includeIncentives ?? false,
+    kwhMi: result.analysis.kwhPerMile.toFixed(3),
+    blend: result.analysis.blendedRatePerKwh.toFixed(3),
+    er: result.ratesUsed.electricityCentsPerKwh,
+    gp: result.ratesUsed.gasDollarsPerGallon,
+    cp: `${result.analysis.climatePenaltyPct}%`,
+    breakEvenElec: result.analysis.breakEvenElec,
+    savingsPer1kMi: result.analysis.savingsPer1kMi,
+    savingsPerGas10c: result.analysis.savingsPerGas10c,
+    potentialCredits: result.analysis.potentialCredits,
+    rankings: result.analysis.rankings,
+    reasons: result.analysis.reasons,
+  };
+}
+
 /* ─── EVCalcInner ────────────────────────────────────────────────── */
 function EVCalcInner() {
   const { t } = useTheme();
@@ -321,6 +358,7 @@ function EVCalcInner() {
   const [loaded, setLoaded] = useState(false);
   const [serverRates, setServerRates] = useState(null);
   const [isPending, startTransition] = useTransition();
+  const calcCacheRef = useRef(new Map());
 
   // Load from localStorage
   useEffect(() => {
@@ -362,7 +400,7 @@ function EVCalcInner() {
 
   useEffect(() => {
     if (zip.length === 5) {
-      const s = zipToState(zip);
+      const s = resolveStateFromZip(zip);
       setSt(s);
       setSd2(s ? STATE_DATA[s] : null);
     } else {
@@ -374,7 +412,7 @@ function EVCalcInner() {
   const ev = VEHICLES.ev.find((v) => v.id === evId);
   const ice = VEHICLES.ice.find((v) => v.id === iceId);
 
-  const calc = () => {
+  const requestCalculation = async (updateResults = true) => {
     const e = {};
     if (!/^\d{5}$/.test(zip) || !st) e.zip = "Valid 5-digit ZIP";
     if (mi < 1000 || mi > 50000) e.mi = "1k–50k";
@@ -382,95 +420,57 @@ function EVCalcInner() {
     setErr(e);
     if (Object.keys(e).length) return;
 
-    const er = eo !== "" ? Number(eo) : (serverRates?.electricityCentsPerKwh ?? sd.e);
-    const gp = go !== "" ? Number(go) : (serverRates?.gasDollarsPerGallon ?? sd.g);
-    const cp = CLIMATE_PENALTIES[sd.z] || 0.1;
-    const dm = DRIVE_MULTIPLIERS[driveStyle] || 1.0;
+    const cacheKey = JSON.stringify({
+      zip,
+      evId,
+      iceId,
+      mi,
+      yr,
+      eo,
+      go,
+      hc,
+      pc,
+      dc,
+      evMaint,
+      iceMaint,
+      incI,
+      incC,
+      driveStyle,
+    });
 
-    const kwhMi = (ev.kwh / 100) * (incC ? 1 + cp : 1) * dm;
-    const blend = (hc / 100) * (er / 100) * 1.12 + (pc / 100) * (er / 100 + 0.18) * 1.06 + (dc / 100) * 0.35;
-    const evFuel = kwhMi * mi * blend;
-    const iceFuel = (mi / ice.mpg) * gp;
-
-    const evM = Number(evMaint) || 800;
-    const iceM = Number(iceMaint) || 1500;
-
-    let inc = 0;
-    if (incI) inc = ev.fc + (sd.ec || 0);
-
-    const yd = [];
-    let ec2 = 0, ic = 0, be = null;
-    for (let y = 1; y <= yr; y++) {
-      ec2 += evFuel + evM - (y === 1 ? inc : 0);
-      ic += iceFuel + iceM;
-      if (!be && ic - ec2 > 0) be = y;
-      yd.push({ year: y, ev: Math.round(ec2), ice: Math.round(ic), savings: Math.round(ic - ec2) });
+    const cached = calcCacheRef.current.get(cacheKey);
+    if (cached) {
+      setServerRates(cached?.ratesUsed ?? null);
+      if (updateResults) setRes(mapCalcResult(cached));
+      return;
     }
 
-    const annualSavings = Math.round((iceFuel + iceM) - (evFuel + evM));
-    const verdictType = annualSavings > 600 ? "favorable" : annualSavings < -400 ? "unfavorable" : "neutral";
+    const result = await runCalc({
+      zip,
+      evId,
+      iceId,
+      milesPerYear: mi,
+      ownershipYears: yr,
+      electricityRateOverride: eo !== "" ? Number(eo) : undefined,
+      gasPriceOverride: go !== "" ? Number(go) : undefined,
+      homePct: hc,
+      publicPct: pc,
+      dcfcPct: dc,
+      evMaintPerYear: Number(evMaint) || 800,
+      iceMaintPerYear: Number(iceMaint) || 1500,
+      includeIncentives: incI,
+      driveStyle,
+      applyClimateAdjustment: incC,
+    });
 
-    // Threshold: electricity rate where annual savings = 0
-    const blendErCoeff = (hc / 100) * 1.12 / 100 + (pc / 100) * 1.06 / 100;
-    const blendConst = (pc / 100) * 0.18 * 1.06 + (dc / 100) * 0.35;
-    let breakEvenElec = null;
-    if (blendErCoeff > 0) {
-      const targetFuel = iceFuel + iceM - evM;
-      const rawEr = (targetFuel / (kwhMi * mi) - blendConst) / blendErCoeff;
-      if (rawEr > 0 && rawEr < 80) breakEvenElec = Math.round(rawEr * 10) / 10;
-    }
+    calcCacheRef.current.set(cacheKey, result);
+    setServerRates(result?.ratesUsed ?? null);
+    if (updateResults) setRes(mapCalcResult(result));
+  };
 
-    // Sensitivity
-    const savingsPer1kMi = Math.round((gp / ice.mpg - kwhMi * blend) * 1000);
-    const savingsPerGas10c = Math.round(mi / ice.mpg * 0.1);
-
-    // Potential credits if not yet applied
-    const potentialCredits = incI ? 0 : (ev.fc + (sd.ec || 0));
-
-    // Vehicle rankings
-    const rankings = VEHICLES.ev.map(v => {
-      const vkwhMi = (v.kwh / 100) * (incC ? 1 + cp : 1) * dm;
-      const vFuel = vkwhMi * mi * blend;
-      return {
-        id: v.id, name: v.name, kwh: v.kwh,
-        annSavings: Math.round((iceFuel + iceM) - (vFuel + evM)),
-      };
-    }).sort((a, b) => b.annSavings - a.annSavings);
-
-    // Reasons
-    const usAvgElec = 16.0;
-    const reasons = [];
-    if (er < usAvgElec - 1.5) reasons.push(`Low electricity rate (${er}¢/kWh vs ~${usAvgElec}¢ US avg) — charging is cheap here`);
-    else if (er > usAvgElec + 2) reasons.push(`High electricity rate (${er}¢/kWh vs ~${usAvgElec}¢ US avg) — reduces EV advantage`);
-    else reasons.push(`Near-average electricity rate (${er}¢/kWh)`);
-    if (mi > 15000) reasons.push(`High annual mileage (${mi.toLocaleString()} mi) amplifies fuel savings`);
-    else if (mi < 8000) reasons.push(`Lower mileage (${mi.toLocaleString()} mi/yr) limits total benefit`);
-    if (gp > 3.75) reasons.push(`Above-average gas price ($${gp}/gal) favors the EV`);
-    if (incI && inc > 0) reasons.push(`$${inc.toLocaleString()} in tax credits applied — lowers net EV cost`);
-    if (driveStyle === "efficient") reasons.push("Efficient driving style improves effective range by ~12%");
-    else if (driveStyle === "aggressive") reasons.push("Aggressive driving style reduces effective EV efficiency by ~17%");
-
-    setRes({
-      yd, be,
-      total: Math.round(ic - ec2),
-      annualSavings,
-      fiveYearSavings: Math.round(annualSavings * 5 - (incI ? inc : 0)),
-      verdictType,
-      evCpm: (ec2 / (mi * yr)).toFixed(3),
-      iceCpm: (ic / (mi * yr)).toFixed(3),
-      evFuel: Math.round(evFuel),
-      iceFuel: Math.round(iceFuel),
-      evM, iceM, inc, incI,
-      kwhMi: kwhMi.toFixed(3),
-      blend: blend.toFixed(3),
-      er, gp,
-      cp: `${(cp * 100).toFixed(0)}%`,
-      breakEvenElec,
-      savingsPer1kMi,
-      savingsPerGas10c,
-      potentialCredits,
-      rankings,
-      reasons,
+  const calc = () => {
+    startTransition(() => {
+      void requestCalculation(true);
     });
   };
 
@@ -503,8 +503,7 @@ function EVCalcInner() {
               onClick={() => {
                 startTransition(async () => {
                   try {
-                    const r = await runCalc({ zip, evId, iceId, milesPerYear: mi, ownershipYears: yr });
-                    if (r?.ratesUsed) setServerRates(r.ratesUsed);
+                    await requestCalculation(false);
                   } catch (_) {}
                 });
               }}

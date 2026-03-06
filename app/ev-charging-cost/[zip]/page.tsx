@@ -1,37 +1,16 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { db, electricityRates, dataStatus, vehicles } from "@/lib/db/index";
+import { db, electricityRates, vehicles } from "@/lib/db/index";
 import { eq, desc } from "drizzle-orm";
+import { resolveStateFromZip } from "@/lib/geo";
 
 export const revalidate = 86400; // 24 hours
 
-// Zip prefix → state (simplified; full map in lib/data/zipToState.js)
-const ZIP3_STATE: Record<string, string> = {
-  "941": "CA", "900": "CA", "945": "CA", "946": "CA", "948": "CA",
-  "100": "NY", "104": "NY", "110": "NY", "112": "NY",
-  "600": "IL", "606": "IL",
-  "770": "TX", "787": "TX", "750": "TX",
-  "331": "FL", "320": "FL", "346": "FL",
-  "480": "MI", "550": "MN",
-  "800": "CO", "802": "CO",
-  "020": "MA", "021": "MA", "022": "MA",
-  "190": "PA", "191": "PA",
-  "301": "GA", "303": "GA",
-  "700": "LA", "701": "LA",
-  "850": "AZ", "852": "AZ",
-  "971": "OR", "972": "OR",
-  "980": "WA", "981": "WA", "982": "WA",
-};
-
-function inferState(zip: string): string | null {
-  return ZIP3_STATE[zip.substring(0, 3)] ?? null;
-}
-
-interface Props { params: { zip: string } }
+interface Props { params: Promise<{ zip: string }> }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { zip } = params;
-  const state = inferState(zip);
+  const { zip } = await params;
+  const state = resolveStateFromZip(zip);
   const title = `EV Charging Cost in ZIP ${zip}${state ? ` (${state})` : ""} — Wattfull`;
   const description = `See the exact electricity rate and EV charging cost for ZIP code ${zip}. Updated weekly from EIA data.`;
   const url = `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://wattfull.com"}/ev-charging-cost/${zip}`;
@@ -45,12 +24,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function EVChargingCostPage({ params }: Props) {
-  const { zip } = params;
+  const { zip } = await params;
   if (!/^\d{5}$/.test(zip)) notFound();
 
-  const state = inferState(zip);
+  const state = resolveStateFromZip(zip);
 
-  // Get electricity rate — zip level → state level → null
   let rateRow = null;
   if (zip) {
     const zipRows = await db
@@ -76,7 +54,6 @@ export default async function EVChargingCostPage({ params }: Props) {
   const updatedDate = rateRow?.createdAt ? new Date(rateRow.createdAt).toLocaleDateString("en-US", { dateStyle: "long" }) : "Not available";
   const isApprox = !rateRow;
 
-  // Calculate charging costs for common EVs
   const topEvs = await db
     .select({ id: vehicles.id, name: vehicles.name, kwhPer100mi: vehicles.kwhPer100mi, msrp: vehicles.msrp, slug: vehicles.slug })
     .from(vehicles)
@@ -132,18 +109,17 @@ export default async function EVChargingCostPage({ params }: Props) {
           EV Charging Cost — ZIP {zip}{state ? ` (${state})` : ""}
         </h1>
         <p style={{ fontSize: 16, color: "#475569", lineHeight: 1.7 }}>
-          Residential electricity rate and estimated EV charging costs for ZIP code {zip}.{" "}
+          Residential electricity rate and estimated EV charging costs for ZIP code {zip}. {" "}
           {isApprox ? "Showing national average (ZIP-specific data not yet available)." : `Data from ${source}.`}
         </p>
       </div>
 
-      {/* Rate Card */}
       <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 16, padding: 28, marginBottom: 28 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16 }}>
           <div>
             <div style={{ fontSize: 13, color: "#94a3b8", marginBottom: 4 }}>Residential Electricity Rate</div>
             <div style={{ fontSize: 48, fontWeight: 800, color: "#10b981" }}>{rate.toFixed(1)}¢<span style={{ fontSize: 20, fontWeight: 400, color: "#94a3b8" }}>/kWh</span></div>
-            {isApprox && <div style={{ fontSize: 12, color: "#f59e0b", marginTop: 4 }}>⚠ Using national average (ZIP data not available)</div>}
+            {isApprox && <div style={{ fontSize: 12, color: "#f59e0b", marginTop: 4 }}>? Using national average (ZIP data not available)</div>}
           </div>
           <div style={{ fontSize: 13, color: "#94a3b8", textAlign: "right" }}>
             <div>Source: {source}</div>
@@ -152,7 +128,6 @@ export default async function EVChargingCostPage({ params }: Props) {
         </div>
       </div>
 
-      {/* Quick Stats */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 16, marginBottom: 32 }}>
         {[
           { label: "Cost per kWh", value: `${rate.toFixed(1)}¢` },
@@ -167,7 +142,6 @@ export default async function EVChargingCostPage({ params }: Props) {
         ))}
       </div>
 
-      {/* EV Comparison Table */}
       {evCosts.length > 0 && (
         <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 16, padding: 28, marginBottom: 32 }}>
           <h2 style={{ fontSize: 20, fontWeight: 700, color: "#0f172a", marginBottom: 20 }}>
@@ -200,7 +174,6 @@ export default async function EVChargingCostPage({ params }: Props) {
         </div>
       )}
 
-      {/* Assumptions */}
       <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 12, padding: 20, fontSize: 13, color: "#64748b", lineHeight: 1.7 }}>
         <strong style={{ color: "#0f172a" }}>Assumptions & Sources</strong>
         <ul style={{ marginTop: 8, paddingLeft: 20 }}>
@@ -210,10 +183,11 @@ export default async function EVChargingCostPage({ params }: Props) {
           <li>EV efficiency from EPA / manufacturer data, no climate adjustment applied</li>
         </ul>
         <div style={{ marginTop: 8 }}>
-          For a full comparison including gas vehicles, maintenance, and incentives, use the{" "}
+          For a full comparison including gas vehicles, maintenance, and incentives, use the {" "}
           <a href="/" style={{ color: "#10b981" }}>Wattfull EV Calculator</a>.
         </div>
       </div>
     </>
   );
 }
+

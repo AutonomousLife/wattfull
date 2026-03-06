@@ -4,7 +4,6 @@ import { useTheme } from "@/lib/ThemeContext";
 import { Stars } from "@/components/ui";
 import { amazonLink, amazonDP } from "@/lib/helpers";
 
-// Route through /api/img — server-side proxy that bypasses Amazon hotlink blocks.
 function asinImg(asin) {
   if (!asin) return null;
   return `/api/img?asin=${asin}`;
@@ -17,24 +16,24 @@ export function ProductDetail({ product, type }) {
 
   const tabs = [
     { id: "verdict", label: "Our Take" },
-    { id: "pros",    label: "Pros & Cons" },
-    { id: "people",  label: "Reviews" },
-    { id: "quirks",  label: "Gotchas" },
+    { id: "pros", label: "Pros & Cons" },
+    { id: "people", label: "Reviews" },
+    { id: "quirks", label: "Gotchas" },
   ];
 
   const specs = type === "panel"
     ? [
-        { l: "Watts",      v: `${product.watts}W` },
+        { l: "Watts", v: `${product.watts}W` },
         { l: "Efficiency", v: product.efficiency },
-        { l: "Weight",     v: product.weight },
-        { l: "Type",       v: product.type?.split(" ")[0] },
-        { l: "Warranty",   v: product.warranty },
+        { l: "Weight", v: product.weight },
+        { l: "Type", v: product.type?.split(" ")[0] },
+        { l: "Warranty", v: product.warranty },
       ]
     : [
         { l: "Capacity", v: product.capacity },
-        { l: "Output",   v: product.output },
-        { l: "Battery",  v: product.battery },
-        { l: "Cycles",   v: product.cycles },
+        { l: "Output", v: product.output },
+        { l: "Battery", v: product.battery },
+        { l: "Cycles", v: product.cycles },
         { l: "Warranty", v: product.warranty },
       ];
 
@@ -43,19 +42,18 @@ export function ProductDetail({ product, type }) {
 
   return (
     <div style={{ background: t.white, border: `1px solid ${t.borderLight}`, borderRadius: 16, overflow: "hidden" }}>
-
-      {/* ── Product image hero ─────────────────────────────────────────── */}
-      <div style={{
-        width: "100%",
-        height: 240,
-        background: t.card,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        borderBottom: `1px solid ${t.borderLight}`,
-        overflow: "hidden",
-        position: "relative",
-      }}>
+      <div
+        style={{
+          width: "100%",
+          height: 240,
+          background: t.card,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          overflow: "hidden",
+          position: "relative",
+        }}
+      >
         {imgSrc && !imgFailed ? (
           <>
             <img
@@ -65,37 +63,39 @@ export function ProductDetail({ product, type }) {
               style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain", padding: 16 }}
               onError={() => setImgFailed(true)}
             />
-            <div style={{
-              position: "absolute", bottom: 10, right: 12,
-              fontSize: 10, color: t.textFaint, background: t.card,
-              borderRadius: 6, padding: "2px 8px", border: `1px solid ${t.borderLight}`,
-            }}>
-              via Amazon
+            <div
+              style={{
+                position: "absolute",
+                bottom: 10,
+                right: 12,
+                fontSize: 10,
+                color: t.textFaint,
+                background: t.card,
+                borderRadius: 6,
+                padding: "2px 8px",
+                border: `1px solid ${t.borderLight}`,
+              }}
+            >
+              product image
             </div>
           </>
         ) : (
-          /* Placeholder when no image or image failed */
           <div style={{ textAlign: "center", opacity: 0.4 }}>
-            <div style={{ fontSize: 52 }}>{type === "panel" ? "☀️" : "⚡"}</div>
-            <div style={{ fontSize: 12, color: t.textFaint, marginTop: 6, fontWeight: 600 }}>
-              {product.brand}
-            </div>
+            <div style={{ fontSize: 24, fontWeight: 700, color: t.textLight }}>{type === "panel" ? "Solar" : "Power"}</div>
+            <div style={{ fontSize: 12, color: t.textFaint, marginTop: 6, fontWeight: 600 }}>{product.brand}</div>
           </div>
         )}
       </div>
 
-      {/* ── Header ─────────────────────────────────────────────────────── */}
       <div style={{ padding: 24, borderBottom: `1px solid ${t.borderLight}` }}>
         <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
           <div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: t.green, textTransform: "uppercase", letterSpacing: ".05em" }}>
-              {product.brand}
-            </div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: t.green, textTransform: "uppercase", letterSpacing: ".05em" }}>{product.brand}</div>
             <h3 style={{ fontSize: 22, fontWeight: 800, color: t.text, marginTop: 4 }}>{product.name}</h3>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
               <Stars n={product.rating} />
               <span style={{ fontSize: 13, color: t.textMid }}>
-                {product.rating}/5 · {product.reviews.toLocaleString()} reviews
+                {product.rating}/5 | {product.reviews.toLocaleString()} reviews
               </span>
             </div>
           </div>
@@ -106,17 +106,25 @@ export function ProductDetail({ product, type }) {
               target="_blank"
               rel="noopener noreferrer"
               style={{
-                fontSize: 13, color: "#fff", fontWeight: 600, textDecoration: "none",
-                display: "inline-flex", alignItems: "center", gap: 4, marginTop: 6,
-                padding: "7px 16px", background: t.green, borderRadius: 8, transition: "opacity .2s",
+                fontSize: 13,
+                color: "#fff",
+                fontWeight: 600,
+                textDecoration: "none",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 4,
+                marginTop: 6,
+                padding: "7px 16px",
+                background: t.green,
+                borderRadius: 8,
+                transition: "opacity .2s",
               }}
             >
-              View on Amazon →
+              View on Amazon
             </a>
           </div>
         </div>
 
-        {/* Specs grid */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))", gap: 10, marginTop: 16 }}>
           {specs.map((s, i) => (
             <div key={i} style={{ padding: 10, background: t.card, borderRadius: 8, textAlign: "center" }}>
@@ -127,19 +135,21 @@ export function ProductDetail({ product, type }) {
         </div>
       </div>
 
-      {/* ── Tabs ────────────────────────────────────────────────────────── */}
       <div style={{ display: "flex", borderBottom: `1px solid ${t.borderLight}`, overflow: "auto" }}>
         {tabs.map((tb) => (
           <button
             key={tb.id}
             onClick={() => setTab(tb.id)}
             style={{
-              padding: "12px 20px", fontSize: 13,
+              padding: "12px 20px",
+              fontSize: 13,
               fontWeight: tab === tb.id ? 700 : 500,
               color: tab === tb.id ? t.green : t.textMid,
-              background: "none", border: "none",
+              background: "none",
+              border: "none",
               borderBottom: tab === tb.id ? `2px solid ${t.green}` : "2px solid transparent",
-              cursor: "pointer", whiteSpace: "nowrap",
+              cursor: "pointer",
+              whiteSpace: "nowrap",
             }}
           >
             {tb.label}
@@ -147,18 +157,15 @@ export function ProductDetail({ product, type }) {
         ))}
       </div>
 
-      {/* ── Tab content ─────────────────────────────────────────────────── */}
       <div style={{ padding: 24 }}>
-        {tab === "verdict" && (
-          <div style={{ fontSize: 14, color: t.textMid, lineHeight: 1.75 }}>{product.verdict}</div>
-        )}
+        {tab === "verdict" && <div style={{ fontSize: 14, color: t.textMid, lineHeight: 1.75 }}>{product.verdict}</div>}
         {tab === "pros" && (
           <div>
             <div style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: t.green, marginBottom: 8 }}>STRENGTHS</div>
               {product.prosRaw.map((p, i) => (
                 <div key={i} style={{ display: "flex", gap: 8, marginBottom: 6, fontSize: 14, color: t.textMid, lineHeight: 1.5 }}>
-                  <span style={{ color: t.green }}>✓</span>{p}
+                  <span style={{ color: t.green }}>+</span>{p}
                 </div>
               ))}
             </div>
@@ -166,40 +173,45 @@ export function ProductDetail({ product, type }) {
               <div style={{ fontSize: 13, fontWeight: 700, color: "#ef4444", marginBottom: 8 }}>WEAKNESSES</div>
               {product.consRaw.map((c, i) => (
                 <div key={i} style={{ display: "flex", gap: 8, marginBottom: 6, fontSize: 14, color: t.textMid, lineHeight: 1.5 }}>
-                  <span style={{ color: "#ef4444" }}>✗</span>{c}
+                  <span style={{ color: "#ef4444" }}>-</span>{c}
                 </div>
               ))}
             </div>
           </div>
         )}
-        {tab === "people" && (
-          <div style={{ fontSize: 14, color: t.textMid, lineHeight: 1.75 }}>{product.peopleSay}</div>
-        )}
-        {tab === "quirks" && (
-          <div style={{ fontSize: 14, color: t.textMid, lineHeight: 1.75 }}>{product.quirks}</div>
-        )}
+        {tab === "people" && <div style={{ fontSize: 14, color: t.textMid, lineHeight: 1.75 }}>{product.peopleSay}</div>}
+        {tab === "quirks" && <div style={{ fontSize: 14, color: t.textMid, lineHeight: 1.75 }}>{product.quirks}</div>}
       </div>
 
-      {/* ── Footer CTA ──────────────────────────────────────────────────── */}
-      <div style={{
-        padding: "12px 24px 16px",
-        borderTop: `1px solid ${t.borderLight}`,
-        display: "flex", gap: 8, justifyContent: "space-between", alignItems: "center",
-      }}>
-        <div style={{ fontSize: 11, color: t.textFaint }}>
-          Affiliate link — Wattfull earns a commission at no cost to you.
-        </div>
+      <div
+        style={{
+          padding: "12px 24px 16px",
+          borderTop: `1px solid ${t.borderLight}`,
+          display: "flex",
+          gap: 8,
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <div style={{ fontSize: 11, color: t.textFaint }}>Affiliate link. Wattfull may earn a commission at no cost to you.</div>
         <a
           href={href}
           target="_blank"
           rel="noopener noreferrer"
           style={{
-            fontSize: 13, fontWeight: 600, color: "#fff", background: t.green,
-            padding: "10px 20px", borderRadius: 8, textDecoration: "none",
-            transition: "opacity .2s", whiteSpace: "nowrap", flexShrink: 0,
+            fontSize: 13,
+            fontWeight: 600,
+            color: "#fff",
+            background: t.green,
+            padding: "10px 20px",
+            borderRadius: 8,
+            textDecoration: "none",
+            transition: "opacity .2s",
+            whiteSpace: "nowrap",
+            flexShrink: 0,
           }}
         >
-          Check Price on Amazon →
+          Check Price on Amazon
         </a>
       </div>
     </div>

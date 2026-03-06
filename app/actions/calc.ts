@@ -17,9 +17,13 @@ export type CalcInput = {
   gasPriceOverride?: number;
   climateZone?: string;
   homePct?: number;
+  publicPct?: number;
+  dcfcPct?: number;
   evMaintPerYear?: number;
   iceMaintPerYear?: number;
   includeIncentives?: boolean;
+  driveStyle?: "efficient" | "normal" | "aggressive";
+  applyClimateAdjustment?: boolean;
 };
 
 export type TCOInput = {
@@ -37,3 +41,4 @@ export async function runCalc(input: CalcInput) {
 export async function runTCO(input: TCOInput) {
   return getTCO(input.vehicleId, input as any);
 }
+

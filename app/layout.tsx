@@ -1,11 +1,35 @@
-
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import "./globals.css";
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://wattfull.com";
+
 export const metadata: Metadata = {
-  title: "Wattfull — Energy Decisions, Done Right",
-  description: "Free EV savings calculators, solar ROI tools, and honest gear reviews. Real data, not guesses.",
-  keywords: "EV calculator, solar ROI, power station reviews, energy savings, electric vehicle",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "Wattfull - Energy Decisions, Done Right",
+    template: "%s | Wattfull",
+  },
+  description: "Free EV savings calculators, solar ROI tools, ownership comparisons, and honest gear recommendations built on transparent assumptions.",
+  keywords: [
+    "EV calculator",
+    "solar ROI",
+    "EV vs gas",
+    "energy savings",
+    "state incentives",
+    "power station reviews",
+  ],
+  openGraph: {
+    title: "Wattfull - Energy Decisions, Done Right",
+    description: "Data-driven EV, solar, and ownership decisions with transparent assumptions and premium tools.",
+    url: siteUrl,
+    siteName: "Wattfull",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Wattfull - Energy Decisions, Done Right",
+    description: "Data-driven EV, solar, and ownership decisions with transparent assumptions and premium tools.",
+  },
 };
 
 const darkModeScript = `
@@ -14,7 +38,7 @@ const darkModeScript = `
     var saved = localStorage.getItem('wattfull-dark');
     var dark = saved !== null ? saved === 'true' : window.matchMedia('(prefers-color-scheme: dark)').matches;
     document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
-  } catch(e) {}
+  } catch (e) {}
 })();
 `;
 

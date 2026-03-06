@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -7,28 +7,22 @@ import { NAV } from "@/lib/data";
 import { ChatWidget } from "@/components/widgets";
 import { Icon } from "@/components/ui/Icon";
 
-/**
- * SiteShell — persistent nav + footer for all (site) pages.
- * - Glass nav with blur, no heavy border (just subtle bottom line)
- * - Lucide icons for dark-mode toggle + mobile menu (replaces emoji)
- * - Footer with credibility signals + methodology link
- */
 export function SiteShell({ children }) {
   const { t, dark, toggleDark } = useTheme();
   const pathname = usePathname();
   const [mobileMenu, setMobileMenu] = useState(false);
 
-  const isActive = (href) =>
-    href === "/" ? pathname === "/" : pathname.startsWith(href);
+  const isActive = (href) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
 
   return (
-    <div style={{
-      background: t.bg,
-      color: t.text,
-      minHeight: "100vh",
-      transition: "background .4s ease, color .4s ease",
-    }}>
-      {/* Global resets */}
+    <div
+      style={{
+        background: t.bg,
+        color: t.text,
+        minHeight: "100vh",
+        transition: "background .4s ease, color .4s ease",
+      }}
+    >
       <style>{`
         *{box-sizing:border-box;margin:0;padding:0}
         ::selection{background:${t.green}22;color:${t.green}}
@@ -55,60 +49,66 @@ export function SiteShell({ children }) {
         }
       `}</style>
 
-      {/* ── Navigation ───────────────────────────────────────────────── */}
-      <nav style={{
-        position: "sticky",
-        top: 0,
-        zIndex: 100,
-        background: t.navBg,
-        backdropFilter: "blur(20px) saturate(180%)",
-        WebkitBackdropFilter: "blur(20px) saturate(180%)",
-        borderBottom: `1px solid ${t.navBorder}`,
-        padding: "0 clamp(16px,4vw,48px)",
-      }}>
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          height: 56,
-          maxWidth: 1200,
-          margin: "0 auto",
-        }}>
-          {/* Logo */}
-          <Link href="/" style={{
-            fontSize: 17,
-            fontWeight: 800,
-            color: t.text,
-            textDecoration: "none",
+      <nav
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 100,
+          background: t.navBg,
+          backdropFilter: "blur(20px) saturate(180%)",
+          WebkitBackdropFilter: "blur(20px) saturate(180%)",
+          borderBottom: `1px solid ${t.navBorder}`,
+          padding: "0 clamp(16px,4vw,48px)",
+        }}
+      >
+        <div
+          style={{
             display: "flex",
             alignItems: "center",
-            gap: 7,
-            letterSpacing: "-.025em",
-          }}>
-            <span style={{
-              display: "inline-flex",
+            justifyContent: "space-between",
+            height: 56,
+            maxWidth: 1200,
+            margin: "0 auto",
+          }}
+        >
+          <Link
+            href="/"
+            style={{
+              fontSize: 17,
+              fontWeight: 800,
+              color: t.text,
+              textDecoration: "none",
+              display: "flex",
               alignItems: "center",
-              justifyContent: "center",
-              width: 28,
-              height: 28,
-              borderRadius: "var(--r-sm)",
-              background: t.green,
-              boxShadow: `0 2px 8px ${t.green}55`,
-            }}>
+              gap: 7,
+              letterSpacing: "-.025em",
+            }}
+          >
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 28,
+                height: 28,
+                borderRadius: "var(--r-sm)",
+                background: t.green,
+                boxShadow: `0 2px 8px ${t.green}55`,
+              }}
+            >
               <Icon name="Zap" size={16} color="#fff" strokeWidth={2.5} />
             </span>
             Wattfull
           </Link>
 
           <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-            {/* Desktop nav links */}
             <div className="wf-nav-links" style={{ display: "flex", gap: 2 }}>
-              {NAV.filter((n) => n.id !== "home").map((n) => {
-                const active = isActive(n.href);
+              {NAV.filter((item) => item.id !== "home").map((item) => {
+                const active = isActive(item.href);
                 return (
                   <Link
-                    key={n.id}
-                    href={n.href}
+                    key={item.id}
+                    href={item.href}
                     className="wf-nav-link"
                     style={{
                       padding: "6px 11px",
@@ -121,13 +121,12 @@ export function SiteShell({ children }) {
                       whiteSpace: "nowrap",
                     }}
                   >
-                    {n.label}
+                    {item.label}
                   </Link>
                 );
               })}
             </div>
 
-            {/* Dark mode toggle */}
             <button
               className="wf-dark-toggle"
               onClick={toggleDark}
@@ -151,10 +150,9 @@ export function SiteShell({ children }) {
               <Icon name={dark ? "Sun" : "Moon"} size={16} color="currentColor" strokeWidth={1.75} />
             </button>
 
-            {/* Mobile menu button */}
             <button
               className="wf-mobile-btn"
-              onClick={() => setMobileMenu((m) => !m)}
+              onClick={() => setMobileMenu((current) => !current)}
               aria-label="Toggle menu"
               style={{
                 display: "none",
@@ -174,129 +172,91 @@ export function SiteShell({ children }) {
           </div>
         </div>
 
-        {/* Mobile dropdown */}
-        {mobileMenu && (
-          <div className="wf-mobile-menu" style={{
-            padding: "8px 0 16px",
-            display: "flex",
-            flexDirection: "column",
-            gap: 2,
-            borderTop: `1px solid ${t.borderLight}`,
-          }}>
-            {NAV.map((n) => (
+        {mobileMenu ? (
+          <div
+            className="wf-mobile-menu"
+            style={{
+              padding: "8px 0 16px",
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+              borderTop: `1px solid ${t.borderLight}`,
+            }}
+          >
+            {NAV.map((item) => (
               <Link
-                key={n.id}
-                href={n.href}
+                key={item.id}
+                href={item.href}
                 onClick={() => setMobileMenu(false)}
                 style={{
                   padding: "10px 14px",
                   fontSize: 14,
-                  fontWeight: isActive(n.href) ? 700 : 500,
-                  color: isActive(n.href) ? t.green : t.textMid,
-                  background: isActive(n.href) ? t.greenGlass : "transparent",
+                  fontWeight: isActive(item.href) ? 700 : 500,
+                  color: isActive(item.href) ? t.green : t.textMid,
+                  background: isActive(item.href) ? t.greenGlass : "transparent",
                   borderRadius: "var(--r-md)",
                   textDecoration: "none",
                   display: "block",
-                  transition: "background var(--dur-fast) var(--ease)",
                 }}
               >
-                {n.label}
+                {item.label}
               </Link>
             ))}
           </div>
-        )}
+        ) : null}
       </nav>
 
-      {/* ── Page content ─────────────────────────────────────────────── */}
-      <main style={{
-        maxWidth: 1200,
-        margin: "0 auto",
-        padding: "36px clamp(16px,4vw,48px) 60px",
-      }}>
-        {children}
-      </main>
+      <main style={{ maxWidth: 1200, margin: "0 auto", padding: "36px clamp(16px,4vw,48px) 60px" }}>{children}</main>
 
-      {/* ── Footer ───────────────────────────────────────────────────── */}
-      <footer style={{
-        borderTop: `1px solid ${t.borderLight}`,
-        padding: "32px clamp(16px,4vw,48px) 40px",
-      }}>
+      <footer style={{ borderTop: `1px solid ${t.borderLight}`, padding: "32px clamp(16px,4vw,48px) 40px" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-          {/* Top row */}
           <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 20, marginBottom: 24 }}>
-            {/* Brand */}
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                <span style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: 24,
-                  height: 24,
-                  borderRadius: 6,
-                  background: t.green,
-                }}>
+                <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 24, height: 24, borderRadius: 6, background: t.green }}>
                   <Icon name="Zap" size={14} color="#fff" strokeWidth={2.5} />
                 </span>
                 <span style={{ fontSize: 15, fontWeight: 800, color: t.text, letterSpacing: "-.02em" }}>Wattfull</span>
               </div>
               <div style={{ fontSize: 12, color: t.textLight, lineHeight: 1.6, maxWidth: 280 }}>
-                Real-world energy calculators powered by government data.
-                Every assumption visible and adjustable.
+                Real-world energy calculators powered by transparent assumptions and public data.
               </div>
             </div>
 
-            {/* Links */}
             <div style={{ display: "flex", gap: 32, flexWrap: "wrap" }}>
               <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: t.textLight, textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 10 }}>
-                  Tools
-                </div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: t.textLight, textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 10 }}>Tools</div>
                 {[
+                  { label: "Dashboard", href: "/dashboard" },
                   { label: "EV Calculator", href: "/ev" },
                   { label: "Solar ROI", href: "/solar" },
                   { label: "Compare", href: "/compare" },
-                  { label: "State Grades", href: "/states" },
-                ].map(l => (
-                  <div key={l.href} style={{ marginBottom: 6 }}>
-                    <Link href={l.href} style={{ fontSize: 12, color: t.textMid, textDecoration: "none", transition: "color var(--dur-fast)" }}>
-                      {l.label}
-                    </Link>
+                ].map((item) => (
+                  <div key={item.href} style={{ marginBottom: 6 }}>
+                    <Link href={item.href} style={{ fontSize: 12, color: t.textMid, textDecoration: "none" }}>{item.label}</Link>
                   </div>
                 ))}
               </div>
               <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: t.textLight, textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 10 }}>
-                  About
-                </div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: t.textLight, textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 10 }}>Trust</div>
                 {[
+                  { label: "States", href: "/states" },
                   { label: "Methodology", href: "/methodology" },
                   { label: "Gear Reviews", href: "/gear" },
                   { label: "Referrals", href: "/referrals" },
-                ].map(l => (
-                  <div key={l.href} style={{ marginBottom: 6 }}>
-                    <Link href={l.href} style={{ fontSize: 12, color: t.textMid, textDecoration: "none" }}>
-                      {l.label}
-                    </Link>
+                ].map((item) => (
+                  <div key={item.href} style={{ marginBottom: 6 }}>
+                    <Link href={item.href} style={{ fontSize: 12, color: t.textMid, textDecoration: "none" }}>{item.label}</Link>
                   </div>
                 ))}
               </div>
             </div>
           </div>
 
-          {/* Bottom row */}
-          <div style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: 12,
-            paddingTop: 16,
-            borderTop: `1px solid ${t.borderLight}`,
-          }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, paddingTop: 16, borderTop: `1px solid ${t.borderLight}` }}>
             <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
               {[
-                { icon: "Database", text: "EIA · EPA · NREL data" },
+                { icon: "Database", text: "EIA | EPA | NREL inputs" },
                 { icon: "Eye", text: "Open methodology" },
               ].map(({ icon, text }) => (
                 <div key={text} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: t.textLight }}>
@@ -305,9 +265,7 @@ export function SiteShell({ children }) {
                 </div>
               ))}
             </div>
-            <div style={{ fontSize: 11, color: t.textFaint }}>
-              © {new Date().getFullYear()} Wattfull
-            </div>
+            <div style={{ fontSize: 11, color: t.textFaint }}>© {new Date().getFullYear()} Wattfull</div>
           </div>
         </div>
       </footer>

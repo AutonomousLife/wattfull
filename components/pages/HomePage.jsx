@@ -1,6 +1,5 @@
 ﻿"use client";
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/lib/ThemeContext";
 import { AnimCount, FadeIn, Reveal } from "@/components/ui";
@@ -13,7 +12,6 @@ import { StatPill } from "@/components/ui/StatPill";
 import { STATE_DATA, zipToState } from "@/lib/data";
 import { EnergyProfileV2 as EnergyProfile } from "@/components/widgets/EnergyProfileV2";
 
-/* â”€â”€ Tool definitions (Lucide icon names) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const TOOLS = [
   {
     icon: "Zap",
@@ -24,83 +22,78 @@ const TOOLS = [
     cta: "Calculate My Savings",
     chips: ["ZIP-based rates", "Climate adjusted", "State incentives", "5-yr projection"],
   },
-  { icon: "Sun",         title: "Solar ROI",       desc: "Your roof, sun-hours, and incentives. 25-year payback projection.", href: "/solar" },
-  { icon: "GitCompare",  title: "Compare",          desc: "Side-by-side total cost of ownership â€” EV vs gas, 6 financial sections.", href: "/compare" },
-  { icon: "Map",         title: "State Grades",     desc: "50 states ranked by grid cleanliness, incentives, and EV friendliness.", href: "/states" },
-  { icon: "Plug",        title: "What Can I Run?",  desc: "Pick a power station, check which appliances it can power.", href: "/runtime" },
-  { icon: "Leaf",        title: "Carbon Impact",    desc: "Visualize lifetime emissions savings for your specific vehicle.", href: "/carbon" },
-  { icon: "ShoppingBag", title: "Gear Reviews",     desc: "Honest reviews of EVs, solar panels, and portable power stations.", href: "/gear" },
-  { icon: "Link",        title: "Referral Links",   desc: "Community-curated codes for Tesla, solar installs, and more.", href: "/referrals" },
+  { icon: "Sun", title: "Solar ROI", desc: "Your roof, sun-hours, and incentives. 25-year payback projection.", href: "/solar" },
+  { icon: "GitCompare", title: "Compare", desc: "Side-by-side total cost of ownership - EV vs gas, 6 financial sections.", href: "/compare" },
+  { icon: "Map", title: "State Grades", desc: "50 states ranked by grid cleanliness, incentives, and EV friendliness.", href: "/states" },
+  { icon: "Plug", title: "What Can I Run?", desc: "Pick a power station, check which appliances it can power.", href: "/runtime" },
+  { icon: "Leaf", title: "Carbon Impact", desc: "Visualize lifetime emissions savings for your specific vehicle.", href: "/carbon" },
+  { icon: "ShoppingBag", title: "Gear Reviews", desc: "Honest reviews of EVs, solar panels, and portable power stations.", href: "/gear" },
+  { icon: "Link", title: "Referral Links", desc: "Community-curated codes for Tesla, solar installs, and more.", href: "/referrals" },
 ];
 
-/* â”€â”€ Insight cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const INSIGHTS = [
-  { icon: "Zap",         title: "Charging costs the equivalent of $1â€“1.50/gallon", body: "In most US states, electricity makes EV fuel far cheaper per mile than gas. Your exact number depends on local rates.", color: "#4A7C59", bg: "#E6EFE9", darkBg: "#1A2E20", wide: false },
-  { icon: "Sun",         title: "Solar pays back in 6â€“10 years â€” then produces free power for 15 more", body: "Average US homeowners recoup solar investment in under a decade. The 25-year net gain typically exceeds $20,000.", color: "#C97B2A", bg: "#FFF8EF", darkBg: "#2A2218", wide: true },
-  { icon: "Wrench",      title: "EVs have ~17 moving parts vs ~2,000 in a gas engine", body: "No oil changes, no timing belt, no transmission service. Annual maintenance runs $300â€“500 less on average.", color: "#4A6FA5", bg: "#EEF3FA", darkBg: "#1A2230", wide: false },
-  { icon: "MapPin",      title: "Your ZIP code changes the math completely", body: "Moving from a high-electricity to a low-electricity state can double or eliminate EV fuel savings.", color: "#7C3AED", bg: "#F3E8FF", darkBg: "#1E1030", wide: false },
-  { icon: "DollarSign",  title: "The $7,500 IRA credit cuts break-even from 5 years to 2â€“3", body: "For qualifying buyers, the Inflation Reduction Act's EV credit dramatically accelerates the financial case.", color: "#059669", bg: "#D1FAE5", darkBg: "#064E3B", wide: false },
-  { icon: "Leaf",        title: "Vermont EV = 90% less COâ‚‚. West Virginia = still 30% less", body: "Even on the dirtiest US grids, EVs emit less lifetime carbon than gas. Grid cleanliness improves every year.", color: "#16A34A", bg: "#DCFCE7", darkBg: "#052E16", wide: true },
+  { icon: "Zap", title: "Charging can feel like $1-1.50 per gallon equivalent", body: "In most US states, electricity makes EV fuel far cheaper per mile than gas. Your exact number depends on local rates.", color: "#4A7C59", bg: "#E6EFE9", darkBg: "#1A2E20", wide: false },
+  { icon: "Sun", title: "Solar often pays back in 6-10 years", body: "Average US homeowners can recoup solar investment in under a decade. The long-term net gain can be substantial after that payback point.", color: "#C97B2A", bg: "#FFF8EF", darkBg: "#2A2218", wide: true },
+  { icon: "Wrench", title: "EVs avoid a lot of maintenance", body: "No oil changes, no timing belt, no transmission service. Annual maintenance often runs a few hundred dollars lower than gas.", color: "#4A6FA5", bg: "#EEF3FA", darkBg: "#1A2230", wide: false },
+  { icon: "MapPin", title: "Your ZIP code changes the math", body: "Moving from a high-electricity to a low-electricity state can double or erase EV fuel savings.", color: "#7C3AED", bg: "#F3E8FF", darkBg: "#1E1030", wide: false },
+  { icon: "DollarSign", title: "Tax credits can shorten payback", body: "For qualifying buyers, federal and state incentives can materially improve EV or solar economics.", color: "#059669", bg: "#D1FAE5", darkBg: "#064E3B", wide: false },
+  { icon: "Leaf", title: "EV emissions still depend on the grid", body: "Cleaner grids strengthen the carbon case, but EVs still tend to outperform gas on lifetime emissions in most contexts.", color: "#16A34A", bg: "#DCFCE7", darkBg: "#052E16", wide: true },
 ];
 
-/* â”€â”€ Hero preview â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function HeroPreview({ zip }) {
   const { t, dark } = useTheme();
   const st = zip.length === 5 ? zipToState(zip) : null;
-  const d  = st ? STATE_DATA[st] : null;
+  const d = st ? STATE_DATA[st] : null;
 
-  const e  = d?.e ?? 16;
-  const g  = d?.g ?? 3.40;
+  const e = d?.e ?? 16;
+  const g = d?.g ?? 3.4;
   const mi = 12000;
-
-  const evFuel  = Math.round(0.28 * mi * (e / 100));
+  const evFuel = Math.round(0.28 * mi * (e / 100));
   const iceFuel = Math.round((mi / 30) * g);
-  const annSav  = (iceFuel + 1100) - (evFuel + 600);
-  const breakEven = annSav > 0 ? ((42490 - 27600 - 7500) / annSav) : null;
-  const hasLoc  = zip.length === 5 && !!st;
+  const annSav = iceFuel + 1100 - (evFuel + 600);
+  const breakEven = annSav > 0 ? (42490 - 27600 - 7500) / annSav : null;
+  const hasLoc = zip.length === 5 && !!st;
 
   return (
     <div style={{ position: "relative", paddingBottom: 14 }}>
-      {/* Glass card */}
-      <div style={{
-        background: dark ? "rgba(28,28,32,0.88)" : "rgba(255,255,255,0.88)",
-        backdropFilter: "blur(24px) saturate(180%)",
-        WebkitBackdropFilter: "blur(24px) saturate(180%)",
-        border: `1px solid ${t.glassBorder}`,
-        borderRadius: "var(--r-xl)",
-        padding: "22px 24px",
-        boxShadow: t.shadowXl,
-        position: "relative",
-        overflow: "hidden",
-      }}>
-        {/* Decorative shine */}
+      <div
+        style={{
+          background: dark ? "rgba(28,28,32,0.88)" : "rgba(255,255,255,0.88)",
+          backdropFilter: "blur(24px) saturate(180%)",
+          WebkitBackdropFilter: "blur(24px) saturate(180%)",
+          border: `1px solid ${t.glassBorder}`,
+          borderRadius: "var(--r-xl)",
+          padding: "22px 24px",
+          boxShadow: t.shadowXl,
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
         <div style={{ position: "absolute", top: 0, right: 0, width: 160, height: 100, background: "radial-gradient(ellipse at 100% 0%, rgba(74,124,89,0.10) 0%, transparent 70%)", pointerEvents: "none" }} />
 
-        {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <div style={{ width: 26, height: 26, borderRadius: 7, background: t.green, display: "flex", alignItems: "center", justifyContent: "center" }}>
               <Icon name="Zap" size={15} color="#fff" strokeWidth={2.5} />
             </div>
-            <span style={{ fontSize: 13, fontWeight: 700, color: t.text }}>EV vs Gas Â· Preview</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: t.text }}>EV vs Gas preview</span>
           </div>
           <span style={{ fontSize: 10, fontWeight: 600, color: t.green, background: t.greenGlass, border: `1px solid ${t.featuredBorder}`, borderRadius: "var(--r-md)", padding: "2px 8px" }}>
             {hasLoc ? st : "US avg"}
           </span>
         </div>
 
-        {/* Column headers */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto", gap: 12, marginBottom: 4 }}>
-          <span style={{ fontSize: 10, fontWeight: 700, color: t.textFaint, textTransform: "uppercase", letterSpacing: ".05em" }}>Model Y vs RAV4 Â· 12k mi/yr</span>
-          <span style={{ fontSize: 10, fontWeight: 700, color: t.green, minWidth: 62, textAlign: "right" }}>âš¡ EV</span>
-          <span style={{ fontSize: 10, fontWeight: 700, color: t.textLight, minWidth: 62, textAlign: "right" }}>â›½ Gas</span>
+          <span style={{ fontSize: 10, fontWeight: 700, color: t.textFaint, textTransform: "uppercase", letterSpacing: ".05em" }}>Model Y vs RAV4 | 12k mi/yr</span>
+          <span style={{ fontSize: 10, fontWeight: 700, color: t.green, minWidth: 62, textAlign: "right" }}>EV</span>
+          <span style={{ fontSize: 10, fontWeight: 700, color: t.textLight, minWidth: 62, textAlign: "right" }}>Gas</span>
         </div>
         <div style={{ height: 1, background: t.borderLight, marginBottom: 6 }} />
 
         {[
-          { label: "Fuel/yr",  ev: evFuel,  gas: iceFuel },
-          { label: "Maint/yr", ev: 600,     gas: 1100    },
-        ].map(row => (
+          { label: "Fuel/yr", ev: evFuel, gas: iceFuel },
+          { label: "Maint/yr", ev: 600, gas: 1100 },
+        ].map((row) => (
           <div key={row.label} style={{ display: "grid", gridTemplateColumns: "1fr auto auto", gap: 12, padding: "4px 0" }}>
             <span style={{ fontSize: 12, color: t.textMid }}>{row.label}</span>
             <span style={{ fontSize: 12, fontWeight: 650, color: t.green, minWidth: 62, textAlign: "right" }}>${row.ev.toLocaleString()}</span>
@@ -110,7 +103,6 @@ function HeroPreview({ zip }) {
 
         <div style={{ height: 1, background: t.borderLight, margin: "10px 0" }} />
 
-        {/* Savings */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", borderRadius: "var(--r-md)", background: annSav > 0 ? t.greenGlass : t.warnBg, border: `1px solid ${annSav > 0 ? t.featuredBorder : "#F0C060"}`, marginBottom: 10 }}>
           <span style={{ fontSize: 13, fontWeight: 700, color: annSav > 0 ? t.green : t.warn }}>Annual savings</span>
           <span style={{ fontSize: 20, fontWeight: 800, color: annSav > 0 ? t.green : t.warn, letterSpacing: "-.025em" }}>
@@ -118,12 +110,11 @@ function HeroPreview({ zip }) {
           </span>
         </div>
 
-        {/* Mini stats */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
           {[
-            { label: "5-Year Savings", val: annSav > 0 ? `+$${(annSav * 5).toLocaleString()}` : "â€”" },
-            { label: "Break-Even", val: breakEven && breakEven < 20 ? `~${breakEven.toFixed(1)} yrs` : "â€”" },
-          ].map(s => (
+            { label: "5-Year Savings", val: annSav > 0 ? `+$${(annSav * 5).toLocaleString()}` : "-" },
+            { label: "Break-Even", val: breakEven && breakEven < 20 ? `~${breakEven.toFixed(1)} yrs` : "-" },
+          ].map((s) => (
             <div key={s.label} style={{ background: t.card, borderRadius: "var(--r-md)", padding: "8px 12px" }}>
               <div style={{ fontSize: 10, color: t.textLight, fontWeight: 600, marginBottom: 3 }}>{s.label}</div>
               <div style={{ fontSize: 16, fontWeight: 800, color: t.text, letterSpacing: "-.02em" }}>{s.val}</div>
@@ -132,16 +123,15 @@ function HeroPreview({ zip }) {
         </div>
 
         <div style={{ marginTop: 10, fontSize: 10, color: t.textFaint }}>
-          EIA rates Â· EPA efficiency Â· {hasLoc ? `${e}Â¢/kWh` : "16Â¢/kWh avg"} Â· {hasLoc ? `$${g.toFixed(2)}/gal` : "$3.40/gal avg"}
+          EIA rates | EPA efficiency | {hasLoc ? `${e} cents/kWh` : "16 cents/kWh avg"} | {hasLoc ? `$${g.toFixed(2)}/gal` : "$3.40/gal avg"}
         </div>
       </div>
 
-      {/* Floating chips */}
       <div style={{ position: "absolute", top: -12, right: 18 }}>
         <StatPill icon="RefreshCw" value="Feb 2025" variant="glass" size="sm" />
       </div>
       <div style={{ position: "absolute", bottom: 0, left: 16 }}>
-        <StatPill icon="Zap" value={`${e}Â¢/kWh`} variant="green" size="sm" />
+        <StatPill icon="Zap" value={`${e} cents/kWh`} variant="green" size="sm" />
       </div>
       {hasLoc && (
         <div style={{ position: "absolute", bottom: 0, right: 16 }}>
@@ -152,9 +142,6 @@ function HeroPreview({ zip }) {
   );
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   PAGE
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 export function HomePage() {
   const router = useRouter();
   const { t, dark } = useTheme();
@@ -168,38 +155,27 @@ export function HomePage() {
 
   return (
     <div>
-      {/* â•â• HERO â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
-      <section
-        className="wf-motif"
-        style={{ padding: "clamp(52px,8vw,96px) 0 clamp(56px,8vw,80px)", position: "relative" }}
-      >
+      <section className="wf-motif" style={{ padding: "clamp(52px,8vw,96px) 0 clamp(56px,8vw,80px)", position: "relative" }}>
         <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: dark ? "radial-gradient(ellipse at 70% 30%, rgba(106,175,123,0.06) 0%, transparent 60%)" : "radial-gradient(ellipse at 70% 30%, rgba(74,124,89,0.07) 0%, transparent 60%)" }} />
 
         <div style={{ display: "flex", alignItems: "center", gap: "clamp(32px,5vw,64px)", flexWrap: "wrap", position: "relative" }}>
-
-          {/* Left */}
           <div style={{ flex: "1 1 52%", minWidth: 280 }}>
             <FadeIn>
-              {/* Badge */}
               <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "5px 14px 5px 10px", borderRadius: "var(--r-xl)", background: t.greenGlass, border: `1px solid ${t.featuredBorder}`, marginBottom: 24 }}>
                 <div style={{ width: 18, height: 18, borderRadius: 5, background: t.green, display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <Icon name="Shield" size={11} color="#fff" strokeWidth={2.5} />
                 </div>
-                <span style={{ fontSize: 12, fontWeight: 650, color: t.green }}>Independent Â· Open Methodology Â· Real Data</span>
+                <span style={{ fontSize: 12, fontWeight: 650, color: t.green }}>Independent | Open Methodology | Real Data</span>
               </div>
 
-              {/* H1 */}
               <h1 style={{ fontSize: "clamp(30px,4.5vw,52px)", fontWeight: 800, color: t.text, lineHeight: 1.12, letterSpacing: "-.035em", maxWidth: 580, marginBottom: 18 }}>
-                The real numbers on EVs and solar â€”{" "}
-                <span style={{ color: t.green }}>for your ZIP code.</span>
+                The real numbers on EVs and solar for <span style={{ color: t.green }}>your ZIP code.</span>
               </h1>
 
               <p style={{ fontSize: "clamp(15px,1.8vw,17px)", color: t.textMid, lineHeight: 1.65, maxWidth: 520, marginBottom: 32 }}>
-                EIA electricity rates, EPA vehicle efficiency, NREL solar data, and state incentives.
-                Every assumption is shown. Everything is editable.
+                EIA electricity rates, EPA vehicle efficiency, NREL solar data, and state incentives. Every assumption is shown. Everything is editable.
               </p>
 
-              {/* ZIP + CTA */}
               <div style={{ display: "flex", gap: 10, maxWidth: 460, marginBottom: 16, flexWrap: "wrap" }}>
                 <div style={{ flex: "1 1 160px", position: "relative", display: "flex", alignItems: "center", background: t.white, border: `1.5px solid ${zipFocused ? t.green : t.border}`, borderRadius: "var(--r-lg)", boxShadow: zipFocused ? `0 0 0 3px ${t.green}22, ${t.shadowMd}` : t.shadowMd, transition: "border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease)" }}>
                   <div style={{ paddingLeft: 14, flexShrink: 0 }}>
@@ -223,7 +199,6 @@ export function HomePage() {
                 </GlassButton>
               </div>
 
-              {/* Secondary CTAs */}
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 <GlassButton variant="ghost" size="sm" href="/solar" icon="Sun">Solar ROI</GlassButton>
                 <GlassButton variant="ghost" size="sm" href="/states" icon="Map">State Grades</GlassButton>
@@ -232,7 +207,6 @@ export function HomePage() {
             </FadeIn>
           </div>
 
-          {/* Right: results preview */}
           <div style={{ flex: "1 1 38%", minWidth: 280, maxWidth: 420 }}>
             <FadeIn delay={120}>
               <HeroPreview zip={heroZip} />
@@ -241,14 +215,13 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* â•â• STATS BAND â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <div style={{ margin: "0 clamp(-16px,-4vw,-48px)", padding: "30px clamp(16px,4vw,48px)", background: dark ? t.bg2 : t.card, borderTop: `1px solid ${t.borderLight}`, borderBottom: `1px solid ${t.borderLight}` }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", gap: "clamp(24px,5vw,72px)", flexWrap: "wrap", justifyContent: "center" }}>
           {[
-            { val: 50,  suffix: "",   label: "States covered",   icon: "Map" },
-            { val: 33,  suffix: "K+", label: "ZIP codes",        icon: "MapPin" },
-            { val: 7,   suffix: "K+", label: "Utility rates",    icon: "Database" },
-            { val: 8,   suffix: "",   label: "Free tools",       icon: "Zap" },
+            { val: 50, suffix: "", label: "States covered", icon: "Map" },
+            { val: 33, suffix: "K+", label: "ZIP codes", icon: "MapPin" },
+            { val: 7, suffix: "K+", label: "Utility rates", icon: "Database" },
+            { val: 8, suffix: "", label: "Free tools", icon: "Zap" },
           ].map((s, i) => (
             <Reveal key={s.label} delay={i * 60}>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -267,13 +240,8 @@ export function HomePage() {
         </div>
       </div>
 
-      {/* â•â• TOOLS â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <section style={{ padding: "clamp(52px,7vw,80px) 0" }}>
-        <SectionHeader
-          eyebrow="TOOLS"
-          title="Things that actually compute"
-          desc="No affiliate bias, no vague estimates. Every calculation uses real data with every assumption visible."
-        />
+        <SectionHeader eyebrow="TOOLS" title="Things that actually compute" desc="No affiliate bias, no vague estimates. Every calculation uses real data with every assumption visible." />
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 14 }}>
           {TOOLS.map((tool, i) => (
             <Reveal key={tool.href} delay={i * 35}>
@@ -283,7 +251,6 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* â•â• INSIGHTS â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <div style={{ margin: "0 clamp(-16px,-4vw,-48px)", padding: "clamp(52px,7vw,80px) clamp(16px,4vw,48px)", background: dark ? "#14141A" : "#F2F1EE", borderTop: `1px solid ${t.borderLight}`, borderBottom: `1px solid ${t.borderLight}` }}>
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
           <SectionHeader eyebrow="INSIGHTS" title="Did you know?" desc="Energy facts that tend to change how people think about the decision." style={{ marginBottom: 28 }} />
@@ -304,15 +271,14 @@ export function HomePage() {
         </div>
       </div>
 
-      {/* â•â• HOW IT WORKS â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <section style={{ padding: "clamp(52px,7vw,80px) 0" }}>
         <SectionHeader eyebrow="METHODOLOGY" title="How we compute the numbers" desc="Every calculation built on public data and transparent formulas." />
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14 }}>
           {[
-            { step: "01", icon: "MapPin",     title: "ZIP â†’ real rates",       desc: "We resolve your ZIP to state, then pull EIA electricity rates and AAA gas prices for that state â€” not national averages." },
-            { step: "02", icon: "Car",         title: "EPA efficiency",         desc: "Vehicle kWh/100mi and MPG come from fueleconomy.gov. We apply a climate zone penalty based on ASHRAE data." },
-            { step: "03", icon: "Calculator",  title: "Blended charging cost",  desc: "We weight home, public L2, and DC fast charging by your split â€” each with its own rate and efficiency loss factor." },
-            { step: "04", icon: "Eye",         title: "Every assumption shown", desc: "Nothing is hidden. Every input, source, and formula is visible and editable. See the full methodology page." },
+            { step: "01", icon: "MapPin", title: "ZIP to real rates", desc: "We resolve your ZIP to state, then pull EIA electricity rates and AAA gas prices for that state - not national averages." },
+            { step: "02", icon: "Car", title: "EPA efficiency", desc: "Vehicle kWh/100mi and MPG come from fueleconomy.gov. We apply a climate zone penalty based on ASHRAE data." },
+            { step: "03", icon: "Calculator", title: "Blended charging cost", desc: "We weight home, public L2, and DC fast charging by your split - each with its own rate and efficiency loss factor." },
+            { step: "04", icon: "Eye", title: "Every assumption shown", desc: "Nothing is hidden. Every input, source, and formula is visible and editable. See the full methodology page." },
           ].map((s, i) => (
             <Reveal key={s.step} delay={i * 60}>
               <GlassCard variant="outlined" padding={20}>
@@ -333,20 +299,17 @@ export function HomePage() {
           ))}
         </div>
         <div style={{ marginTop: 24, display: "flex", justifyContent: "center" }}>
-          <GlassButton variant="secondary" href="/methodology" icon="ExternalLink">Full Methodology â†’</GlassButton>
+          <GlassButton variant="secondary" href="/methodology" icon="ExternalLink">Full Methodology -&gt;</GlassButton>
         </div>
       </section>
 
-      {/* â•â• FOUNDER VOICE â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <div style={{ margin: "0 clamp(-16px,-4vw,-48px)", padding: "clamp(40px,6vw,64px) clamp(16px,4vw,48px)", background: dark ? t.bg2 : t.card, borderTop: `1px solid ${t.borderLight}` }}>
         <div style={{ maxWidth: 600, margin: "0 auto", textAlign: "center" }}>
           <div style={{ width: 44, height: 44, borderRadius: "var(--r-md)", background: t.green, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 18px", boxShadow: `0 4px 16px ${t.green}44` }}>
             <Icon name="Lightbulb" size={24} color="#fff" strokeWidth={1.75} />
           </div>
           <p style={{ fontSize: "clamp(15px,2vw,18px)", color: t.text, lineHeight: 1.7, fontWeight: 450, marginBottom: 16 }}>
-            "We built Wattfull because every EV calculator we tried hid its assumptions.
-            Whether an EV saves you money depends entirely on your ZIP code, drive style,
-            and charger mix â€” not a national average. So we made a tool that shows all of it."
+            "We built Wattfull because every EV calculator we tried hid its assumptions. Whether an EV saves you money depends entirely on your ZIP code, drive style, and charger mix - not a national average. So we made a tool that shows all of it."
           </p>
           <div style={{ display: "flex", justifyContent: "center", gap: 8, flexWrap: "wrap" }}>
             <StatPill icon="Database" value="Open data" variant="green" />
@@ -355,7 +318,6 @@ export function HomePage() {
         </div>
       </div>
 
-      {/* â•â• ENERGY PROFILE â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <section style={{ padding: "clamp(40px,6vw,60px) 0" }}>
         <div style={{ maxWidth: 640, margin: "0 auto" }}>
           <SectionHeader align="center" eyebrow="PROFILE" title="Save once, pre-fill everywhere" desc="Store your ZIP, annual miles, and drive style. Every calculator uses it automatically." style={{ marginBottom: 20 }} />
@@ -365,4 +327,3 @@ export function HomePage() {
     </div>
   );
 }
-

@@ -242,7 +242,7 @@ export function StatesPageV2() {
           />
 
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <Link href={`/ev?state=${current.abbr}`} style={{ textDecoration: "none", padding: "10px 14px", borderRadius: 10, background: t.green, color: "#fff", fontSize: 13, fontWeight: 700 }}>Run EV calculator</Link>
+            <Link href={`/states/${current.abbr.toLowerCase()}`} style={{ textDecoration: "none", padding: "10px 14px", borderRadius: 10, background: t.green, color: "#fff", fontSize: 13, fontWeight: 700 }}>Open state detail</Link>
             <Link href="/solar" style={{ textDecoration: "none", padding: "10px 14px", borderRadius: 10, border: `1px solid ${t.borderLight}`, background: t.card, color: t.text, fontSize: 13, fontWeight: 700 }}>Check solar ROI</Link>
             <Link href="/methodology" style={{ textDecoration: "none", padding: "10px 14px", borderRadius: 10, border: `1px solid ${t.borderLight}`, background: t.white, color: t.text, fontSize: 13, fontWeight: 700 }}>How scoring works</Link>
           </div>
@@ -299,3 +299,4 @@ export function StatesPageV2() {
     </div>
   );
 }
+

@@ -55,7 +55,7 @@ function HeroPreview({ zip }) {
   const hasLoc = zip.length === 5 && !!st;
 
   return (
-    <div style={{ position: "relative", paddingBottom: 14 }}>
+    <div style={{ position: "relative", paddingBottom: 28 }}>
       <div
         style={{
           background: dark ? "rgba(28,28,32,0.88)" : "rgba(255,255,255,0.88)",
@@ -130,12 +130,12 @@ function HeroPreview({ zip }) {
       <div style={{ position: "absolute", top: -12, right: 18 }}>
         <StatPill icon="RefreshCw" value="Feb 2025" variant="glass" size="sm" />
       </div>
-      <div style={{ position: "absolute", bottom: 0, left: 16 }}>
-        <StatPill icon="Zap" value={`${e} cents/kWh`} variant="green" size="sm" />
+      <div style={{ position: "absolute", bottom: 4, left: 16 }}>
+        <StatPill icon="Zap" value={`${e} cents/kWh`} variant="green" size="md" />
       </div>
       {hasLoc && (
-        <div style={{ position: "absolute", bottom: 0, right: 16 }}>
-          <StatPill icon="MapPin" value={st} variant="glass" size="sm" />
+        <div style={{ position: "absolute", bottom: 4, right: 16 }}>
+          <StatPill icon="MapPin" value={st} variant="glass" size="md" />
         </div>
       )}
     </div>
@@ -327,4 +327,5 @@ export function HomePage() {
     </div>
   );
 }
+
 

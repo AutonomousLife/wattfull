@@ -1,8 +1,8 @@
 import type { MetadataRoute } from "next";
+import { STATE_DATA } from "@/lib/data";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://wattfull.com";
 
-// Top 50 most populated US zip codes (good starting seed for SEO pages)
 const TOP_ZIPS = [
   "10001", "90001", "60601", "77001", "85001", "19101", "30301", "98101",
   "94101", "55401", "80201", "02101", "37201", "70001", "89101", "97201",
@@ -10,7 +10,6 @@ const TOP_ZIPS = [
   "67201", "27601", "38101", "44101", "23201", "50301",
 ];
 
-// Top EV vs ICE comparison pairs (slug format)
 const TOP_COMPARISONS = [
   { zip: "94101", comparison: "tesla-model-3-long-range-vs-toyota-camry" },
   { zip: "90001", comparison: "tesla-model-y-long-range-vs-toyota-rav4" },
@@ -22,7 +21,6 @@ const TOP_COMPARISONS = [
   { zip: "10001", comparison: "vw-id-4-vs-mazda-cx-5" },
 ];
 
-// EV vehicle slugs for cost-to-own pages
 const EV_SLUGS = [
   "tesla-model-3-long-range",
   "tesla-model-y-long-range",
@@ -65,7 +63,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: siteUrl, lastModified: now, changeFrequency: "weekly", priority: 1.0 },
     { url: `${siteUrl}/methodology`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${siteUrl}/states`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
   ];
+
+  const stateRoutes: MetadataRoute.Sitemap = Object.keys(STATE_DATA).map((abbr) => ({
+    url: `${siteUrl}/states/${abbr.toLowerCase()}`,
+    lastModified: now,
+    changeFrequency: "weekly" as const,
+    priority: 0.65,
+  }));
 
   const zipRoutes: MetadataRoute.Sitemap = TOP_ZIPS.map((zip) => ({
     url: `${siteUrl}/ev-charging-cost/${zip}`,
@@ -97,6 +103,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   return [
     ...staticRoutes,
+    ...stateRoutes,
     ...comparisonRoutes,
     ...zipRoutes,
     ...evCostRoutes,

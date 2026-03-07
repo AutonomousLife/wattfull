@@ -1,12 +1,33 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTheme } from "@/lib/ThemeContext";
 import { Stars } from "@/components/ui";
 import { amazonLink, amazonDP } from "@/lib/helpers";
 
+const SAVED_GEAR_KEY = "wattfull_saved_gear";
+
 export function ProductDetail({ product, type }) {
   const { t } = useTheme();
   const [tab, setTab] = useState("verdict");
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    try {
+      const current = JSON.parse(localStorage.getItem(SAVED_GEAR_KEY) || "[]");
+      setSaved(current.includes(product.name));
+    } catch {
+      setSaved(false);
+    }
+  }, [product.name]);
+
+  const saveProduct = () => {
+    try {
+      const current = JSON.parse(localStorage.getItem(SAVED_GEAR_KEY) || "[]");
+      const next = current.includes(product.name) ? current.filter((item) => item !== product.name) : [...current, product.name];
+      localStorage.setItem(SAVED_GEAR_KEY, JSON.stringify(next));
+      setSaved(next.includes(product.name));
+    } catch {}
+  };
 
   const tabs = [
     { id: "verdict", label: "Our Take" },
@@ -49,27 +70,29 @@ export function ProductDetail({ product, type }) {
           </div>
           <div style={{ textAlign: "right" }}>
             <div style={{ fontSize: 28, fontWeight: 800, color: t.green }}>${product.price}</div>
-            <a
-              href={href}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                fontSize: 13,
-                color: "#fff",
-                fontWeight: 600,
-                textDecoration: "none",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 4,
-                marginTop: 6,
-                padding: "7px 16px",
-                background: t.green,
-                borderRadius: 8,
-                transition: "opacity .2s",
-              }}
-            >
-              View on Amazon
-            </a>
+            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 8, flexWrap: "wrap" }}>
+              <button onClick={saveProduct} style={{ fontSize: 13, fontWeight: 600, color: saved ? "#065f46" : t.text, background: saved ? "#d1fae5" : t.card, border: `1px solid ${saved ? "#10b981" : t.borderLight}`, borderRadius: 8, padding: "7px 14px", cursor: "pointer" }}>{saved ? "Saved" : "Save"}</button>
+              <a
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  fontSize: 13,
+                  color: "#fff",
+                  fontWeight: 600,
+                  textDecoration: "none",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 4,
+                  padding: "7px 16px",
+                  background: t.green,
+                  borderRadius: 8,
+                  transition: "opacity .2s",
+                }}
+              >
+                View on Amazon
+              </a>
+            </div>
           </div>
         </div>
 

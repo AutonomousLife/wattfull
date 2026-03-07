@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 import { useState } from "react";
 import { useTheme } from "@/lib/ThemeContext";
-import { TrustStrip, VerdictPanel } from "@/components/ui";
+import { PhaseRoadmap, TrustStrip, VerdictPanel } from "@/components/ui";
 
 const DATA_SOURCES = [
   { source: "EIA", scope: "Residential electricity rates", cadence: "Monthly", status: "Estimated state seed", note: "Used for EV and solar assumptions when ZIP-specific live utility data is unavailable." },
@@ -199,3 +199,6 @@ export function MethodologyPageV2() {
     </div>
   );
 }
+
+
+

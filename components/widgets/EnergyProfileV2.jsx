@@ -315,6 +315,8 @@ export function EnergyProfileV2() {
                 { href: "/ev", title: "Run EV calculator", desc: state ? `${state} state context available` : "Get a full ownership verdict" },
                 { href: "/solar", title: "Check solar ROI", desc: profile.homeowner ? "Model rooftop savings and payback" : "See how ownership changes the case" },
                 { href: "/compare", title: "Compare options", desc: "Separate upfront, operating, and ownership cost" },
+                { href: "/charging", title: "Evaluate charging", desc: "Check Level 2 economics and charger fit" },
+                { href: "/battery", title: "Preview battery ROI", desc: "Screen backup and TOU value" },
               ].map((tool) => (
                 <Link key={tool.href} href={tool.href} style={{ textDecoration: "none" }}>
                   <div style={{ background: t.card, border: `1px solid ${t.borderLight}`, borderRadius: 10, padding: "12px 14px" }}>
@@ -334,3 +336,5 @@ export function EnergyProfileV2() {
     </div>
   );
 }
+
+

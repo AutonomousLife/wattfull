@@ -1,8 +1,8 @@
-"use client";
+﻿"use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/lib/ThemeContext";
-import { AnimCount, FadeIn, Reveal, TrustStrip, VerdictPanel } from "@/components/ui";
+import { AnimCount, FadeIn, PhaseRoadmap, Reveal } from "@/components/ui";
 import { Icon } from "@/components/ui/Icon";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GlassButton } from "@/components/ui/GlassButton";
@@ -23,6 +23,8 @@ const TOOLS = [
     chips: ["ZIP-based rates", "Climate adjusted", "State incentives", "5-yr projection"],
   },
   { icon: "Sun", title: "Solar ROI", desc: "Your roof, sun-hours, and incentives. 25-year payback projection.", href: "/solar" },
+  { icon: "BatteryCharging", title: "Home Charging", desc: "Level 1 vs Level 2 economics, install assumptions, and charger fit.", href: "/charging" },
+  { icon: "Battery", title: "Battery Preview", desc: "Backup runtime, TOU value, and resilience-first battery economics.", href: "/battery" },
   { icon: "GitCompare", title: "Compare", desc: "Side-by-side total cost of ownership - EV vs gas, 6 financial sections.", href: "/compare" },
   { icon: "Map", title: "State Grades", desc: "50 states ranked by grid cleanliness, incentives, and EV friendliness.", href: "/states" },
   { icon: "Plug", title: "What Can I Run?", desc: "Pick a power station, check which appliances it can power.", href: "/runtime" },
@@ -327,5 +329,8 @@ export function HomePage() {
     </div>
   );
 }
+
+
+
 
 

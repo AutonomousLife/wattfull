@@ -1,9 +1,10 @@
-"use client";
+﻿"use client";
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useTheme } from "@/lib/ThemeContext";
 import { STATE_DATA } from "@/lib/data";
 import { AssumptionGrid, TrustStrip, VerdictPanel } from "@/components/ui";
+
 
 const TILE_GRID = [
   ["ME", 11, 0],
@@ -299,4 +300,9 @@ export function StatesPageV2() {
     </div>
   );
 }
+
+
+
+
+
 

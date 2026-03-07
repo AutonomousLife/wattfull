@@ -1,4 +1,4 @@
-import type { MetadataRoute } from "next";
+﻿import type { MetadataRoute } from "next";
 import { STATE_DATA } from "@/lib/data";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://wattfull.com";
@@ -110,3 +110,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...iceCostRoutes,
   ];
 }
+
+

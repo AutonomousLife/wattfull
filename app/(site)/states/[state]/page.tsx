@@ -1,7 +1,8 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { notFound } from "next/navigation";
 import { STATE_DATA } from "@/lib/data";
 import { VerdictPanel, TrustStrip, AssumptionGrid } from "@/components/ui";
+import { SaveStateButton } from "@/components/widgets";
 
 type StateDatum = (typeof STATE_DATA)[keyof typeof STATE_DATA];
 type TrustItem = { label: string; value: string; note?: string; tone?: "positive" | "caution" | "neutral" | "low" };
@@ -122,6 +123,7 @@ export default async function StateDetailPage({ params }: { params: Promise<{ st
         <div style={{ background: "#fff", border: "1px solid rgba(148,163,184,.18)", borderRadius: 16, padding: 18 }}>
           <div style={{ fontSize: 12, color: "#64748b", textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 8 }}>Recommended next actions</div>
           <div style={{ display: "grid", gap: 10 }}>
+            <SaveStateButton stateCode={state} />
             <Link href="/ev" style={{ textDecoration: "none", padding: "12px 14px", borderRadius: 12, background: "#d1fae5", color: "#065f46", fontWeight: 700 }}>Run EV calculator</Link>
             <Link href="/solar" style={{ textDecoration: "none", padding: "12px 14px", borderRadius: 12, border: "1px solid rgba(148,163,184,.18)", color: "inherit" }}>Check solar ROI</Link>
             <Link href="/compare" style={{ textDecoration: "none", padding: "12px 14px", borderRadius: 12, border: "1px solid rgba(148,163,184,.18)", color: "inherit" }}>Compare ownership paths</Link>
@@ -134,3 +136,4 @@ export default async function StateDetailPage({ params }: { params: Promise<{ st
     </div>
   );
 }
+

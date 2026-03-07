@@ -231,6 +231,8 @@ export function SiteShell({ children }) {
                   { label: "EV Calculator", href: "/ev" },
                   { label: "Solar ROI", href: "/solar" },
                   { label: "Compare", href: "/compare" },
+                  { label: "Charging", href: "/charging" },
+                  { label: "Battery", href: "/battery" },
                 ].map((item) => (
                   <div key={item.href} style={{ marginBottom: 6 }}>
                     <Link href={item.href} style={{ fontSize: 12, color: t.textMid, textDecoration: "none" }}>{item.label}</Link>
@@ -274,4 +276,7 @@ export function SiteShell({ children }) {
     </div>
   );
 }
+
+
+
 

@@ -25,3 +25,8 @@ export { StatPill }      from "./StatPill";
 export { Skeleton, SkeletonText } from "./Skeleton";
 export { Reveal }        from "./Reveal";
 export { ToastProvider, useToast } from "./Toast";
+
+export { TrustStrip } from './TrustStrip';
+export { VerdictPanel } from './VerdictPanel';
+export { AssumptionGrid } from './AssumptionGrid';
+

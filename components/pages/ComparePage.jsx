@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState, useEffect } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -273,7 +273,7 @@ function VehiclePhoto({ vehicleId, name, height = 140, flip = false, accentColor
     width: "100%", height,
     borderRadius: 10,
     overflow: "hidden",
-    background: "transparent",
+    background: t.card,
     display: "flex", alignItems: "center", justifyContent: "center",
     position: "relative",
   };
@@ -302,15 +302,16 @@ function VehiclePhoto({ vehicleId, name, height = 140, flip = false, accentColor
   }
 
   return (
-    <div style={frame}>
+    <div style={{ ...frame, background: t.card }}>
       <img
         src={src}
         alt={name}
         loading="lazy"
         style={{
           width: "100%", height: "100%",
-          objectFit: "cover",
+          objectFit: "contain",
           transform: flip ? "scaleX(-1)" : "none",
+          padding: "8px 4px",
           display: "block",
         }}
         onError={() => { _photoCache[vehicleId] = null; setSrc(null); }}
@@ -738,7 +739,7 @@ function EVGasFullCompare({ ev, ice, mi, er, gp, driveStyle, incI, t }) {
           <div style={{ borderTop: `1px solid ${t.borderLight}`, paddingTop: 10, marginTop: 12 }}>
             <div style={{ fontSize: 10, color: t.textLight, lineHeight: 1.8 }}>
               <b style={{ color: t.textMid }}>Data:</b> Vehicle specs: EPA · Electricity: EIA · Gas: AAA/EIA · Insurance: national avg estimates ·
-              <b style={{ color: t.textMid }}> Last updated:</b> new Date().toISOString().slice(0, 7)
+              <b style={{ color: t.textMid }}> Last updated:</b> {new Date().toLocaleDateString("en-US", { month: "short", year: "numeric" })}
             </div>
           </div>
         </>
@@ -998,4 +999,3 @@ export function ComparePage() {
     </div>
   );
 }
-

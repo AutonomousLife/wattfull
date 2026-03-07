@@ -1,12 +1,14 @@
-﻿"use client";
+"use client";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useTheme } from "@/lib/ThemeContext";
 import { STATE_DATA } from "@/lib/data";
 import { resolveStateFromZip } from "@/lib/geo";
+import { AssumptionGrid, TrustStrip, VerdictPanel } from "@/components/ui";
 
 const PROFILE_KEY = "wattfull_profile";
 const EV_KEY = "wattfull_ev_calc_v2";
+const SAVED_GEAR_KEY = "wattfull_saved_gear";
 
 function cardStyle(t) {
   return {
@@ -37,18 +39,12 @@ export function DashboardPage() {
   const { t } = useTheme();
   const [profile, setProfile] = useState(null);
   const [evCalc, setEvCalc] = useState(null);
+  const [savedGear, setSavedGear] = useState([]);
 
   useEffect(() => {
-    try {
-      setProfile(JSON.parse(localStorage.getItem(PROFILE_KEY) || "null"));
-    } catch {
-      setProfile(null);
-    }
-    try {
-      setEvCalc(JSON.parse(localStorage.getItem(EV_KEY) || "null"));
-    } catch {
-      setEvCalc(null);
-    }
+    try { setProfile(JSON.parse(localStorage.getItem(PROFILE_KEY) || "null")); } catch { setProfile(null); }
+    try { setEvCalc(JSON.parse(localStorage.getItem(EV_KEY) || "null")); } catch { setEvCalc(null); }
+    try { setSavedGear(JSON.parse(localStorage.getItem(SAVED_GEAR_KEY) || "[]")); } catch { setSavedGear([]); }
   }, []);
 
   const state = useMemo(() => resolveStateFromZip(profile?.zip), [profile?.zip]);
@@ -61,7 +57,24 @@ export function DashboardPage() {
   const evSavings = gasSpend - evSpend;
   const solarPotential = stateData ? Math.round(1200 * Math.min(1.2, stateData.s / 5)) : null;
   const batteryRoi = stateData ? (stateData.nm === "full" ? "Situational" : stateData.gc >= 35 ? "Moderate" : "Low") : "Estimated";
-  const recommendation = evSavings > 900 ? "Run EV and compare tools" : profile?.homeowner ? "Check solar and battery economics" : "Start with compare and state tools";
+  const confidence = state ? "Medium confidence" : "Low confidence";
+
+  const reasons = [
+    state ? `${state} context is loaded, so rates and policy assumptions are more grounded.` : "No ZIP is saved yet, so this uses broad benchmark assumptions.",
+    `${miles.toLocaleString()} miles per year is the current usage assumption across your profile and EV tool.`,
+    `Electricity is modeled at ${electricity} cents/kWh and gas at about $${gas.toFixed(2)}/gal.`,
+  ];
+
+  const caveats = [
+    "Insurance, financing, and installer quotes are not personalized here yet.",
+    "Battery and solar numbers remain directional unless a dedicated tool is run.",
+  ];
+
+  const changes = [
+    "If annual miles fall materially, EV savings compress fast.",
+    "If home charging is unavailable, public charging can reduce the advantage.",
+    "If your utility is above the state average, solar and EV economics can shift in opposite directions.",
+  ];
 
   return (
     <div>
@@ -69,6 +82,17 @@ export function DashboardPage() {
       <p style={{ fontSize: 16, color: t.textMid, lineHeight: 1.65, maxWidth: 760, marginTop: 8 }}>
         A lightweight command center for your stored assumptions, recent calculation context, and the next actions Wattfull recommends.
       </p>
+
+      <div style={{ marginTop: 18, marginBottom: 20 }}>
+        <TrustStrip
+          title="Profile trust layer"
+          items={[
+            { label: "Location context", value: state ? `${state} estimated` : "No ZIP saved", note: "ZIP improves rates, incentives, and climate context.", tone: state ? "positive" : "low" },
+            { label: "Recent calc state", value: evCalc ? "Saved locally" : "No recent EV run", note: "Used to prefill dashboard and next steps.", tone: evCalc ? "neutral" : "low" },
+            { label: "Data quality", value: confidence, note: "Higher confidence when your profile is complete.", tone: state ? "neutral" : "low" },
+          ]}
+        />
+      </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 20, marginTop: 24, alignItems: "start" }}>
         <section style={cardStyle(t)}>
@@ -87,26 +111,29 @@ export function DashboardPage() {
             <Metric label="Solar savings potential" value={solarPotential ? `$${solarPotential.toLocaleString()}/yr` : "Add ZIP"} note="Directional estimate from state solar context." tone={solarPotential ? "green" : "neutral"} t={t} />
           </div>
 
-          <div style={{ background: t.card, borderRadius: 14, padding: "16px 18px", marginTop: 16 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: t.text, marginBottom: 6 }}>Wattfull Verdict</div>
-            <div style={{ fontSize: 14, color: t.textMid, lineHeight: 1.6 }}>
-              {evSavings > 900
-                ? "Your current assumptions point toward a financially attractive EV operating-cost case. The next step is validating purchase cost, charging mix, and break-even on the EV and compare pages."
+          <div style={{ marginTop: 16 }}>
+            <VerdictPanel
+              label={evSavings > 900 ? "Strong candidate for an EV-first review" : evSavings > 0 ? "Marginal but promising" : "Low-confidence EV case so far"}
+              tone={evSavings > 900 ? "favorable" : evSavings > 0 ? "marginal" : state ? "neutral" : "lowConfidence"}
+              summary={evSavings > 900
+                ? "Your current profile points toward favorable EV operating economics, but you still need purchase-cost and charging-friction checks before acting."
                 : evSavings > 0
-                ? "Your profile still leans EV-favorable, but not by enough to skip the deeper comparison. Purchase price, charging access, and climate assumptions may swing the answer."
-                : "Your stored assumptions do not yet show a strong EV advantage. Use compare, state context, and solar tools before making a purchase decision."}
-            </div>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, background: "#d1fae5", color: "#065f46", borderRadius: 999, padding: "4px 8px" }}>{state ? "Estimated with state context" : "Static benchmark"}</span>
-              <span style={{ fontSize: 10, fontWeight: 700, background: t.white, color: t.textMid, borderRadius: 999, padding: "4px 8px" }}>Battery ROI: {batteryRoi}</span>
-              <span style={{ fontSize: 10, fontWeight: 700, background: t.white, color: t.textMid, borderRadius: 999, padding: "4px 8px" }}>Miles: {miles.toLocaleString()}/yr</span>
-            </div>
+                ? "The operating-cost case leans positive, but purchase cost, apartment charging, or cold-climate penalties could still change the recommendation."
+                : "The dashboard does not yet show a strong EV operating advantage. Fill in more profile context before treating this as decision-grade guidance."}
+              reasons={reasons}
+              caveats={caveats}
+              changes={changes}
+              confidence={confidence}
+              nextAction="Best next action: run EV and Compare with your actual vehicle shortlist."
+            />
           </div>
         </section>
 
         <aside style={cardStyle(t)}>
           <div style={{ fontSize: 15, fontWeight: 800, color: t.text, marginBottom: 12 }}>Best next move</div>
-          <div style={{ fontSize: 13, color: t.textMid, lineHeight: 1.6 }}>{recommendation}</div>
+          <div style={{ fontSize: 13, color: t.textMid, lineHeight: 1.6 }}>
+            {evSavings > 900 ? "Validate total ownership and break-even on the EV and Compare tools." : profile?.homeowner ? "Check solar and battery economics before making a hardware purchase." : "Start with Compare and State context, then return here."}
+          </div>
           <div style={{ display: "grid", gap: 8, marginTop: 14 }}>
             {[
               { href: "/ev", label: "Run EV calculator", note: "Full ownership verdict and assumptions" },
@@ -125,35 +152,40 @@ export function DashboardPage() {
         </aside>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginTop: 20 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 20 }}>
         <section style={cardStyle(t)}>
-          <div style={{ fontSize: 15, fontWeight: 800, color: t.text, marginBottom: 10 }}>Tracked assumptions</div>
-          <div style={{ fontSize: 13, color: t.textMid, lineHeight: 1.75 }}>
-            ZIP: <b style={{ color: t.text }}>{profile?.zip || "Not saved"}</b><br />
-            Electricity: <b style={{ color: t.text }}>{electricity} cents/kWh</b><br />
-            Home charging: <b style={{ color: t.text }}>{profile?.hasCharger === false ? "No" : "Yes"}</b><br />
-            Homeowner: <b style={{ color: t.text }}>{profile?.homeowner === false ? "No" : "Yes"}</b><br />
-            Solar interest: <b style={{ color: t.text }}>{profile?.solarInterest || "Exploring"}</b>
-          </div>
+          <AssumptionGrid
+            title="Tracked assumptions"
+            items={[
+              { label: "ZIP", value: profile?.zip || "Not saved" },
+              { label: "Electricity", value: `${electricity} cents/kWh` },
+              { label: "Miles", value: `${miles.toLocaleString()} / year` },
+              { label: "Home charging", value: profile?.hasCharger === false ? "No" : "Yes" },
+              { label: "Homeowner", value: profile?.homeowner === false ? "No" : "Yes" },
+              { label: "Solar interest", value: profile?.solarInterest || "Exploring" },
+            ]}
+            footer="These assumptions are currently stored locally in your browser and reused across calculators where possible."
+          />
         </section>
 
         <section style={cardStyle(t)}>
-          <div style={{ fontSize: 15, fontWeight: 800, color: t.text, marginBottom: 10 }}>Recent calculator context</div>
-          <div style={{ fontSize: 13, color: t.textMid, lineHeight: 1.75 }}>
-            Recent EV: <b style={{ color: t.text }}>{evCalc?.evId || "Not saved"}</b><br />
-            Comparison gas vehicle: <b style={{ color: t.text }}>{evCalc?.iceId || "Not saved"}</b><br />
-            Ownership years: <b style={{ color: t.text }}>{evCalc?.yr || 8}</b><br />
-            Driving style: <b style={{ color: t.text }}>{evCalc?.driveStyle || profile?.driveStyle || "normal"}</b>
-          </div>
-        </section>
-
-        <section style={cardStyle(t)}>
-          <div style={{ fontSize: 15, fontWeight: 800, color: t.text, marginBottom: 10 }}>Trust and freshness</div>
-          <div style={{ fontSize: 13, color: t.textMid, lineHeight: 1.75 }}>
-            Vehicle inputs: <b style={{ color: t.text }}>EPA and seed specs</b><br />
-            Rates: <b style={{ color: t.text }}>Live or estimated depending on availability</b><br />
-            State context: <b style={{ color: t.text }}>Static benchmark layer</b><br />
-            Recommendation confidence: <b style={{ color: t.text }}>{state ? "Medium" : "Low"}</b>
+          <div style={{ fontSize: 15, fontWeight: 800, color: t.text, marginBottom: 10 }}>Saved and recent items</div>
+          <div style={{ display: "grid", gap: 10 }}>
+            <div style={{ background: t.card, borderRadius: 12, padding: "12px 14px" }}>
+              <div style={{ fontSize: 11, color: t.textLight, textTransform: "uppercase", letterSpacing: ".05em" }}>Recent calculator</div>
+              <div style={{ fontSize: 13, color: t.text, fontWeight: 700, marginTop: 4 }}>{evCalc?.evId || "No EV selected yet"}</div>
+              <div style={{ fontSize: 11, color: t.textLight, marginTop: 4 }}>{evCalc?.iceId ? `Against ${evCalc.iceId}` : "Run the EV calculator to populate this."}</div>
+            </div>
+            <div style={{ background: t.card, borderRadius: 12, padding: "12px 14px" }}>
+              <div style={{ fontSize: 11, color: t.textLight, textTransform: "uppercase", letterSpacing: ".05em" }}>Saved gear</div>
+              <div style={{ fontSize: 13, color: t.text, fontWeight: 700, marginTop: 4 }}>{savedGear.length ? `${savedGear.length} saved product${savedGear.length === 1 ? "" : "s"}` : "No saved gear yet"}</div>
+              <div style={{ fontSize: 11, color: t.textLight, marginTop: 4 }}>{savedGear.length ? savedGear.slice(0, 2).join(", ") : "Use Gear to save chargers, batteries, or backup products later."}</div>
+            </div>
+            <div style={{ background: t.card, borderRadius: 12, padding: "12px 14px" }}>
+              <div style={{ fontSize: 11, color: t.textLight, textTransform: "uppercase", letterSpacing: ".05em" }}>Battery ROI signal</div>
+              <div style={{ fontSize: 13, color: t.text, fontWeight: 700, marginTop: 4 }}>{batteryRoi}</div>
+              <div style={{ fontSize: 11, color: t.textLight, marginTop: 4 }}>Directional only. This should be validated in a dedicated battery tool.</div>
+            </div>
           </div>
         </section>
       </div>

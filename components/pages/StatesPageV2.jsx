@@ -1,8 +1,9 @@
-﻿"use client";
+"use client";
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useTheme } from "@/lib/ThemeContext";
 import { STATE_DATA } from "@/lib/data";
+import { AssumptionGrid, TrustStrip, VerdictPanel } from "@/components/ui";
 
 const TILE_GRID = [
   ["ME", 11, 0],
@@ -17,12 +18,6 @@ const TILE_GRID = [
 const COLS = 12;
 const ROWS = 7;
 const CELL = 42;
-const FRESHNESS = {
-  electricity: "EIA monthly seed",
-  gas: "AAA-style state seed",
-  incentives: "Estimated state snapshot",
-  solar: "NREL-style static sample",
-};
 
 function scoreState(data) {
   return Math.max(0, Math.min(100, Math.round(data.gc + (data.ec > 0 ? 18 : 0) + (data.sc > 0 ? 10 : 0) + (data.nm === "full" ? 14 : data.nm === "partial" ? 7 : 0))));
@@ -63,16 +58,6 @@ function annualEvSavings(data) {
 function paybackEstimate(data) {
   const yearly = annualEvSavings(data) + (data.ec > 0 ? 250 : 0);
   return yearly > 0 ? (7500 / yearly).toFixed(1) : null;
-}
-
-function MetricRow({ label, value, sublabel, t }) {
-  return (
-    <div style={{ background: t.card, borderRadius: 10, padding: "12px 13px" }}>
-      <div style={{ fontSize: 10, color: t.textLight, textTransform: "uppercase", letterSpacing: ".05em" }}>{label}</div>
-      <div style={{ fontSize: 18, fontWeight: 800, color: t.text, marginTop: 4 }}>{value}</div>
-      {sublabel ? <div style={{ fontSize: 11, color: t.textLight, marginTop: 4, lineHeight: 1.5 }}>{sublabel}</div> : null}
-    </div>
-  );
 }
 
 function StateTile({ abbr, selected, onClick, color }) {
@@ -133,11 +118,12 @@ export function StatesPageV2() {
     return tone(score);
   }
 
-  const verdict = current.score >= 68
-    ? `${current.abbr} is one of Wattfull's stronger EV ownership states.`
+  const verdictTone = current.score >= 68 ? "favorable" : current.score >= 46 ? "marginal" : "lowConfidence";
+  const verdictLabel = current.score >= 68
+    ? `${current.abbr} is a strong EV context`
     : current.score >= 46
-    ? `${current.abbr} can work well, but the case depends more on your exact utility and charging mix.`
-    : `${current.abbr} looks mixed for EV economics unless your personal inputs are favorable.`;
+    ? `${current.abbr} is workable but assumption-sensitive`
+    : `${current.abbr} is a mixed economics state`;
 
   return (
     <div>
@@ -145,6 +131,17 @@ export function StatesPageV2() {
       <p style={{ fontSize: 16, color: t.textMid, lineHeight: 1.65, maxWidth: 760, marginTop: 8 }}>
         Browse every state as a decision context, not just a rank. Wattfull separates electricity cost, gas pressure, incentives, grid mix, and solar practicality so you can see why one state looks better than another.
       </p>
+
+      <div style={{ marginTop: 18, marginBottom: 18 }}>
+        <TrustStrip
+          title="State intelligence status"
+          items={[
+            { label: "Electricity", value: "Estimated state seed", note: "Directional state layer, not utility-bill precision.", tone: "neutral" },
+            { label: "Incentives", value: "Policy snapshot", note: "Verify before purchase; changes can outpace the snapshot.", tone: "caution" },
+            { label: "Solar context", value: "Static benchmark", note: "Useful for screening, not installer-grade design.", tone: "low" },
+          ]}
+        />
+      </div>
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 18, marginBottom: 18 }}>
         {[
@@ -189,51 +186,60 @@ export function StatesPageV2() {
               ))}
             </div>
           </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10, marginTop: 16 }}>
-            <MetricRow label="Electricity" value={`${current.e.toFixed(2)}c/kWh`} sublabel={FRESHNESS.electricity} t={t} />
-            <MetricRow label="Gas" value={`$${current.g.toFixed(2)}/gal`} sublabel={FRESHNESS.gas} t={t} />
-            <MetricRow label="Solar" value={`${current.s.toFixed(1)} sun-hours`} sublabel={FRESHNESS.solar} t={t} />
-            <MetricRow label="Incentives" value={current.ec ? `$${current.ec.toLocaleString()} EV credit` : "No state EV credit"} sublabel={FRESHNESS.incentives} t={t} />
-          </div>
         </div>
 
-        <div style={{ background: t.white, border: `1px solid ${t.borderLight}`, borderRadius: 16, padding: 20, position: "sticky", top: 78 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 14 }}>
-            <div>
-              <div style={{ fontSize: 12, color: t.textLight }}>Selected state</div>
-              <h2 style={{ margin: "2px 0 0", fontSize: 28, fontWeight: 800, color: t.text }}>{current.abbr}</h2>
-            </div>
-            <div style={{ textAlign: "right" }}>
-              <div style={{ fontSize: 36, lineHeight: 1, fontWeight: 900, color: tone(current.score) }}>{current.grade}</div>
-              <div style={{ fontSize: 11, color: t.textLight }}>EV score {current.score}/100</div>
-            </div>
-          </div>
-
-          <div style={{ background: t.card, borderRadius: 12, padding: "14px 15px", marginBottom: 14 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: t.text, marginBottom: 6 }}>Wattfull Verdict</div>
-            <div style={{ fontSize: 13, color: t.textMid, lineHeight: 1.6 }}>{verdict}</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 12 }}>
-              <MetricRow label="Estimated EV savings" value={`${current.savings >= 0 ? "+" : "-"}$${Math.abs(current.savings).toLocaleString()}/yr`} sublabel="12k mi/year, 30 MPG gas baseline" t={t} />
-              <MetricRow label="Break-even pressure" value={current.payback ? `${current.payback} years` : "No clear payback"} sublabel="Illustrative EV premium recovery" t={t} />
-            </div>
-          </div>
-
-          <div style={{ display: "grid", gap: 10, marginBottom: 14 }}>
-            {[
-              ["Grid cleanliness", `${current.gc}% renewable`, current.gc >= 40 ? "Supports stronger carbon and charging claims." : "Cleaner-grid benefits are more limited here."],
-              ["Climate fit", current.z, current.z === "cold" ? "Winter penalty matters more in EV range and charging behavior." : "Moderate climate pressure for EV ownership."],
-              ["Net metering", current.nm, current.nm === "full" ? "Solar economics remain stronger for homeowners." : "Solar exports may be discounted."],
-            ].map(([label, value, note]) => (
-              <div key={label} style={{ border: `1px solid ${t.borderLight}`, borderRadius: 10, padding: "10px 12px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: t.text }}>{label}</span>
-                  <span style={{ fontSize: 12, color: t.green }}>{value}</span>
-                </div>
-                <div style={{ fontSize: 11, color: t.textLight, lineHeight: 1.5, marginTop: 4 }}>{note}</div>
+        <div style={{ display: "grid", gap: 14, position: "sticky", top: 78 }}>
+          <div style={{ background: t.white, border: `1px solid ${t.borderLight}`, borderRadius: 16, padding: 20 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 14 }}>
+              <div>
+                <div style={{ fontSize: 12, color: t.textLight }}>Selected state</div>
+                <h2 style={{ margin: "2px 0 0", fontSize: 28, fontWeight: 800, color: t.text }}>{current.abbr}</h2>
               </div>
-            ))}
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontSize: 36, lineHeight: 1, fontWeight: 900, color: tone(current.score) }}>{current.grade}</div>
+                <div style={{ fontSize: 11, color: t.textLight }}>EV score {current.score}/100</div>
+              </div>
+            </div>
+
+            <VerdictPanel
+              label={verdictLabel}
+              tone={verdictTone}
+              summary={current.score >= 68
+                ? "This state combines decent operating economics with policy or grid support strong enough to justify a serious EV evaluation."
+                : current.score >= 46
+                ? "The state context is usable, but your utility, charging access, and mileage matter more than the headline score."
+                : "This state does not automatically rule EVs out, but the state backdrop is weak enough that you should require a stronger personalized case before acting."}
+              reasons={[
+                `Electricity is about ${current.e.toFixed(2)} cents/kWh and gas is about $${current.g.toFixed(2)}/gal.`,
+                current.ec ? `State EV incentives can add about $${current.ec.toLocaleString()} of support.` : "There is no meaningful state EV credit in this snapshot.",
+                current.nm === "full" ? "Net metering remains supportive for solar-first households." : "Net metering is limited, which softens solar economics.",
+              ]}
+              caveats={[
+                current.z === "cold" ? "Cold-climate penalties matter more here for range and charging behavior." : "Climate penalties are moderate, but still not zero.",
+                "This is a state layer, not a utility-specific quote.",
+              ]}
+              changes={[
+                "A higher-mileage household improves the EV case faster than the state score alone suggests.",
+                "A worse-than-average utility rate can weaken the result even in a good state.",
+                "Policy and rebate changes can move the recommendation quickly.",
+              ]}
+              confidence="Estimated state context"
+              nextAction="Next best action: run EV or Solar with your ZIP and household assumptions."
+            />
           </div>
+
+          <AssumptionGrid
+            title="State assumptions behind this card"
+            items={[
+              { label: "Electricity", value: `${current.e.toFixed(2)} cents/kWh`, note: "State seed" },
+              { label: "Gas", value: `$${current.g.toFixed(2)}/gal`, note: "State seed" },
+              { label: "Grid renewable", value: `${current.gc}%`, note: "Directional cleanliness input" },
+              { label: "Solar", value: `${current.s.toFixed(1)} sun-hours`, note: "Static benchmark" },
+              { label: "Net metering", value: current.nm },
+              { label: "Climate zone", value: current.z },
+            ]}
+            footer="Use state cards to shortlist, then validate on the main calculators before making a purchase decision."
+          />
 
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <Link href={`/ev?state=${current.abbr}`} style={{ textDecoration: "none", padding: "10px 14px", borderRadius: 10, background: t.green, color: "#fff", fontSize: 13, fontWeight: 700 }}>Run EV calculator</Link>
@@ -288,25 +294,6 @@ export function StatesPageV2() {
               ))}
             </tbody>
           </table>
-        </div>
-      </section>
-
-      <section style={{ marginTop: 24 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
-          {stateList.slice(0, 6).map((item) => (
-            <div key={item.abbr} style={{ background: t.white, border: `1px solid ${t.borderLight}`, borderRadius: 14, padding: "15px 16px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "baseline" }}>
-                <div style={{ fontSize: 20, fontWeight: 800, color: t.text }}>{item.abbr}</div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: tone(item.score) }}>{item.grade}</div>
-              </div>
-              <div style={{ fontSize: 12, color: t.textLight, marginTop: 5, lineHeight: 1.5 }}>
-                Top-ranked state context for EV readiness. Electricity at {item.e.toFixed(2)}c/kWh, grid renewable share at {item.gc}%.
-              </div>
-              <div style={{ marginTop: 10, fontSize: 12, color: t.green, fontWeight: 700 }}>
-                {item.savings >= 0 ? "+" : "-"}${Math.abs(item.savings).toLocaleString()}/yr estimated EV savings
-              </div>
-            </div>
-          ))}
         </div>
       </section>
     </div>

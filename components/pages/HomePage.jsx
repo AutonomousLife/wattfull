@@ -1,8 +1,8 @@
-﻿"use client";
+"use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/lib/ThemeContext";
-import { AnimCount, FadeIn, Reveal } from "@/components/ui";
+import { AnimCount, FadeIn, Reveal, TrustStrip, VerdictPanel } from "@/components/ui";
 import { Icon } from "@/components/ui/Icon";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GlassButton } from "@/components/ui/GlassButton";
@@ -327,3 +327,4 @@ export function HomePage() {
     </div>
   );
 }
+

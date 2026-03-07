@@ -1,6 +1,7 @@
-﻿"use client";
+"use client";
 import { useState } from "react";
 import { useTheme } from "@/lib/ThemeContext";
+import { TrustStrip, VerdictPanel } from "@/components/ui";
 
 const DATA_SOURCES = [
   { source: "EIA", scope: "Residential electricity rates", cadence: "Monthly", status: "Estimated state seed", note: "Used for EV and solar assumptions when ZIP-specific live utility data is unavailable." },
@@ -93,6 +94,37 @@ export function MethodologyPageV2() {
         Wattfull is built to behave like a transparent advisor. The site should show what it knows, where the number came from, how fresh it is, and what would have to change for the recommendation to change.
       </p>
 
+      <div style={{ marginTop: 18, marginBottom: 18 }}>
+        <TrustStrip
+          title="Trust center status"
+          items={[
+            { label: "Core EV engine", value: "Canonical", note: "Calculator, SEO pages, and advisory responses share one core EV engine.", tone: "positive" },
+            { label: "Policy layer", value: "Estimated", note: "Policy and incentives still require direct verification before purchase.", tone: "caution" },
+            { label: "Solar layer", value: "Directional", note: "Useful for screening, not an installer-grade engineering quote.", tone: "low" },
+          ]}
+        />
+      </div>
+
+      <VerdictPanel
+        label="Wattfull is designed to be decision support, not opaque content"
+        tone="favorable"
+        summary="The product goal is to help users narrow expensive decisions with transparent assumptions, visible data labels, and clear next actions instead of hiding the methodology behind a single score."
+        reasons={[
+          "Major calculators are moving toward reusable verdict and trust patterns.",
+          "The EV stack now uses a shared calculation engine instead of fragmented page logic.",
+          "Methodology, data labels, and caveats are first-class product surfaces.",
+        ]}
+        caveats={[
+          "Several state and solar layers remain estimated or static rather than live.",
+          "Insurance, depreciation, and installer quotes are not personalized yet.",
+        ]}
+        changes={[
+          "Utility-specific rates and better incentive ingestion would materially raise trust.",
+          "More regression tests would lower the risk of calculation drift.",
+        ]}
+        confidence="Mixed live + estimated system"
+      />
+
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12, marginTop: 22, marginBottom: 24 }}>
         {[
           ["Canonical engine", "EV calculator, SEO pages, and advisory responses share the same core math."],
@@ -130,13 +162,7 @@ export function MethodologyPageV2() {
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ background: t.card }}>
-                {[
-                  "Source",
-                  "Used for",
-                  "Refresh cadence",
-                  "Current label",
-                  "Trust note",
-                ].map((label) => (
+                {["Source", "Used for", "Refresh cadence", "Current label", "Trust note"].map((label) => (
                   <th key={label} style={{ padding: "12px 16px", textAlign: "left", fontSize: 11, color: t.textLight, textTransform: "uppercase", letterSpacing: ".05em" }}>{label}</th>
                 ))}
               </tr>
@@ -160,21 +186,14 @@ export function MethodologyPageV2() {
         <div style={{ background: t.white, border: `1px solid ${t.borderLight}`, borderRadius: 16, padding: "16px 18px" }}>
           <div style={{ fontSize: 16, fontWeight: 800, color: t.text, marginBottom: 8 }}>Calculation architecture</div>
           <div style={{ fontSize: 13, color: t.textMid, lineHeight: 1.7 }}>
-            Wattfull now centralizes EV calculation logic in one engine, then adapts that output into the EV tool, SEO pages, and advisory responses. That reduces drift, keeps assumptions aligned, and makes future testing cheaper and safer.
+            Wattfull centralizes EV calculation logic in one engine, then adapts that output into the EV tool, SEO pages, and advisory responses. That reduces drift, keeps assumptions aligned, and makes future testing cheaper and safer.
           </div>
         </div>
         <div style={{ background: t.white, border: `1px solid ${t.borderLight}`, borderRadius: 16, padding: "16px 18px" }}>
-          <div style={{ fontSize: 16, fontWeight: 800, color: t.text, marginBottom: 8 }}>What remains illustrative</div>
+          <div style={{ fontSize: 16, fontWeight: 800, color: t.text, marginBottom: 8 }}>Editorial and affiliate policy</div>
           <div style={{ fontSize: 13, color: t.textMid, lineHeight: 1.7 }}>
-            Some state scores, solar heuristics, and content-led comparisons are still illustrative or state-seed-based. They are useful for framing the decision, but they are not the same thing as a utility bill, tax ruling, installer quote, or insurance quote.
+            Product links can be affiliate links, but methodology, product framing, and calculator outputs should remain separated from merchant influence. Useful beats spam, and trust beats conversion tricks.
           </div>
-        </div>
-      </section>
-
-      <section style={{ background: t.card, border: `1px solid ${t.borderLight}`, borderRadius: 16, padding: "16px 18px" }}>
-        <div style={{ fontSize: 15, fontWeight: 800, color: t.text, marginBottom: 8 }}>Methodology note</div>
-        <div style={{ fontSize: 13, color: t.textMid, lineHeight: 1.7 }}>
-          Wattfull is a decision-support platform, not tax, legal, or financial advice. Use the calculators to narrow the range, understand the drivers, and surface the right next question before making a large purchase decision.
         </div>
       </section>
     </div>

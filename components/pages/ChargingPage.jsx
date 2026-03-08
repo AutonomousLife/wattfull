@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useTheme } from "@/lib/ThemeContext";
 import { CHARGERS, STATE_DATA } from "@/lib/data";
 import { resolveStateFromZip } from "@/lib/geo";
-import { AssumptionGrid, FaqList, TrustStrip, VerdictPanel } from "@/components/ui";
+import { AssumptionGrid, FaqList, Slider, TrustStrip, VerdictPanel } from "@/components/ui";
 import { STORAGE_KEYS, getStoredJson, pushStoredHistory } from "@/lib/profileStore";
 
 function cardStyle(t) {
@@ -113,10 +113,7 @@ export function ChargingPage() {
             <label style={{ fontSize: 12, color: t.textMid }}>ZIP code
               <input value={zip} onChange={(e) => setZip(e.target.value.replace(/\D/g, "").slice(0, 5))} style={{ width: "100%", marginTop: 6, padding: "10px 12px", borderRadius: 10, border: `1px solid ${t.borderLight}`, background: t.card, color: t.text }} />
             </label>
-            <label style={{ fontSize: 12, color: t.textMid }}>Annual miles
-              <input type="range" min={4000} max={40000} step={500} value={miles} onChange={(e) => setMiles(Number(e.target.value))} style={{ width: "100%", marginTop: 8, accentColor: "#10b981" }} />
-              <div style={{ fontSize: 12, color: t.text, fontWeight: 700 }}>{miles.toLocaleString()} mi/year</div>
-            </label>
+            <Slider label="Annual miles" value={miles} onChange={setMiles} min={4000} max={40000} step={500} editable inputModes={["year","week","day"]} suffix=" / year" />
             <label style={{ fontSize: 12, color: t.textMid }}>Electricity rate
               <input type="number" value={electricity} onChange={(e) => setElectricity(Number(e.target.value) || 0)} style={{ width: "100%", marginTop: 6, padding: "10px 12px", borderRadius: 10, border: `1px solid ${t.borderLight}`, background: t.card, color: t.text }} />
             </label>
@@ -241,4 +238,5 @@ export function ChargingPage() {
     </div>
   );
 }
+
 

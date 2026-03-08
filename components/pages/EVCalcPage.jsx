@@ -536,7 +536,7 @@ function EVCalcInner() {
           <VehicleSearch label="EV to evaluate" vehicles={VEHICLES.ev} value={evId} onChange={setEvId} popularIds={POPULAR_EV_IDS} />
           <VehicleSearch label="Gas vehicle to compare" vehicles={VEHICLES.ice} value={iceId} onChange={setIceId} popularIds={POPULAR_ICE_IDS} />
 
-          <Slider label="Annual Miles" value={mi} onChange={setMi} min={3000} max={40000} step={1000} />
+          <Slider label="Annual Miles" value={mi} onChange={setMi} min={3000} max={40000} step={1000} editable inputModes={["year","week","day"]} suffix=" / year" />
           <Slider label="Ownership Years" value={yr} onChange={setYr} min={1} max={15} suffix=" yrs" />
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6 }}>
@@ -772,6 +772,7 @@ export function EVCalcPage() {
     </Suspense>
   );
 }
+
 
 
 

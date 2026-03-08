@@ -871,7 +871,7 @@ export function ComparePage() {
         <div style={{ background: t.white, border: `1px solid ${t.borderLight}`, borderRadius: 14, padding: "16px 20px", marginTop: 16 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: t.textMid, marginBottom: 12, textTransform: "uppercase", letterSpacing: ".05em" }}>Personalize this comparison</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "0 24px" }}>
-            <Slider label="Annual Miles" value={mi} onChange={setMi} min={3000} max={40000} step={500} />
+            <Slider label="Annual Miles" value={mi} onChange={setMi} min={3000} max={40000} step={500} editable inputModes={["year","week","day"]} suffix=" / year" />
             <Slider label="Electricity rate" value={er} onChange={setEr} min={8} max={35} step={0.5} suffix=" cents/kWh" />
             <Slider label="Gas price" value={gp} onChange={v => setGp(Math.round(v * 100) / 100)} min={2.00} max={6.00} step={0.05} prefix="$" suffix="/gal" />
           </div>
@@ -1047,6 +1047,7 @@ export function ComparePage() {
     </div>
   );
 }
+
 
 
 

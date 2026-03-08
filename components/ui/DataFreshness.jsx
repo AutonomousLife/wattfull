@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTheme } from "@/lib/ThemeContext";
 
 const STALE_THRESHOLDS = {
@@ -14,7 +14,7 @@ function daysSince(dateStr) {
 }
 
 function formatDate(dateStr) {
-  if (!dateStr) return "unknown";
+  if (!dateStr) return null;
   try {
     return new Date(dateStr).toLocaleDateString("en-US", {
       month: "short",
@@ -22,8 +22,16 @@ function formatDate(dateStr) {
       year: "numeric",
     });
   } catch {
-    return "unknown";
+    return null;
   }
+}
+
+function formatNow() {
+  return new Date().toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 export default function DataFreshness() {
@@ -41,14 +49,29 @@ export default function DataFreshness() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading || !datasets?.length) return null;
+  const derived = useMemo(() => {
+    if (!datasets?.length) return null;
+    const electric = datasets.find((item) => item.datasetName === "electricity_rates");
+    const gas = datasets.find((item) => item.datasetName === "gas_prices");
+    const elecAge = daysSince(electric?.lastSuccessAt);
+    const gasAge = daysSince(gas?.lastSuccessAt);
+    const isStale = elecAge > STALE_THRESHOLDS.electricity_rates || gasAge > STALE_THRESHOLDS.gas_prices;
+    const lastUpdate = electric?.lastSuccessAt || gas?.lastSuccessAt;
+    const formattedLastUpdate = formatDate(lastUpdate);
+    return {
+      isStale,
+      hasRealTimestamp: Boolean(formattedLastUpdate),
+      timestampLabel: formattedLastUpdate ?? formatNow(),
+    };
+  }, [datasets]);
 
-  const electric = datasets.find((item) => item.datasetName === "electricity_rates");
-  const gas = datasets.find((item) => item.datasetName === "gas_prices");
-  const elecAge = daysSince(electric?.lastSuccessAt);
-  const gasAge = daysSince(gas?.lastSuccessAt);
-  const isStale = elecAge > STALE_THRESHOLDS.electricity_rates || gasAge > STALE_THRESHOLDS.gas_prices;
-  const lastUpdate = electric?.lastSuccessAt || gas?.lastSuccessAt;
+  if (loading || !derived) return null;
+
+  const badgeLabel = derived.hasRealTimestamp ? (derived.isStale ? "Estimated" : "Live data") : "Snapshot";
+  const message = derived.hasRealTimestamp
+    ? (derived.isStale ? `Rates may be stale. Last successful update: ${derived.timestampLabel}` : `Rates refreshed ${derived.timestampLabel}`)
+    : `Rates snapshot checked ${derived.timestampLabel}`;
+  const source = derived.hasRealTimestamp ? "Source: EIA and state fuel datasets" : "Source: fallback benchmark layer";
 
   return (
     <div
@@ -60,8 +83,8 @@ export default function DataFreshness() {
         flexWrap: "wrap",
         padding: "8px 12px",
         borderRadius: 10,
-        background: isStale ? "rgba(245,158,11,0.10)" : "rgba(16,185,129,0.08)",
-        border: `1px solid ${isStale ? "rgba(245,158,11,0.28)" : "rgba(16,185,129,0.20)"}`,
+        background: derived.isStale ? "rgba(245,158,11,0.10)" : "rgba(16,185,129,0.08)",
+        border: `1px solid ${derived.isStale ? "rgba(245,158,11,0.28)" : "rgba(16,185,129,0.20)"}`,
         marginTop: 8,
       }}
     >
@@ -70,22 +93,22 @@ export default function DataFreshness() {
           style={{
             fontSize: 10,
             fontWeight: 700,
-            color: isStale ? "#b45309" : "#065f46",
-            background: isStale ? "#fef3c7" : "#d1fae5",
+            color: derived.isStale ? "#b45309" : "#065f46",
+            background: derived.isStale ? "#fef3c7" : "#d1fae5",
             borderRadius: 999,
             padding: "4px 8px",
             textTransform: "uppercase",
             letterSpacing: ".05em",
           }}
         >
-          {isStale ? "Estimated" : "Live data"}
+          {badgeLabel}
         </span>
-        <span style={{ fontSize: 12, color: isStale ? "#b45309" : t.green }}>
-          {isStale ? `Rates may be stale. Last successful update: ${formatDate(lastUpdate)}` : `Rates refreshed ${formatDate(lastUpdate)}`}
+        <span style={{ fontSize: 12, color: derived.isStale ? "#b45309" : t.green }}>
+          {message}
         </span>
       </div>
       <div style={{ fontSize: 11, color: t.textLight }}>
-        Source: EIA and state fuel datasets
+        {source}
       </div>
     </div>
   );

@@ -1,11 +1,11 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { db, vehicles } from "@/lib/db/index";
 import { eq } from "drizzle-orm";
 import { calculateComparison } from "@/lib/core/calc";
 import { resolveStateFromZip } from "@/lib/geo";
 
-export const revalidate = 86400; // 24 hours
+export const revalidate = 86400;
 
 interface Props { params: Promise<{ zip: string; comparison: string }> }
 
@@ -25,10 +25,10 @@ async function resolveVehicles(comparison: string) {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { zip, comparison } = await params;
   const result = await resolveVehicles(comparison);
-  if (!result?.v1 || !result?.v2) return { title: "Comparison not found — Wattfull" };
+  if (!result?.v1 || !result?.v2) return { title: "Comparison not found - Wattfull" };
 
-  const title = `${result.v1.name} vs ${result.v2.name} in ZIP ${zip} — Wattfull`;
-  const description = `5-year cost comparison: ${result.v1.name} vs ${result.v2.name} for ZIP ${zip}. Real rates from EIA. All assumptions shown.`;
+  const title = `${result.v1.name} vs ${result.v2.name} in ZIP ${zip} - Wattfull`;
+  const description = `5-year cost comparison for ${result.v1.name} and ${result.v2.name} in ZIP ${zip}. Includes rates, assumptions, and verdict context.`;
   const url = `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://wattfull.com"}/ev-vs-gas/${zip}/${comparison}`;
 
   return {
@@ -42,7 +42,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function EvVsGasPage({ params }: Props) {
   const { zip, comparison } = await params;
-
   if (!/^\d{5}$/.test(zip)) notFound();
 
   const resolved = await resolveVehicles(comparison);
@@ -56,7 +55,6 @@ export default async function EvVsGasPage({ params }: Props) {
   try {
     const ev = v1.type === "ev" ? v1 : v2.type === "ev" ? v2 : null;
     const ice = v1.type === "ice" ? v1 : v2.type === "ice" ? v2 : null;
-
     if (ev && ice) {
       calcResult = await calculateComparison({
         zip,
@@ -73,133 +71,88 @@ export default async function EvVsGasPage({ params }: Props) {
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://wattfull.com";
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "WebPage",
-    name: `${v1.name} vs ${v2.name} in ZIP ${zip}`,
-    description: `Cost comparison for ZIP ${zip}: ${v1.name} vs ${v2.name} over 5 years.`,
-    mainEntity: {
-      "@type": "ItemList",
-      itemListElement: [
-        { "@type": "ListItem", position: 1, name: v1.name },
-        { "@type": "ListItem", position: 2, name: v2.name },
-      ],
-    },
-  };
-
   return (
-    <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-
-      <div style={{ marginBottom: 32 }}>
+    <div style={{ display: "grid", gap: 24 }}>
+      <section>
         <div style={{ fontSize: 13, color: "#94a3b8", marginBottom: 8 }}>
-          <a href="/" style={{ color: "#10b981", textDecoration: "none" }}>Wattfull</a> › EV vs Gas › ZIP {zip}
+          <a href="/" style={{ color: "#10b981", textDecoration: "none" }}>Wattfull</a> &rsaquo; EV vs Gas &rsaquo; ZIP {zip}
         </div>
-        <h1 style={{ fontSize: "clamp(20px, 4vw, 30px)", fontWeight: 800, color: "#0f172a", marginBottom: 8 }}>
+        <h1 style={{ fontSize: "clamp(22px, 4vw, 32px)", fontWeight: 800, color: "#0f172a", marginBottom: 8 }}>
           {v1.name} vs {v2.name}
         </h1>
-        <p style={{ fontSize: 15, color: "#475569" }}>
-          5-year total cost comparison for ZIP {zip}{state ? ` (${state})` : ""}. Using {calcResult?.confidenceLevel === "high" ? "ZIP-level" : calcResult?.confidenceLevel === "medium" ? "state-level" : "national average"} energy rates.
+        <p style={{ fontSize: 15, color: "#475569", lineHeight: 1.7, maxWidth: 820 }}>
+          Programmatic ownership comparison for ZIP {zip}{state ? ` (${state})` : ""}. This page uses the canonical Wattfull calculator engine rather than separate SEO-only math.
         </p>
-      </div>
+      </section>
 
       {calcResult ? (
         <>
-          <div style={{
-            background: calcResult.totalCostEv < calcResult.totalCostIce ? "#ecfdf5" : "#f8fafc",
-            border: `2px solid ${calcResult.totalCostEv < calcResult.totalCostIce ? "#10b981" : "#e2e8f0"}`,
-            borderRadius: 16,
-            padding: 28,
-            marginBottom: 28,
-            textAlign: "center",
-          }}>
-            <div style={{ fontSize: 13, color: "#94a3b8", marginBottom: 4 }}>5-Year Total Savings</div>
-            <div style={{ fontSize: 42, fontWeight: 800, color: "#10b981" }}>
-              ${Math.abs(calcResult.totalCostIce - calcResult.totalCostEv).toLocaleString()}
+          <section style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 18 }}>
+            <div style={{ background: calcResult.totalCostEv < calcResult.totalCostIce ? "#ecfdf5" : "#fff7ed", border: `2px solid ${calcResult.totalCostEv < calcResult.totalCostIce ? "#10b981" : "#f59e0b"}`, borderRadius: 16, padding: 26 }}>
+              <div style={{ fontSize: 11, letterSpacing: ".06em", textTransform: "uppercase", color: "#64748b", marginBottom: 8 }}>Wattfull verdict</div>
+              <div style={{ fontSize: 28, fontWeight: 800, color: calcResult.totalCostEv < calcResult.totalCostIce ? "#10b981" : "#b45309", marginBottom: 8 }}>
+                ${Math.abs(calcResult.totalCostIce - calcResult.totalCostEv).toLocaleString()} over 5 years
+              </div>
+              <div style={{ fontSize: 15, color: "#475569", lineHeight: 1.7 }}>{calcResult.verdict}</div>
             </div>
-            <div style={{ fontSize: 15, color: "#475569", marginTop: 8 }}>{calcResult.verdict}</div>
-          </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 28 }}>
+            <div style={{ background: "#0f172a", color: "#f8fafc", borderRadius: 16, padding: 22 }}>
+              <div style={{ fontSize: 11, letterSpacing: ".06em", textTransform: "uppercase", color: "#94a3b8", marginBottom: 8 }}>Trust and freshness</div>
+              <div style={{ fontSize: 13, lineHeight: 1.7, color: "#cbd5e1" }}>
+                Electricity: {calcResult.ratesUsed.electricityCentsPerKwh} cents/kWh<br />
+                Gas: ${calcResult.ratesUsed.gasDollarsPerGallon}/gal<br />
+                Confidence: {calcResult.confidenceLevel}<br />
+                Sources: {calcResult.sources.join(", ")}
+              </div>
+            </div>
+          </section>
+
+          <section style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
             {[
-              { v: v1, total: v1.type === "ev" ? calcResult.totalCostEv : calcResult.totalCostIce, isWinner: v1.type === "ev" ? calcResult.totalCostEv < calcResult.totalCostIce : calcResult.totalCostIce < calcResult.totalCostEv },
-              { v: v2, total: v2.type === "ev" ? calcResult.totalCostEv : calcResult.totalCostIce, isWinner: v2.type === "ev" ? calcResult.totalCostEv < calcResult.totalCostIce : calcResult.totalCostIce < calcResult.totalCostEv },
-            ].map(({ v, total, isWinner }) => (
-              <div
-                key={v.id}
-                style={{
-                  background: isWinner ? "#ecfdf5" : "#fff",
-                  border: `2px solid ${isWinner ? "#10b981" : "#e2e8f0"}`,
-                  borderRadius: 14,
-                  padding: 24,
-                  textAlign: "center",
-                }}
-              >
-                {isWinner && <div style={{ fontSize: 11, fontWeight: 700, color: "#10b981", marginBottom: 8, letterSpacing: 1 }}>? LOWER COST</div>}
-                <div style={{ fontWeight: 700, fontSize: 16, color: "#0f172a", marginBottom: 8 }}>{v.name}</div>
-                <div style={{ fontSize: 32, fontWeight: 800, color: isWinner ? "#10b981" : "#0f172a" }}>
-                  ${total.toLocaleString()}
-                </div>
-                <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 4 }}>5-year total cost</div>
-                <div style={{ fontSize: 12, color: "#64748b", marginTop: 8 }}>
-                  MSRP: ${v.msrp?.toLocaleString() ?? "—"}
-                </div>
+              { v: v1, total: v1.type === "ev" ? calcResult.totalCostEv : calcResult.totalCostIce, winner: v1.type === "ev" ? calcResult.totalCostEv < calcResult.totalCostIce : calcResult.totalCostIce < calcResult.totalCostEv },
+              { v: v2, total: v2.type === "ev" ? calcResult.totalCostEv : calcResult.totalCostIce, winner: v2.type === "ev" ? calcResult.totalCostEv < calcResult.totalCostIce : calcResult.totalCostIce < calcResult.totalCostEv },
+            ].map(({ v, total, winner }) => (
+              <div key={v.id} style={{ background: "#fff", border: `2px solid ${winner ? "#10b981" : "#e2e8f0"}`, borderRadius: 16, padding: 22 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: winner ? "#10b981" : "#94a3b8", letterSpacing: ".06em", textTransform: "uppercase", marginBottom: 8 }}>{winner ? "Lower cost path" : "Comparison path"}</div>
+                <div style={{ fontSize: 20, fontWeight: 800, color: "#0f172a" }}>{v.name}</div>
+                <div style={{ fontSize: 32, fontWeight: 800, color: winner ? "#10b981" : "#0f172a", marginTop: 8 }}>${total.toLocaleString()}</div>
+                <div style={{ fontSize: 12, color: "#64748b", marginTop: 4 }}>5-year ownership cost</div>
+                <div style={{ fontSize: 12, color: "#64748b", marginTop: 8 }}>MSRP: ${v.msrp?.toLocaleString() ?? "-"}</div>
               </div>
             ))}
-          </div>
+          </section>
 
-          <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 12, padding: 20, marginBottom: 24 }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: "#0f172a", marginBottom: 12 }}>Rates Used for ZIP {zip}</div>
-            <div style={{ display: "flex", gap: 24, flexWrap: "wrap", fontSize: 14 }}>
-              <div>? Electricity: <strong>{calcResult.ratesUsed.electricityCentsPerKwh}¢/kWh</strong></div>
-              <div>? Gas: <strong>${calcResult.ratesUsed.gasDollarsPerGallon}/gal</strong></div>
-              <div>Confidence: <strong style={{ color: calcResult.confidenceLevel === "high" ? "#10b981" : calcResult.confidenceLevel === "medium" ? "#f59e0b" : "#94a3b8" }}>
-                {calcResult.confidenceLevel}
-              </strong></div>
-            </div>
-          </div>
-
-          {calcResult.incentiveLineItems.length > 0 && (
-            <div style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 12, padding: 16, marginBottom: 24, fontSize: 13 }}>
-              <strong style={{ color: "#92400e" }}>Incentives (not applied to totals)</strong>
-              <ul style={{ marginTop: 8, paddingLeft: 20 }}>
-                {calcResult.incentiveLineItems.map((item: any, i: number) => (
-                  <li key={i} style={{ color: "#78350f", marginBottom: 4 }}>
-                    {item.label}: {item.amount > 0 ? `up to $${item.amount.toLocaleString()}` : "N/A"} — {item.eligibilityFlag || "included"}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 12, padding: 20, fontSize: 13, color: "#64748b" }}>
-            <strong style={{ color: "#0f172a" }}>Assumptions Used</strong>
-            <ul style={{ marginTop: 8, paddingLeft: 20, lineHeight: 1.8 }}>
-              {calcResult.assumptionsUsed.map((a: string, i: number) => <li key={i}>{a}</li>)}
+          <section style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 16, padding: 24 }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: "#0f172a", marginBottom: 12 }}>What drives the result</div>
+            <ul style={{ margin: 0, paddingLeft: 20, color: "#475569", lineHeight: 1.8, fontSize: 13 }}>
+              {calcResult.assumptionsUsed.map((item: string) => <li key={item}>{item}</li>)}
             </ul>
-            <div style={{ marginTop: 8, color: "#94a3b8" }}>Sources: {calcResult.sources.join(", ")}</div>
-          </div>
+            {calcResult.incentiveLineItems.length ? (
+              <div style={{ marginTop: 14, fontSize: 13, color: "#92400e", background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 12, padding: 14 }}>
+                Incentive context: {calcResult.incentiveLineItems.map((item: any) => `${item.label} (${item.amount > 0 ? `up to $${item.amount.toLocaleString()}` : "N/A"})`).join(", ")}
+              </div>
+            ) : null}
+          </section>
+
+          <section style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 16, padding: 24 }}>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "#0f172a", marginBottom: 10 }}>Next best actions</div>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
+              <a href={`${siteUrl}/compare`} style={{ textDecoration: "none", background: "#10b981", color: "#fff", padding: "10px 14px", borderRadius: 10, fontWeight: 700 }}>Open interactive compare</a>
+              <a href={`${siteUrl}/cost-to-own/${v1.slug}`} style={{ textDecoration: "none", background: "#fff", color: "#0f172a", padding: "10px 14px", borderRadius: 10, border: "1px solid #e2e8f0", fontWeight: 700 }}>{v1.name} cost to own</a>
+              <a href={`${siteUrl}/cost-to-own/${v2.slug}`} style={{ textDecoration: "none", background: "#fff", color: "#0f172a", padding: "10px 14px", borderRadius: 10, border: "1px solid #e2e8f0", fontWeight: 700 }}>{v2.name} cost to own</a>
+              <a href={`${siteUrl}/ev-charging-cost/${zip}`} style={{ textDecoration: "none", background: "#fff", color: "#0f172a", padding: "10px 14px", borderRadius: 10, border: "1px solid #e2e8f0", fontWeight: 700 }}>Charging cost in {zip}</a>
+            </div>
+            <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.7 }}>
+              This page is useful for discovery and search, but the interactive compare tool is still the best place to change mileage, rates, and ownership assumptions live.
+            </div>
+          </section>
         </>
       ) : (
-        <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 12, padding: 32, textAlign: "center" }}>
-          <p style={{ color: "#94a3b8" }}>
-            {calcError ? "Calculation unavailable — one or both vehicles may be ICE-only (EV vs ICE comparison requires one of each)." : "Loading comparison data..."}
-          </p>
-          <a href="/" style={{ color: "#10b981", marginTop: 12, display: "inline-block" }}>Use the full comparison tool ?</a>
-        </div>
+        <section style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 16, padding: 28, textAlign: "center" }}>
+          <div style={{ color: "#94a3b8", marginBottom: 12 }}>{calcError ? "Comparison unavailable for this pairing." : "Loading comparison data..."}</div>
+          <a href={`${siteUrl}/compare`} style={{ color: "#10b981", textDecoration: "none", fontWeight: 700 }}>Use the full comparison tool</a>
+        </section>
       )}
-
-      <div style={{ marginTop: 32, fontSize: 13, color: "#94a3b8" }}>
-        <div style={{ marginBottom: 8 }}>Also compare:</div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-          <a href={`${siteUrl}/cost-to-own/${v1.slug}`} style={{ color: "#10b981", textDecoration: "none" }}>{v1.name} cost to own</a>
-          <span>·</span>
-          <a href={`${siteUrl}/cost-to-own/${v2.slug}`} style={{ color: "#10b981", textDecoration: "none" }}>{v2.name} cost to own</a>
-          <span>·</span>
-          <a href={`${siteUrl}/ev-charging-cost/${zip}`} style={{ color: "#10b981", textDecoration: "none" }}>Charging costs in ZIP {zip}</a>
-        </div>
-      </div>
-    </>
+    </div>
   );
 }
-

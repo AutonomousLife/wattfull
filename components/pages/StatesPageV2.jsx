@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useTheme } from "@/lib/ThemeContext";
 import { STATE_DATA } from "@/lib/data";
 import { AssumptionGrid, TrustStrip, VerdictPanel } from "@/components/ui";
+import { SaveStateButton } from "@/components/widgets";
 
 
 const TILE_GRID = [
@@ -243,6 +244,7 @@ export function StatesPageV2() {
           />
 
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <SaveStateButton stateCode={current.abbr} />
             <Link href={`/states/${current.abbr.toLowerCase()}`} style={{ textDecoration: "none", padding: "10px 14px", borderRadius: 10, background: t.green, color: "#fff", fontSize: 13, fontWeight: 700 }}>Open state detail</Link>
             <Link href="/solar" style={{ textDecoration: "none", padding: "10px 14px", borderRadius: 10, border: `1px solid ${t.borderLight}`, background: t.card, color: t.text, fontSize: 13, fontWeight: 700 }}>Check solar ROI</Link>
             <Link href="/methodology" style={{ textDecoration: "none", padding: "10px 14px", borderRadius: 10, border: `1px solid ${t.borderLight}`, background: t.white, color: t.text, fontSize: 13, fontWeight: 700 }}>How scoring works</Link>
@@ -257,6 +259,7 @@ export function StatesPageV2() {
             <div style={{ fontSize: 12, color: t.textLight, marginTop: 4 }}>Useful when you want to compare utility friendliness, incentives, and expected EV operating pressure.</div>
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <SaveStateButton stateCode={current.abbr} />
             {[0, 1].map((index) => (
               <select
                 key={index}
@@ -300,6 +303,7 @@ export function StatesPageV2() {
     </div>
   );
 }
+
 
 
 

@@ -1,4 +1,4 @@
-﻿import { ChargingPage } from "@/components/pages";
+import { ChargingPage } from "@/components/pages/ChargingPage";
 
 export const metadata = {
   title: "Home Charging Economics - Wattfull",

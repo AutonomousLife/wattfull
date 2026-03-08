@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { EVCalcPage } from "@/components/pages";
+import { EVCalcPage } from "@/components/pages/EVCalcPage";
 
 export const metadata = {
   title: "EV Savings Calculator — Wattfull",

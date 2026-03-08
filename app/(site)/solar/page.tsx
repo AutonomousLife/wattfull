@@ -1,4 +1,4 @@
-import { SolarCalcPage } from "@/components/pages";
+import { SolarCalcPage } from "@/components/pages/SolarCalcPage";
 
 export const metadata = {
   title: "Solar ROI Calculator - Wattfull",

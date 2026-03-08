@@ -1,4 +1,4 @@
-﻿import { DashboardPage } from "@/components/pages";
+import { DashboardPage } from "@/components/pages/DashboardPage";
 
 export const metadata = {
   title: "Energy Profile Dashboard - Wattfull",

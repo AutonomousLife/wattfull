@@ -1,4 +1,4 @@
-﻿import { StatesPage } from "@/components/pages";
+import { StatesPageV2 as StatesPage } from "@/components/pages/StatesPageV2";
 
 export const metadata = {
   title: "State Energy Report Cards - Wattfull",

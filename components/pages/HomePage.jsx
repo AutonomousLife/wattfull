@@ -1,8 +1,9 @@
-﻿"use client";
+"use client";
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/lib/ThemeContext";
-import { AnimCount, FadeIn, PhaseRoadmap, Reveal } from "@/components/ui";
+import { AnimCount, FadeIn, Reveal } from "@/components/ui";
 import { Icon } from "@/components/ui/Icon";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GlassButton } from "@/components/ui/GlassButton";
@@ -10,7 +11,7 @@ import { ToolTile } from "@/components/ui/ToolTile";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { StatPill } from "@/components/ui/StatPill";
 import { STATE_DATA, zipToState } from "@/lib/data";
-import { EnergyProfileV2 as EnergyProfile } from "@/components/widgets/EnergyProfileV2";
+const EnergyProfile = dynamic(() => import("@/components/widgets/EnergyProfileV2").then((mod) => mod.EnergyProfileV2), { ssr: false, loading: () => null });
 
 const TOOLS = [
   {

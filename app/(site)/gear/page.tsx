@@ -1,4 +1,4 @@
-import { MarketplacePage } from "@/components/pages";
+import { MarketplacePage } from "@/components/pages/MarketplacePage";
 
 export const metadata = {
   title: "Gear Reviews - Wattfull",

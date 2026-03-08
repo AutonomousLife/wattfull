@@ -1,4 +1,4 @@
-﻿import { BatteryPage } from "@/components/pages";
+import { BatteryPage } from "@/components/pages/BatteryPage";
 
 export const metadata = {
   title: "Battery Economics Preview - Wattfull",

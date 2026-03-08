@@ -1,4 +1,4 @@
-import { WhatCanIRunPage } from "@/components/pages";
+import { WhatCanIRunPage } from "@/components/pages/WhatCanIRunPage";
 
 export const metadata = {
   title: "What Can I Run? — Wattfull",

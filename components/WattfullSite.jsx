@@ -2,7 +2,16 @@
 import { useState, useCallback } from "react";
 import { ThemeProvider, useTheme } from "@/lib/ThemeContext";
 import { NAV } from "@/lib/data";
-import { HomePage, EVCalcPage, SolarCalcPage, MarketplacePage, ComparePage, WhatCanIRunPage, CarbonPage, StatesPage, ReferralPage, MethodologyPage } from "@/components/pages";
+import { HomePage } from "@/components/pages/HomePage";
+import { EVCalcPage } from "@/components/pages/EVCalcPage";
+import { SolarCalcPage } from "@/components/pages/SolarCalcPage";
+import { MarketplacePage } from "@/components/pages/MarketplacePage";
+import { ComparePage } from "@/components/pages/ComparePage";
+import { WhatCanIRunPage } from "@/components/pages/WhatCanIRunPage";
+import { CarbonPage } from "@/components/pages/CarbonPage";
+import { StatesPageV2 as StatesPage } from "@/components/pages/StatesPageV2";
+import { ReferralPage } from "@/components/pages/ReferralPage";
+import { MethodologyPageV2 as MethodologyPage } from "@/components/pages/MethodologyPageV2";
 import { ChatWidget } from "@/components/widgets";
 
 function AppShell() {

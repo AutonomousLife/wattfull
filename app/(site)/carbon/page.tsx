@@ -1,4 +1,4 @@
-import { CarbonPage } from "@/components/pages";
+import { CarbonPage } from "@/components/pages/CarbonPage";
 
 export const metadata = {
   title: "Carbon Impact Calculator — Wattfull",

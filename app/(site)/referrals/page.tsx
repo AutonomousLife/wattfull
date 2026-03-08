@@ -1,4 +1,4 @@
-import { ReferralPage } from "@/components/pages";
+import { ReferralPage } from "@/components/pages/ReferralPage";
 
 export const metadata = {
   title: "Referral Links — Wattfull",

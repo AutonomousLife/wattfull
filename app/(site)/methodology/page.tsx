@@ -1,4 +1,4 @@
-﻿import { MethodologyPage } from "@/components/pages";
+import { MethodologyPageV2 as MethodologyPage } from "@/components/pages/MethodologyPageV2";
 
 export const metadata = {
   title: "Methodology - Wattfull",

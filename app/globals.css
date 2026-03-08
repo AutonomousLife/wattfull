@@ -1,13 +1,13 @@
 @import "tailwindcss";
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   WATTFULL DESIGN SYSTEM — CSS Custom Properties
-   ═══════════════════════════════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   WATTFULL DESIGN SYSTEM â€” CSS Custom Properties
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 :root {
   /* Surface */
-  --background: #FAFAF8;
-  --foreground: #1E1E1E;
+  --background: #F3F1EC;
+  --foreground: #171717;
 
   /* Radius scale */
   --r-sm:  8px;
@@ -16,7 +16,7 @@
   --r-xl:  28px;
   --r-2xl: 40px;
 
-  /* Shadow scale — subtle, premium */
+  /* Shadow scale â€” subtle, premium */
   --sh-xs: 0 1px 2px rgba(0,0,0,.04);
   --sh-sm: 0 1px 3px rgba(0,0,0,.05), 0 1px 2px rgba(0,0,0,.04);
   --sh-md: 0 4px 16px rgba(0,0,0,.07), 0 1px 4px rgba(0,0,0,.04);
@@ -57,16 +57,19 @@
   --font-mono: var(--font-geist-mono);
 }
 
-/* ─── Base ───────────────────────────────────────────────────────────────── */
+/* â”€â”€â”€ Base â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  font-size: 17px;
+  line-height: 1.55;
+  text-rendering: optimizeLegibility;
   transition: background 0.3s ease, color 0.3s ease;
   -webkit-tap-highlight-color: transparent; /* kills the blue mobile flash */
 }
 
-/* ─── Global button press feel ───────────────────────────────────────────── */
+/* â”€â”€â”€ Global button press feel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 /*
   Any button / role=button that doesn't already have a custom active state
   gets a subtle scale-down + dim so it feels physically pressed.
@@ -82,8 +85,8 @@ button:active:not(:disabled):not(.wf-lift),
   transition: transform 80ms ease, opacity 80ms ease;
 }
 
-/* ─── Signature contour-map motif ────────────────────────────────────────── */
-/* Concentric ring pattern at ~4% opacity — used behind hero + section bands */
+/* â”€â”€â”€ Signature contour-map motif â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* Concentric ring pattern at ~4% opacity â€” used behind hero + section bands */
 .wf-motif {
   background-image: repeating-radial-gradient(
     circle at 62% 38%,
@@ -103,7 +106,7 @@ button:active:not(:disabled):not(.wf-lift),
   );
 }
 
-/* ─── Glass surfaces ─────────────────────────────────────────────────────── */
+/* â”€â”€â”€ Glass surfaces â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .wf-glass {
   background: rgba(255,255,255,0.72);
   backdrop-filter: blur(22px) saturate(180%);
@@ -117,7 +120,7 @@ button:active:not(:disabled):not(.wf-lift),
   box-shadow: var(--sh-md), inset 0 1px 0 rgba(255,255,255,0.06);
 }
 
-/* ─── Cursor-follow sheen effect ─────────────────────────────────────────── */
+/* â”€â”€â”€ Cursor-follow sheen effect â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 /*
    Apply .wf-sheen to elements that should have the specular highlight.
    JavaScript (useSheen hook) sets --mx / --my (hover position)
@@ -131,7 +134,7 @@ button:active:not(:disabled):not(.wf-lift),
   -webkit-transform: translateZ(0);
 }
 
-/* Hover sheen — radial gradient tracking pointer */
+/* Hover sheen â€” radial gradient tracking pointer */
 .wf-sheen::before {
   content: '';
   position: absolute;
@@ -174,7 +177,7 @@ button:active:not(:disabled):not(.wf-lift),
   100% { transform: scale(3.2); opacity: 0; }
 }
 
-/* ─── Skeleton shimmer ───────────────────────────────────────────────────── */
+/* â”€â”€â”€ Skeleton shimmer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .wf-skeleton {
   background: linear-gradient(
     90deg,
@@ -201,7 +204,7 @@ button:active:not(:disabled):not(.wf-lift),
   100% { background-position:   0% 50%; }
 }
 
-/* ─── Scroll reveal ──────────────────────────────────────────────────────── */
+/* â”€â”€â”€ Scroll reveal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .wf-reveal {
   opacity: 0;
   transform: translateY(16px);
@@ -223,7 +226,7 @@ button:active:not(:disabled):not(.wf-lift),
   opacity: 1;
 }
 
-/* ─── Toast animations ───────────────────────────────────────────────────── */
+/* â”€â”€â”€ Toast animations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 @keyframes wf-toast-in {
   from { opacity: 0; transform: translateY(10px) scale(0.96); }
   to   { opacity: 1; transform: translateY(0)    scale(1); }
@@ -235,7 +238,7 @@ button:active:not(:disabled):not(.wf-lift),
 .wf-toast-enter { animation: wf-toast-in  var(--dur-med) var(--ease) forwards; }
 .wf-toast-exit  { animation: wf-toast-out var(--dur-med) var(--ease) forwards; }
 
-/* ─── Lift on hover + press (micro-interaction) ──────────────────────────── */
+/* â”€â”€â”€ Lift on hover + press (micro-interaction) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .wf-lift {
   transition:
     transform  var(--dur-fast) var(--ease),
@@ -254,7 +257,7 @@ button:active:not(:disabled):not(.wf-lift),
   transition-duration: 80ms; /* snappier response on press */
 }
 
-/* ─── Reduced motion overrides ───────────────────────────────────────────── */
+/* â”€â”€â”€ Reduced motion overrides â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 @media (prefers-reduced-motion: reduce) {
   .wf-reveal,
   .wf-reveal-fade {
@@ -290,9 +293,9 @@ button:active:not(:disabled):not(.wf-lift),
   }
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    CUSTOM RANGE SLIDER
-   ═══════════════════════════════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .wf-slider {
   -webkit-appearance: none;
   appearance: none;
@@ -360,3 +363,4 @@ button:active:not(:disabled):not(.wf-lift),
 }
 [data-theme="dark"] .wf-slider::-moz-range-track { background: #2A2A30; }
 [data-theme="dark"] .wf-slider::-webkit-slider-thumb { border-color: #1E1E22; }
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect } from "react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -9,27 +9,28 @@ import { Input, Select, Slider, Toggle, Badge, ChartTip } from "@/components/ui"
 import { STATE_DATA, zipToState } from "@/lib/data";
 import { fmt } from "@/lib/helpers";
 import { ShareBadge } from "@/components/widgets/ShareBadge";
+import { STORAGE_KEYS, pushStoredHistory } from "@/lib/profileStore";
 
-// ── Verdict config ─────────────────────────────────────────────────────────
+// â”€â”€ Verdict config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const VERDICT_CFG = {
   favorable: {
-    label: "Favorable", icon: "✅",
+    label: "Favorable", icon: "âœ…",
     bg: "#d1fae5", border: "#10b981", titleColor: "#065f46", textColor: "#065f46",
     tagBg: "#10b981", tagText: "#fff",
   },
   neutral: {
-    label: "Moderate", icon: "⚖️",
+    label: "Moderate", icon: "âš–ï¸",
     bg: "#fef3c7", border: "#f59e0b", titleColor: "#92400e", textColor: "#92400e",
     tagBg: "#f59e0b", tagText: "#fff",
   },
   unfavorable: {
-    label: "Challenging", icon: "⚠️",
+    label: "Challenging", icon: "âš ï¸",
     bg: "#fee2e2", border: "#ef4444", titleColor: "#7f1d1d", textColor: "#7f1d1d",
     tagBg: "#ef4444", tagText: "#fff",
   },
 };
 
-// ── Data sources ────────────────────────────────────────────────────────────
+// â”€â”€ Data sources â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const SOURCES = [
   { label: "Solar Hours", src: "NREL National Solar Radiation Database", date: "2024" },
   { label: "Electricity Rates", src: "EIA Electric Power Monthly", date: "Feb 2025" },
@@ -65,6 +66,18 @@ export function SolarCalcPage() {
     }
   }, [zip]);
 
+  useEffect(() => {
+    if (!res) return;
+    pushStoredHistory(STORAGE_KEYS.solarHistory, {
+      zip,
+      state: st,
+      systemKw: res.sysKw,
+      payback: res.pb,
+      lifetime: res.lifetime,
+      annualSavings: res.annualSavings,
+    });
+  }, [res, zip, st]);
+
   const calc = () => {
     if (!/^\d{5}$/.test(zip) || !st || !sd) return;
     const d = sd;
@@ -98,21 +111,21 @@ export function SolarCalcPage() {
     const verdictType = !pb ? "unfavorable" : pb <= 8 ? "favorable" : pb <= 14 ? "neutral" : "unfavorable";
     const verdictReasons = [];
     if (!pb) verdictReasons.push("System does not reach payback within 25 years at current rates");
-    if (pb && pb <= 6) verdictReasons.push(`Exceptional ${pb}-year payback — well below the 8-year benchmark`);
-    if (pb && pb > 6 && pb <= 8) verdictReasons.push(`Strong ${pb}-year payback — within the favorable range`);
-    if (pb && pb > 8 && pb <= 12) verdictReasons.push(`Moderate ${pb}-year payback — still beats most investments`);
-    if (pb && pb > 12) verdictReasons.push(`${pb}-year payback is longer than average — reassess in 1–2 years`);
-    if (d.e >= 15) verdictReasons.push(`High electricity rate (${d.e}¢/kWh) accelerates savings`);
-    if (d.e < 10) verdictReasons.push(`Low electricity rate (${d.e}¢/kWh) reduces the financial case for solar`);
+    if (pb && pb <= 6) verdictReasons.push(`Exceptional ${pb}-year payback â€” well below the 8-year benchmark`);
+    if (pb && pb > 6 && pb <= 8) verdictReasons.push(`Strong ${pb}-year payback â€” within the favorable range`);
+    if (pb && pb > 8 && pb <= 12) verdictReasons.push(`Moderate ${pb}-year payback â€” still beats most investments`);
+    if (pb && pb > 12) verdictReasons.push(`${pb}-year payback is longer than average â€” reassess in 1â€“2 years`);
+    if (d.e >= 15) verdictReasons.push(`High electricity rate (${d.e}Â¢/kWh) accelerates savings`);
+    if (d.e < 10) verdictReasons.push(`Low electricity rate (${d.e}Â¢/kWh) reduces the financial case for solar`);
     if (d.s >= 5.5) verdictReasons.push(`Excellent solar resource (${d.s} sun-hrs/day) boosts output`);
     if (d.s < 4) verdictReasons.push(`Limited sun hours (${d.s}/day) reduces production potential`);
-    if (shade !== "none") verdictReasons.push(`${shade.charAt(0).toUpperCase() + shade.slice(1)} shading reduces output — trimming trees adds ~5–10% production`);
+    if (shade !== "none") verdictReasons.push(`${shade.charAt(0).toUpperCase() + shade.slice(1)} shading reduces output â€” trimming trees adds ~5â€“10% production`);
     if (fed) verdictReasons.push(`30% Federal ITC saves $${Math.round(sysCost * 0.3).toLocaleString()} upfront`);
     if (d.sc > 0 && stC) verdictReasons.push(`State incentive reduces cost by $${d.sc.toLocaleString()}`);
 
     // Sensitivity: electricity rate needed for 8yr payback
-    // net / (prod * rate_threshold) = 8 → rate_threshold = net / (prod * 8)
-    const rateForFav = Math.round((net / (prod * 8)) * 10000) / 100; // in ¢/kWh
+    // net / (prod * rate_threshold) = 8 â†’ rate_threshold = net / (prod * 8)
+    const rateForFav = Math.round((net / (prod * 8)) * 10000) / 100; // in Â¢/kWh
     const rateForOk = Math.round((net / (prod * 14)) * 10000) / 100; // for 14yr
 
     // Impact of removing shading
@@ -132,9 +145,9 @@ export function SolarCalcPage() {
     const monthsElecBills = Math.round(annualSavings / ((kwh * d.e) / 100));
     const co2Avoided25yr = Math.round((prod * 25 * 0.386) / 1000); // metric tons (0.386 kg CO2/kWh US avg)
     const treesEquiv = Math.round(co2Avoided25yr * 1000 / 21); // 21 kg CO2/tree/yr
-    const phonesCharged = Math.round(prod * 1000 / 12); // phone charge ≈ 0.012 kWh, per year
+    const phonesCharged = Math.round(prod * 1000 / 12); // phone charge â‰ˆ 0.012 kWh, per year
 
-    setRes({
+    const next = {
       sysKw,
       sysCost: Math.round(sysCost),
       net: Math.round(net),
@@ -176,7 +189,8 @@ export function SolarCalcPage() {
         panelDeg: "0.5%/yr",
         systemEff: "82% (inverter + wiring losses)",
       },
-    });
+    };
+    setRes(next);
   };
 
   return (
@@ -187,29 +201,29 @@ export function SolarCalcPage() {
       </p>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(320px,1fr))", gap: 28, marginTop: 28 }}>
-        {/* ── Input Panel ───────────────────────────────────────────────────── */}
+        {/* â”€â”€ Input Panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <div style={{ background: t.white, border: `1px solid ${t.borderLight}`, borderRadius: 14, padding: 22 }}>
           <Input label="ZIP Code" value={zip} onChange={setZip} />
           {st && sd && (
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 14 }}>
               <Badge type="real">{st}</Badge>
               <Badge type="estimated">{sd.s} sun-hrs</Badge>
-              <Badge type="estimated">{sd.e}¢/kWh</Badge>
+              <Badge type="estimated">{sd.e}Â¢/kWh</Badge>
             </div>
           )}
           <Slider label="Monthly kWh" value={kwh} onChange={setKwh} min={200} max={3000} step={50} suffix=" kWh" />
           <Slider label="Usable Roof" value={roof} onChange={setRoof} min={100} max={1500} step={25} suffix=" sqft" />
           <Select label="Shading" value={shade} onChange={setShade} options={[
             { value: "none", label: "None" },
-            { value: "light", label: "Light (−10%)" },
-            { value: "moderate", label: "Moderate (−25%)" },
-            { value: "heavy", label: "Heavy (−45%)" },
+            { value: "light", label: "Light (âˆ’10%)" },
+            { value: "moderate", label: "Moderate (âˆ’25%)" },
+            { value: "heavy", label: "Heavy (âˆ’45%)" },
           ]} />
           <Select label="Orientation" value={orient} onChange={setOrient} options={[
             { value: "south", label: "South (optimal)" },
-            { value: "sw_se", label: "SW/SE (−8%)" },
-            { value: "ew", label: "E/W (−18%)" },
-            { value: "north", label: "North (−35%)" },
+            { value: "sw_se", label: "SW/SE (âˆ’8%)" },
+            { value: "ew", label: "E/W (âˆ’18%)" },
+            { value: "north", label: "North (âˆ’35%)" },
           ]} />
           <Slider label="Cost per Watt" value={cpw} onChange={setCpw} min={1.5} max={4.5} step={0.05} suffix="$/W" />
           <Toggle label="30% Federal ITC" value={fed} onChange={setFed} />
@@ -220,11 +234,11 @@ export function SolarCalcPage() {
           </button>
         </div>
 
-        {/* ── Results Panel ─────────────────────────────────────────────────── */}
+        {/* â”€â”€ Results Panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <div>
           {!res ? (
             <div style={{ background: t.card, border: `1px solid ${t.borderLight}`, borderRadius: 14, padding: 40, textAlign: "center" }}>
-              <div style={{ fontSize: 48, marginBottom: 12 }}>☀️</div>
+              <div style={{ fontSize: 48, marginBottom: 12 }}>â˜€ï¸</div>
               <h3 style={{ fontSize: 18, fontWeight: 700, color: t.text }}>Enter your details and calculate</h3>
               <p style={{ fontSize: 13, color: t.textLight, marginTop: 8, lineHeight: 1.6 }}>
                 Wattfull will estimate system size, costs, payback period, and 25-year savings based on real data for your location.
@@ -233,10 +247,10 @@ export function SolarCalcPage() {
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
 
-              {/* ── 1. Result Summary ─────────────────────────────────────── */}
+              {/* â”€â”€ 1. Result Summary â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
               <div style={{ background: t.green, borderRadius: 14, padding: 22, color: "#fff" }}>
                 <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.7, textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 12 }}>
-                  System Summary · {zip} ({res.assumptions.state})
+                  System Summary Â· {zip} ({res.assumptions.state})
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
                   <div>
@@ -269,7 +283,7 @@ export function SolarCalcPage() {
                 </div>
               </div>
 
-              {/* ── 2. Wattfull Verdict ───────────────────────────────────── */}
+              {/* â”€â”€ 2. Wattfull Verdict â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
               {(() => {
                 const v = VERDICT_CFG[res.verdictType];
                 return (
@@ -292,7 +306,7 @@ export function SolarCalcPage() {
                       {[
                         { label: "Annual Savings", val: `$${res.annualSavings.toLocaleString()}` },
                         { label: "25-Yr Return", val: `$${res.lifetime.toLocaleString()}` },
-                        { label: "ROI", val: res.net > 0 ? `${Math.round((res.lifetime / res.net) * 100)}%` : "—" },
+                        { label: "ROI", val: res.net > 0 ? `${Math.round((res.lifetime / res.net) * 100)}%` : "â€”" },
                       ].map(m => (
                         <div key={m.label} style={{ background: "rgba(255,255,255,0.5)", borderRadius: 8, padding: "8px 14px", flex: 1, minWidth: 90, textAlign: "center" }}>
                           <div style={{ fontSize: 10, color: v.titleColor, fontWeight: 600 }}>{m.label}</div>
@@ -309,7 +323,7 @@ export function SolarCalcPage() {
                 );
               })()}
 
-              {/* ── 3. Payback Chart ─────────────────────────────────────── */}
+              {/* â”€â”€ 3. Payback Chart â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
               <div style={{ background: t.white, border: `1px solid ${t.borderLight}`, borderRadius: 14, padding: 18 }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: t.text, marginBottom: 4 }}>Cumulative Savings vs. Net Cost</div>
                 <div style={{ fontSize: 12, color: t.textLight, marginBottom: 14 }}>
@@ -355,10 +369,10 @@ export function SolarCalcPage() {
                 </div>
               </div>
 
-              {/* ── 4. What Would Change This Result ─────────────────────── */}
+              {/* â”€â”€ 4. What Would Change This Result â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
               <div style={{ background: t.white, border: `1px solid ${t.borderLight}`, borderRadius: 14, padding: 18 }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: t.text, marginBottom: 14 }}>
-                  💡 What Would Change This Result
+                  ðŸ’¡ What Would Change This Result
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
 
@@ -368,19 +382,19 @@ export function SolarCalcPage() {
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                       <div>
                         <div style={{ fontSize: 10, color: t.textLight, fontWeight: 600, textTransform: "uppercase" }}>Your Rate</div>
-                        <div style={{ fontSize: 16, fontWeight: 800, color: t.text }}>{res.assumptions.elecRate}¢/kWh</div>
+                        <div style={{ fontSize: 16, fontWeight: 800, color: t.text }}>{res.assumptions.elecRate}Â¢/kWh</div>
                       </div>
                       <div>
                         <div style={{ fontSize: 10, color: t.textLight, fontWeight: 600, textTransform: "uppercase" }}>Rate for 8-yr Payback</div>
                         <div style={{ fontSize: 16, fontWeight: 800, color: res.assumptions.elecRate >= res.rateForFav ? "#10b981" : "#ef4444" }}>
-                          {res.rateForFav}¢/kWh
+                          {res.rateForFav}Â¢/kWh
                         </div>
                       </div>
                     </div>
                     <div style={{ fontSize: 12, color: t.textMid, marginTop: 8, lineHeight: 1.5 }}>
                       {res.assumptions.elecRate >= res.rateForFav
-                        ? `✅ Your rate (${res.assumptions.elecRate}¢) already exceeds the ${res.rateForFav}¢ threshold for a favorable payback.`
-                        : `📈 If rates rise to ${res.rateForFav}¢/kWh, payback drops to 8 years. US rates have risen ~3%/year historically.`
+                        ? `âœ… Your rate (${res.assumptions.elecRate}Â¢) already exceeds the ${res.rateForFav}Â¢ threshold for a favorable payback.`
+                        : `ðŸ“ˆ If rates rise to ${res.rateForFav}Â¢/kWh, payback drops to 8 years. US rates have risen ~3%/year historically.`
                       }
                     </div>
                   </div>
@@ -400,8 +414,8 @@ export function SolarCalcPage() {
                         </div>
                       </div>
                       <div style={{ fontSize: 12, color: t.textMid, marginTop: 8, lineHeight: 1.5 }}>
-                        🌳 Removing shading obstacles could shorten your payback by {res.pb - res.pbNoShade} year{res.pb - res.pbNoShade !== 1 ? "s" : ""}.
-                        Tree trimming costs $300–$1,500 and typically pays for itself quickly.
+                        ðŸŒ³ Removing shading obstacles could shorten your payback by {res.pb - res.pbNoShade} year{res.pb - res.pbNoShade !== 1 ? "s" : ""}.
+                        Tree trimming costs $300â€“$1,500 and typically pays for itself quickly.
                       </div>
                     </div>
                   )}
@@ -446,17 +460,17 @@ export function SolarCalcPage() {
                 </div>
               </div>
 
-              {/* ── 5. Energy Equivalencies ──────────────────────────────── */}
+              {/* â”€â”€ 5. Energy Equivalencies â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
               <div style={{ background: t.white, border: `1px solid ${t.borderLight}`, borderRadius: 14, padding: 18 }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: t.text, marginBottom: 14 }}>
-                  🌍 25-Year Environmental Impact
+                  ðŸŒ 25-Year Environmental Impact
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                   {[
-                    { icon: "⚡", label: "Annual Bill Savings", val: `~${res.monthsElecBills} months of electricity`, color: "#059669", bg: "#d1fae5" },
-                    { icon: "🌡️", label: "CO₂ Avoided", val: `${res.co2Avoided25yr} metric tons`, color: "#0284c7", bg: "#e0f2fe" },
-                    { icon: "🌳", label: "Tree Equivalent", val: `${res.treesEquiv.toLocaleString()} trees planted`, color: "#16a34a", bg: "#dcfce7" },
-                    { icon: "📱", label: "Phone Charges", val: `${(res.phonesCharged).toLocaleString()} charges/yr`, color: "#7c3aed", bg: "#ede9fe" },
+                    { icon: "âš¡", label: "Annual Bill Savings", val: `~${res.monthsElecBills} months of electricity`, color: "#059669", bg: "#d1fae5" },
+                    { icon: "ðŸŒ¡ï¸", label: "COâ‚‚ Avoided", val: `${res.co2Avoided25yr} metric tons`, color: "#0284c7", bg: "#e0f2fe" },
+                    { icon: "ðŸŒ³", label: "Tree Equivalent", val: `${res.treesEquiv.toLocaleString()} trees planted`, color: "#16a34a", bg: "#dcfce7" },
+                    { icon: "ðŸ“±", label: "Phone Charges", val: `${(res.phonesCharged).toLocaleString()} charges/yr`, color: "#7c3aed", bg: "#ede9fe" },
                   ].map(e => (
                     <div key={e.label} style={{ background: e.bg, borderRadius: 10, padding: "12px 14px" }}>
                       <div style={{ fontSize: 20, marginBottom: 4 }}>{e.icon}</div>
@@ -466,12 +480,12 @@ export function SolarCalcPage() {
                   ))}
                 </div>
                 <div style={{ fontSize: 11, color: t.textLight, marginTop: 10, lineHeight: 1.5 }}>
-                  CO₂ calculation uses US average grid emission factor of 0.386 kg/kWh (EPA eGRID 2023).
+                  COâ‚‚ calculation uses US average grid emission factor of 0.386 kg/kWh (EPA eGRID 2023).
                   Environmental impact varies by local grid mix.
                 </div>
               </div>
 
-              {/* ── 6. Assumptions Panel ─────────────────────────────────── */}
+              {/* â”€â”€ 6. Assumptions Panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
               <div style={{ background: t.white, border: `1px solid ${t.borderLight}`, borderRadius: 14, overflow: "hidden" }}>
                 <button
                   onClick={() => setShowAssumptions(o => !o)}
@@ -481,16 +495,16 @@ export function SolarCalcPage() {
                     background: "none", border: "none", cursor: "pointer", textAlign: "left",
                   }}
                 >
-                  <div style={{ fontSize: 13, fontWeight: 700, color: t.text }}>📋 Calculation Assumptions</div>
-                  <span style={{ fontSize: 12, color: t.textLight }}>{showAssumptions ? "▲ Hide" : "▼ Show"}</span>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: t.text }}>ðŸ“‹ Calculation Assumptions</div>
+                  <span style={{ fontSize: 12, color: t.textLight }}>{showAssumptions ? "â–² Hide" : "â–¼ Show"}</span>
                 </button>
                 {showAssumptions && (
                   <div style={{ padding: "0 18px 18px" }}>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                       {[
-                        { label: "Location", val: `${zip} → ${res.assumptions.state}` },
+                        { label: "Location", val: `${zip} â†’ ${res.assumptions.state}` },
                         { label: "Sun Hours/Day", val: `${res.assumptions.sunHrs} hrs (NREL)` },
-                        { label: "Electricity Rate", val: `${res.assumptions.elecRate}¢/kWh (EIA)` },
+                        { label: "Electricity Rate", val: `${res.assumptions.elecRate}Â¢/kWh (EIA)` },
                         { label: "System Cost", val: `$${res.assumptions.cpw.toFixed(2)}/W installed` },
                         { label: "Shading Factor", val: `${res.assumptions.shadeFactor}% (${res.assumptions.shadeLabel})` },
                         { label: "Orientation Factor", val: `${res.assumptions.orientFactor}% (${res.assumptions.orientLabel})` },
@@ -508,18 +522,18 @@ export function SolarCalcPage() {
                       ))}
                     </div>
                     <p style={{ fontSize: 11, color: t.textLight, lineHeight: 1.6, marginTop: 12 }}>
-                      Results are estimates. Actual output varies ±15% based on microclimate, panel tilt, inverter efficiency,
+                      Results are estimates. Actual output varies Â±15% based on microclimate, panel tilt, inverter efficiency,
                       and local utility net metering rules. Get 3+ installer quotes to validate system sizing.
                     </p>
                   </div>
                 )}
               </div>
 
-              {/* ── 7. Share Badge ───────────────────────────────────────── */}
+              {/* â”€â”€ 7. Share Badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
               <ShareBadge
                 title="Solar ROI Results"
                 value={`$${res.lifetime.toLocaleString()}`}
-                subtitle={`${res.sysKw} kW system — ~${res.pb || "25+"} year payback`}
+                subtitle={`${res.sysKw} kW system â€” ~${res.pb || "25+"} year payback`}
                 details={[
                   { label: "System cost", value: `$${res.sysCost.toLocaleString()}` },
                   { label: "Net cost", value: `$${res.net.toLocaleString()}` },
@@ -527,7 +541,7 @@ export function SolarCalcPage() {
                 ]}
               />
 
-              {/* ── 8. Data Sources Strip ────────────────────────────────── */}
+              {/* â”€â”€ 8. Data Sources Strip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
               <div style={{ background: t.card, border: `1px solid ${t.borderLight}`, borderRadius: 12, padding: "12px 16px" }}>
                 <div style={{ fontSize: 10, fontWeight: 700, color: t.textLight, textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 8 }}>
                   Data Sources
@@ -537,7 +551,7 @@ export function SolarCalcPage() {
                     <div key={s.label} style={{ background: t.white, border: `1px solid ${t.borderLight}`, borderRadius: 6, padding: "4px 10px" }}>
                       <span style={{ fontSize: 10, fontWeight: 700, color: t.text }}>{s.label}: </span>
                       <span style={{ fontSize: 10, color: t.textMid }}>{s.src}</span>
-                      <span style={{ fontSize: 10, color: t.textLight }}> · {s.date}</span>
+                      <span style={{ fontSize: 10, color: t.textLight }}> Â· {s.date}</span>
                     </div>
                   ))}
                 </div>
@@ -550,3 +564,9 @@ export function SolarCalcPage() {
     </div>
   );
 }
+
+
+
+
+
+

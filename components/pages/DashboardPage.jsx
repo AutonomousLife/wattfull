@@ -55,16 +55,38 @@ export function DashboardPage() {
   const [evCalc, setEvCalc] = useState(null);
   const [savedGear, setSavedGear] = useState([]);
   const [savedStates, setSavedStates] = useState([]);
+  const [evHistory, setEvHistory] = useState([]);
+  const [solarHistory, setSolarHistory] = useState([]);
+  const [compareHistory, setCompareHistory] = useState([]);
   const [batteryHistory, setBatteryHistory] = useState([]);
   const [chargingHistory, setChargingHistory] = useState([]);
+  const [dataStatus, setDataStatus] = useState([]);
 
   useEffect(() => {
     setProfile(getStoredJson(STORAGE_KEYS.profile, null));
     setEvCalc(getStoredJson(STORAGE_KEYS.evCalc, null));
     setSavedGear(getStoredJson(STORAGE_KEYS.savedGear, []));
     setSavedStates(getStoredJson(STORAGE_KEYS.savedStates, []));
+    setEvHistory(getStoredJson(STORAGE_KEYS.evHistory, []));
+    setSolarHistory(getStoredJson(STORAGE_KEYS.solarHistory, []));
+    setCompareHistory(getStoredJson(STORAGE_KEYS.compareHistory, []));
     setBatteryHistory(getStoredJson(STORAGE_KEYS.batteryHistory, []));
     setChargingHistory(getStoredJson(STORAGE_KEYS.chargingHistory, []));
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/data-status")
+      .then((res) => res.json())
+      .then((data) => {
+        if (!cancelled) setDataStatus(Array.isArray(data?.datasets) ? data.datasets : []);
+      })
+      .catch(() => {
+        if (!cancelled) setDataStatus([]);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const state = useMemo(() => resolveStateFromZip(profile?.zip), [profile?.zip]);
@@ -78,6 +100,16 @@ export function DashboardPage() {
   const solarPotential = stateData ? Math.round(1200 * Math.min(1.2, stateData.s / 5)) : null;
   const batterySignal = batteryHistory[0]?.paybackYears ? `${batteryHistory[0].paybackYears} yr payback` : stateData ? (stateData.nm === "full" ? "Situational" : "Moderate") : "Estimated";
   const confidence = state ? "Medium confidence" : "Low confidence";
+  const freshnessNote = dataStatus.length
+    ? `${dataStatus.filter((item) => item?.lastSuccessAt).length} tracked datasets reporting`
+    : "No live freshness feed detected";
+  const alerts = [
+    savedStates.length ? `Watching ${savedStates.length} state${savedStates.length === 1 ? "" : "s"} for follow-up.` : null,
+    savedGear.length ? `${savedGear.length} saved gear item${savedGear.length === 1 ? "" : "s"} ready for review.` : null,
+    compareHistory[0] ? `Recent comparison: ${compareHistory[0].title}.` : null,
+    evHistory[0] ? `Recent EV result: ${evHistory[0].evName} vs ${evHistory[0].iceName}.` : null,
+    solarHistory[0] ? `Recent solar screen: ${solarHistory[0].state || solarHistory[0].zip || "profile"} context saved.` : null,
+  ].filter(Boolean);
 
   const reasons = [
     state ? `${state} context is loaded, so rates and policy assumptions are more grounded.` : "No ZIP is saved yet, so this uses broad benchmark assumptions.",
@@ -89,7 +121,7 @@ export function DashboardPage() {
     <div>
       <h1 style={{ fontSize: "clamp(24px,4vw,36px)", fontWeight: 800, color: t.text }}>Energy Profile Dashboard</h1>
       <p style={{ fontSize: 16, color: t.textMid, lineHeight: 1.65, maxWidth: 760, marginTop: 8 }}>
-        A lightweight command center for your stored assumptions, saved watchlists, and the next decisions Wattfull thinks are worth your time.
+        A lightweight command center for your stored assumptions, saved watchlists, recent decisions, and the next moves Wattfull thinks are worth your time.
       </p>
 
       <div style={{ marginTop: 18, marginBottom: 20 }}>
@@ -99,6 +131,7 @@ export function DashboardPage() {
             { label: "Location context", value: state ? `${state} estimated` : "No ZIP saved", note: "ZIP improves rates, incentives, and climate context.", tone: state ? "positive" : "low" },
             { label: "Recent EV state", value: evCalc ? "Saved locally" : "No recent EV run", note: "Used to prefill dashboard and next steps.", tone: evCalc ? "neutral" : "low" },
             { label: "Watchlists", value: `${savedStates.length} states | ${savedGear.length} gear`, note: "Saved locally until account-based profiles exist.", tone: savedStates.length || savedGear.length ? "positive" : "neutral" },
+            { label: "Freshness pulse", value: freshnessNote, note: "Powered by the admin data-status layer when available.", tone: dataStatus.length ? "positive" : "low" },
           ]}
         />
       </div>
@@ -195,6 +228,27 @@ export function DashboardPage() {
               t={t}
             />
             <HistoryCard
+              title="Recent EV verdicts"
+              items={evHistory.slice(0, 2)}
+              empty="No EV verdicts saved yet."
+              formatter={(item) => `${item.evName} vs ${item.iceName} | ${item.annualSavings >= 0 ? "+" : "-"}$${Math.abs(item.annualSavings || 0).toLocaleString()}/yr | ${item.breakEven ? `${item.breakEven} yr break-even` : "no break-even"}`}
+              t={t}
+            />
+            <HistoryCard
+              title="Recent solar screens"
+              items={solarHistory.slice(0, 2)}
+              empty="No solar screens saved yet."
+              formatter={(item) => `${item.state || item.zip || "Profile"} | ${item.payback ? `${item.payback} yr payback` : "25+ yr payback"} | $${Math.abs(item.lifetime || 0).toLocaleString()} lifetime value`}
+              t={t}
+            />
+            <HistoryCard
+              title="Recent comparisons"
+              items={compareHistory.slice(0, 2)}
+              empty="No compare sessions saved yet."
+              formatter={(item) => `${item.title} | ${item.summary}`}
+              t={t}
+            />
+            <HistoryCard
               title="Recent charging screens"
               items={chargingHistory.slice(0, 2)}
               empty="No charging scenarios saved yet."
@@ -235,10 +289,21 @@ export function DashboardPage() {
         </section>
 
         <section style={cardStyle(t)}>
+          <div style={{ fontSize: 15, fontWeight: 800, color: t.text, marginBottom: 10 }}>Alerts and watch updates</div>
+          <div style={{ display: "grid", gap: 10, marginBottom: 16 }}>
+            {alerts.length ? alerts.map((alert, index) => (
+              <div key={index} style={{ background: t.card, borderRadius: 12, padding: "12px 14px", fontSize: 12, color: t.textMid, lineHeight: 1.6 }}>
+                {alert}
+              </div>
+            )) : (
+              <div style={{ background: t.card, borderRadius: 12, padding: "12px 14px", fontSize: 12, color: t.textLight }}>
+                Save states, gear, or tool runs to start building a live follow-up loop.
+              </div>
+            )}
+          </div>
           <PhaseRoadmap title="Wattfull build phases" />
         </section>
       </div>
     </div>
   );
 }
-

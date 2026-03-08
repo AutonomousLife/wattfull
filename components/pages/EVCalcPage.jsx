@@ -11,6 +11,7 @@ import { fmt } from "@/lib/helpers";
 import { ShareBadge } from "@/components/widgets/ShareBadge";
 import { runCalc } from "@/app/actions/calc";
 import DataFreshness from "@/components/ui/DataFreshness";
+import { STORAGE_KEYS, pushStoredHistory } from "@/lib/profileStore";
 
 const LS_KEY = "wattfull_ev_calc_v2";
 
@@ -465,7 +466,21 @@ function EVCalcInner() {
 
     calcCacheRef.current.set(cacheKey, result);
     setServerRates(result?.ratesUsed ?? null);
-    if (updateResults) setRes(mapCalcResult(result));
+    if (updateResults) {
+      const mapped = mapCalcResult(result);
+      setRes(mapped);
+      if (ev && ice) {
+        pushStoredHistory(STORAGE_KEYS.evHistory, {
+          zip,
+          state: st,
+          evName: ev.name,
+          iceName: ice.name,
+          annualSavings: mapped.annualSavings,
+          breakEven: mapped.be,
+          fiveYearSavings: mapped.fiveYearSavings,
+        });
+      }
+    }
   };
 
   const calc = () => {
@@ -757,4 +772,6 @@ export function EVCalcPage() {
     </Suspense>
   );
 }
+
+
 

@@ -1,16 +1,17 @@
-"use client";
+﻿"use client";
 import { useState, useEffect } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, AreaChart, Area, ReferenceLine, Legend,
 } from "recharts";
 import { useTheme } from "@/lib/ThemeContext";
-import { Slider, Toggle, Collapsible, ChartTip } from "@/components/ui";
+import { Slider, Toggle, Collapsible, ChartTip, TrustStrip } from "@/components/ui";
 import { VehicleSearch } from "@/components/ui/VehicleSearch";
 import { VEHICLES, POPULAR_EV_IDS, POPULAR_ICE_IDS, POWER_STATIONS } from "@/lib/data";
 import { fmt } from "@/lib/helpers";
+import { STORAGE_KEYS, getStoredJson, pushStoredHistory } from "@/lib/profileStore";
 
-// ── Scoring data (used for EV vs EV / Gas vs Gas weighted scorecard) ──────
+// â”€â”€ Scoring data (used for EV vs EV / Gas vs Gas weighted scorecard) â”€â”€â”€â”€â”€â”€
 const RELIABILITY = {
   model3rwd: 75, model3lr: 75, model3perf: 73, modelyrwd: 74, modely: 74, modelyperf: 72,
   models: 71, modelx: 70, ioniq5rwd: 80, ioniq5: 79, ioniq6rwd: 82, ioniq6awd: 81,
@@ -40,7 +41,7 @@ const VERDICT_CFG = {
   unfavorable: { color: "#ef4444", label: "EV Financially Unfavorable", icon: "⚠️" },
 };
 
-// ── Scorecard helpers (kept for EV vs EV / Gas vs Gas) ───────────────────
+// â”€â”€ Scorecard helpers (kept for EV vs EV / Gas vs Gas) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function computeMetrics(v, vtype) {
   const annualFuel = vtype === "ev"
     ? (v.kwh / 100) * AVG.miles * (AVG.elec / 100)
@@ -173,14 +174,14 @@ function VehicleComparePanel({ v1, t1, v2, t2, t }) {
         : <div style={{ textAlign: "center", padding: "8px 16px", background: t.card, borderRadius: 10, fontSize: 14, fontWeight: 600, color: t.textMid, marginBottom: 4 }}>🤝 It's a tie</div>
       }
       <div style={{ fontSize: 11, color: t.textLight, textAlign: "center", marginBottom: 8 }}>
-        Scored using national avg rates: 16¢/kWh · $3.50/gal · 12,000 mi/yr · 5-yr horizon
+        Scored using national average rates: 16 cents/kWh | $3.50/gal | 12,000 mi/yr | 5-year horizon
       </div>
       <ScoreTable rows={rows} name1={v1.name} name2={v2.name} t={t} />
     </div>
   );
 }
 
-// ── Wikipedia article title map for each vehicle ID ───────────────────────
+// â”€â”€ Wikipedia article title map for each vehicle ID â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Titles must exactly match Wikipedia article names so pageimages API returns results.
 const WIKI_ARTICLES = {
   // Tesla
@@ -195,7 +196,7 @@ const WIKI_ARTICLES = {
   ev6rwd: "Kia EV6", ev6awd: "Kia EV6", ev6gt: "Kia EV6",
   ev9: "Kia EV9",
   // Chevy / Ford
-  bolt: "Chevrolet Bolt EV",           // ← was wrongly "Chevrolet Equinox EV"
+  bolt: "Chevrolet Bolt EV",           // â† was wrongly "Chevrolet Equinox EV"
   blazerev: "Chevrolet Blazer EV",
   mache: "Ford Mustang Mach-E", f150lightning: "Ford F-150 Lightning",
   // VW / BMW / Polestar
@@ -205,20 +206,20 @@ const WIKI_ARTICLES = {
   nisanariya: "Nissan Ariya", subarosolt: "Subaru Solterra",
   toyotabz4x: "Toyota bZ4X", hondaprologue: "Honda Prologue",
   cadillaclyriq: "Cadillac Lyriq", mercedeseqb: "Mercedes-Benz EQB",
-  // ICE — Toyota
+  // ICE â€” Toyota
   camry: "Toyota Camry", corolla: "Toyota Corolla",
   rav4: "Toyota RAV4", rav4hybrid: "Toyota RAV4 Hybrid",
   prius: "Toyota Prius", tacoma: "Toyota Tacoma", highlander: "Toyota Highlander",
-  // ICE — Honda
+  // ICE â€” Honda
   civic: "Honda Civic", crv: "Honda CR-V", accord: "Honda Accord",
-  // ICE — American trucks
+  // ICE â€” American trucks
   f150gas: "Ford F-150", silverado: "Chevrolet Silverado", gmcsierra: "GMC Sierra",
-  // ICE — Others
+  // ICE â€” Others
   altima: "Nissan Altima", cx5: "Mazda CX-5",
   tucson: "Hyundai Tucson", sorento: "Kia Sorento", bmw330i: "BMW 3 Series",
 };
 
-// Module-level cache — survives re-renders, cleared on page refresh
+// Module-level cache â€” survives re-renders, cleared on page refresh
 const _photoCache = {};
 
 // Fetch car photo via MediaWiki action API (more reliable than REST summary).
@@ -237,7 +238,7 @@ async function fetchWikiPhoto(title) {
   return page?.thumbnail?.source ?? null;
 }
 
-// ── VehiclePhoto — fetches real car photo from Wikipedia ──────────────────
+// â”€â”€ VehiclePhoto â€” fetches real car photo from Wikipedia â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function VehiclePhoto({ vehicleId, name, height = 140, flip = false, accentColor }) {
   const { t } = useTheme();
   const [src, setSrc]         = useState(_photoCache[vehicleId] ?? null);
@@ -320,7 +321,7 @@ function VehiclePhoto({ vehicleId, name, height = 140, flip = false, accentColor
   );
 }
 
-// ── Car Standoff Banner ───────────────────────────────────────────────────
+// â”€â”€ Car Standoff Banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function CarStandoff({ ev, ice, t }) {
   return (
     <div style={{
@@ -376,7 +377,7 @@ function CarStandoff({ ev, ice, t }) {
   );
 }
 
-// ── Section header helper ─────────────────────────────────────────────────
+// â”€â”€ Section header helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function SectionHdr({ num, title, t }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
@@ -390,16 +391,16 @@ function SectionHdr({ num, title, t }) {
   );
 }
 
-// ── Full EV vs Gas Financial Comparison ──────────────────────────────────
+// â”€â”€ Full EV vs Gas Financial Comparison â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function EVGasFullCompare({ ev, ice, mi, er, gp, driveStyle, incI, t }) {
   const dm = DRIVE_MULTS[driveStyle] || 1.0;
 
-  // ── Section 1: Purchase ──────────────────────────────────────────────────
+  // â”€â”€ Section 1: Purchase â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const evCredit = incI ? ev.fc : 0;
   const evEffective = ev.msrp - evCredit;
   const pricePremium = evEffective - ice.msrp;
 
-  // ── Section 2: Annual Operating ──────────────────────────────────────────
+  // â”€â”€ Section 2: Annual Operating â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const evFuelAnnual  = Math.round((ev.kwh / 100) * dm * mi * (er / 100));
   const iceFuelAnnual = Math.round((mi / ice.mpg) * gp);
   const evMaintAnnual  = 800;
@@ -410,16 +411,16 @@ function EVGasFullCompare({ ev, ice, mi, er, gp, driveStyle, incI, t }) {
   const iceAnnual = iceFuelAnnual + iceMaintAnnual + iceInsEst;
   const annualSavings = iceAnnual - evAnnual;
 
-  // ── Section 3: Cost per mile ─────────────────────────────────────────────
+  // â”€â”€ Section 3: Cost per mile â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const evCpm  = (evAnnual  / mi * 100).toFixed(1);  // cents
   const iceCpm = (iceAnnual / mi * 100).toFixed(1);
 
-  // ── Section 4: 5-Year TCO ────────────────────────────────────────────────
+  // â”€â”€ Section 4: 5-Year TCO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const ev5yr  = evEffective + evAnnual  * 5;
   const ice5yr = ice.msrp    + iceAnnual * 5;
   const tco5Diff = ice5yr - ev5yr;  // positive = EV saves
 
-  // ── Section 5: Payback ───────────────────────────────────────────────────
+  // â”€â”€ Section 5: Payback â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const breakevenYrs = annualSavings > 0 ? pricePremium / annualSavings : null;
   const horizonYrs   = 12;
   const cumulativeData = Array.from({ length: horizonYrs + 1 }, (_, y) => ({
@@ -428,13 +429,13 @@ function EVGasFullCompare({ ev, ice, mi, er, gp, driveStyle, incI, t }) {
     ice: Math.round(ice.msrp   + iceAnnual * y),
   }));
 
-  // ── Section 6: Verdict ───────────────────────────────────────────────────
+  // â”€â”€ Section 6: Verdict â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const verdictType = tco5Diff > 1500 ? "favorable" : tco5Diff < -1500 ? "unfavorable" : "neutral";
   const vc = VERDICT_CFG[verdictType];
 
   const reasons = [];
-  if (er < 14.5) reasons.push(`Low electricity (${er}¢/kWh vs ~16¢ US avg) — charging is cheap`);
-  else if (er > 18.5) reasons.push(`High electricity (${er}¢/kWh vs ~16¢ US avg) — reduces EV advantage`);
+  if (er < 14.5) reasons.push(`Low electricity (${er} cents/kWh vs ~16 cents US avg) â€” charging is cheap`);
+  else if (er > 18.5) reasons.push(`High electricity (${er} cents/kWh vs ~16 cents US avg) â€” reduces EV advantage`);
   if (mi > 15000) reasons.push(`High mileage (${mi.toLocaleString()} mi/yr) amplifies fuel savings`);
   if (gp > 3.75) reasons.push(`Above-average gas ($${gp}/gal) favors the EV`);
   if (evCredit > 0) reasons.push(`$${evCredit.toLocaleString()} federal credit reduces effective EV price`);
@@ -496,10 +497,10 @@ function EVGasFullCompare({ ev, ice, mi, er, gp, driveStyle, incI, t }) {
   return (
     <div style={{ marginTop: 20 }}>
 
-      {/* ── Car Standoff ── */}
+      {/* â”€â”€ Car Standoff â”€â”€ */}
       <CarStandoff ev={ev} ice={ice} t={t} />
 
-      {/* ── Section 1: Purchase Cost ── */}
+      {/* â”€â”€ Section 1: Purchase Cost â”€â”€ */}
       {panel(
         <>
           <SectionHdr num="1" title="Vehicle Purchase Cost" t={t} />
@@ -507,7 +508,7 @@ function EVGasFullCompare({ ev, ice, mi, er, gp, driveStyle, incI, t }) {
             <div>
               <div style={{ fontSize: 12, fontWeight: 600, color: "#10b981", marginBottom: 8 }}>⚡ {ev.name}</div>
               <div style={{ fontSize: 13, color: t.textMid }}>MSRP: <b style={{ color: t.text }}>${ev.msrp.toLocaleString()}</b></div>
-              {evCredit > 0 && <div style={{ fontSize: 13, color: "#10b981" }}>Fed. credit: <b>−${evCredit.toLocaleString()}</b></div>}
+              {evCredit > 0 && <div style={{ fontSize: 13, color: "#10b981" }}>Fed. credit: <b>âˆ’${evCredit.toLocaleString()}</b></div>}
               <div style={{ fontSize: 16, fontWeight: 800, color: t.text, marginTop: 6 }}>
                 Effective: ${evEffective.toLocaleString()}
               </div>
@@ -538,7 +539,7 @@ function EVGasFullCompare({ ev, ice, mi, er, gp, driveStyle, incI, t }) {
         </>
       )}
 
-      {/* ── Section 2: Annual Operating Costs ── */}
+      {/* â”€â”€ Section 2: Annual Operating Costs â”€â”€ */}
       {panel(
         <>
           <SectionHdr num="2" title="Annual Operating Cost" t={t} />
@@ -592,29 +593,29 @@ function EVGasFullCompare({ ev, ice, mi, er, gp, driveStyle, incI, t }) {
         </>
       )}
 
-      {/* ── Section 3: Cost per Mile ── */}
+      {/* â”€â”€ Section 3: Cost per Mile â”€â”€ */}
       {panel(
         <>
           <SectionHdr num="3" title="Cost Per Mile" t={t} />
           {twoCol(
             <div style={{ textAlign: "center", background: "#d1fae5", borderRadius: 10, padding: "16px" }}>
               <div style={{ fontSize: 11, color: "#065f46", marginBottom: 4 }}>⚡ {evShort}</div>
-              <div style={{ fontSize: 36, fontWeight: 900, color: "#059669" }}>{evCpm}¢</div>
+              <div style={{ fontSize: 36, fontWeight: 900, color: "#059669" }}>{evCpm} cents</div>
               <div style={{ fontSize: 11, color: "#10b981" }}>per mile</div>
             </div>,
             <div style={{ textAlign: "center", background: t.card, borderRadius: 10, padding: "16px" }}>
               <div style={{ fontSize: 11, color: t.textLight, marginBottom: 4 }}>⛽ {iceShort}</div>
-              <div style={{ fontSize: 36, fontWeight: 900, color: t.text }}>{iceCpm}¢</div>
+              <div style={{ fontSize: 36, fontWeight: 900, color: t.text }}>{iceCpm} cents</div>
               <div style={{ fontSize: 11, color: t.textLight }}>per mile</div>
             </div>
           )}
           <div style={{ marginTop: 10, fontSize: 12, color: t.textLight, textAlign: "center" }}>
-            Includes fuel + maintenance + insurance ÷ {mi.toLocaleString()} miles/yr
+            Includes fuel + maintenance + insurance Ã· {mi.toLocaleString()} miles/yr
           </div>
         </>
       )}
 
-      {/* ── Section 4: 5-Year TCO ── */}
+      {/* â”€â”€ Section 4: 5-Year TCO â”€â”€ */}
       {panel(
         <>
           <SectionHdr num="4" title="5-Year Total Ownership Cost" t={t} />
@@ -632,13 +633,13 @@ function EVGasFullCompare({ ev, ice, mi, er, gp, driveStyle, incI, t }) {
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 12 }}>
             <div style={{ background: "#ede9fe", borderRadius: 10, padding: "12px 14px" }}>
-              <div style={{ fontSize: 11, color: "#4c1d95", fontWeight: 600, marginBottom: 6 }}>⚡ {evShort} — 5 years</div>
+              <div style={{ fontSize: 11, color: "#4c1d95", fontWeight: 600, marginBottom: 6 }}>⚡ {evShort} â€” 5 years</div>
               <div style={{ fontSize: 12, color: "#5b21b6" }}>Purchase: ${evEffective.toLocaleString()}</div>
               <div style={{ fontSize: 12, color: "#5b21b6" }}>Operating: ${Math.round(evAnnual * 5).toLocaleString()}</div>
               <div style={{ fontSize: 16, fontWeight: 800, color: "#4c1d95", marginTop: 4 }}>Total: ${ev5yr.toLocaleString()}</div>
             </div>
             <div style={{ background: t.card, borderRadius: 10, padding: "12px 14px" }}>
-              <div style={{ fontSize: 11, color: t.textMid, fontWeight: 600, marginBottom: 6 }}>⛽ {iceShort} — 5 years</div>
+              <div style={{ fontSize: 11, color: t.textMid, fontWeight: 600, marginBottom: 6 }}>⛽ {iceShort} â€” 5 years</div>
               <div style={{ fontSize: 12, color: t.textMid }}>Purchase: ${ice.msrp.toLocaleString()}</div>
               <div style={{ fontSize: 12, color: t.textMid }}>Operating: ${Math.round(iceAnnual * 5).toLocaleString()}</div>
               <div style={{ fontSize: 16, fontWeight: 800, color: t.text, marginTop: 4 }}>Total: ${ice5yr.toLocaleString()}</div>
@@ -653,13 +654,13 @@ function EVGasFullCompare({ ev, ice, mi, er, gp, driveStyle, incI, t }) {
         </>
       )}
 
-      {/* ── Section 5: Payback Timeline ── */}
+      {/* â”€â”€ Section 5: Payback Timeline â”€â”€ */}
       {panel(
         <>
           <SectionHdr num="5" title="Payback Timeline" t={t} />
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px,1fr))", gap: 8, marginBottom: 16 }}>
             {[
-              { label: "Price premium", value: pricePremium > 0 ? `+$${pricePremium.toLocaleString()}` : `−$${Math.abs(pricePremium).toLocaleString()}`, color: t.text },
+              { label: "Price premium", value: pricePremium > 0 ? `+$${pricePremium.toLocaleString()}` : `âˆ’$${Math.abs(pricePremium).toLocaleString()}`, color: t.text },
               { label: "Annual savings", value: `$${Math.abs(annualSavings).toLocaleString()}/yr`, color: annualSavings > 0 ? "#059669" : "#dc2626" },
               { label: "Break-even", value: breakevenYrs !== null ? (pricePremium <= 0 ? "Day 1" : `${breakevenYrs.toFixed(1)} yrs`) : "Never", color: "#3b82f6" },
             ].map((m, i) => (
@@ -701,7 +702,7 @@ function EVGasFullCompare({ ev, ice, mi, er, gp, driveStyle, incI, t }) {
         </>
       )}
 
-      {/* ── Section 6: Wattfull Verdict ── */}
+      {/* â”€â”€ Section 6: Wattfull Verdict â”€â”€ */}
       {panel(
         <>
           <SectionHdr num="6" title="Wattfull Verdict" t={t} />
@@ -722,7 +723,7 @@ function EVGasFullCompare({ ev, ice, mi, er, gp, driveStyle, incI, t }) {
             {erBreakEven > 0 && erBreakEven < 60 && (
               <div style={{ fontSize: 12, color: t.textMid, marginBottom: 5, display: "flex", gap: 6 }}>
                 <span style={{ color: "#f59e0b" }}>⚡</span>
-                <span>EV fuel advantage disappears if electricity exceeds <b style={{ color: t.text }}>{erBreakEven}¢/kWh</b> (currently {er}¢)</span>
+                <span>EV fuel advantage disappears if electricity exceeds <b style={{ color: t.text }}>{erBreakEven} cents/kWh</b> (currently {er} cents)</span>
               </div>
             )}
             <div style={{ fontSize: 12, color: t.textMid, marginBottom: 5, display: "flex", gap: 6 }}>
@@ -738,8 +739,8 @@ function EVGasFullCompare({ ev, ice, mi, er, gp, driveStyle, incI, t }) {
           {/* Data source strip */}
           <div style={{ borderTop: `1px solid ${t.borderLight}`, paddingTop: 10, marginTop: 12 }}>
             <div style={{ fontSize: 10, color: t.textLight, lineHeight: 1.8 }}>
-              <b style={{ color: t.textMid }}>Data:</b> Vehicle specs: EPA · Electricity: EIA · Gas: AAA/EIA · Insurance: national avg estimates ·
-              <b style={{ color: t.textMid }}> Last updated:</b> {new Date().toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+              <b style={{ color: t.textMid }}>Data:</b> Vehicle specs: EPA | Electricity: EIA | Gas: AAA/EIA | Insurance: national average estimates |
+              <b style={{ color: t.textMid }}> Last updated:</b> Mar 2026
             </div>
           </div>
         </>
@@ -748,10 +749,11 @@ function EVGasFullCompare({ ev, ice, mi, er, gp, driveStyle, incI, t }) {
   );
 }
 
-// ── Main ComparePage ─────────────────────────────────────────────────────
+// â”€â”€ Main ComparePage â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export function ComparePage() {
   const { t } = useTheme();
   const [tab, setTab] = useState("evgas");
+  const [compareHistory, setCompareHistory] = useState([]);
 
   // Vehicle selections
   const [evev1, setEvev1] = useState("model3lr");
@@ -777,6 +779,33 @@ export function ComparePage() {
     { id: "stations", label: "🔋 Stations" },
   ];
 
+
+  useEffect(() => {
+    setCompareHistory(getStoredJson(STORAGE_KEYS.compareHistory, []));
+  }, []);
+
+  useEffect(() => {
+    let entry = null;
+    if (tab === "evgas") {
+      const ev = VEHICLES.ev.find((v) => v.id === evgas_ev);
+      const ice = VEHICLES.ice.find((v) => v.id === evgas_ice);
+      if (ev && ice) entry = { title: `${ev.name} vs ${ice.name}`, summary: `${mi.toLocaleString()} mi/yr | ${er} cents/kWh | $${gp.toFixed(2)}/gal`, tab };
+    } else if (tab === "evev") {
+      const a = VEHICLES.ev.find((v) => v.id === evev1);
+      const b = VEHICLES.ev.find((v) => v.id === evev2);
+      if (a && b) entry = { title: `${a.name} vs ${b.name}`, summary: "EV vs EV scorecard", tab };
+    } else if (tab === "gasgas") {
+      const a = VEHICLES.ice.find((v) => v.id === gg1);
+      const b = VEHICLES.ice.find((v) => v.id === gg2);
+      if (a && b) entry = { title: `${a.name} vs ${b.name}`, summary: "Gas vs gas scorecard", tab };
+    } else {
+      const a = POWER_STATIONS.find((s) => s.id === pSel1);
+      const b = POWER_STATIONS.find((s) => s.id === pSel2);
+      if (a && b) entry = { title: `${a.name} vs ${b.name}`, summary: "Portable power comparison", tab };
+    }
+    if (!entry) return;
+    setCompareHistory(pushStoredHistory(STORAGE_KEYS.compareHistory, entry));
+  }, [tab, evev1, evev2, evgas_ev, evgas_ice, gg1, gg2, pSel1, pSel2, mi, er, gp]);
   const TabBar = () => (
     <div style={{ display: "flex", gap: 4, padding: 4, background: t.card, borderRadius: 12, marginTop: 16, marginBottom: 24, flexWrap: "wrap" }}>
       {TABS.map((tb) => (
@@ -801,7 +830,7 @@ export function ComparePage() {
     <h1 style={{ fontSize: "clamp(24px,4vw,36px)", fontWeight: 800, color: t.text }}>Compare Side-by-Side</h1>
   );
 
-  // ── EV vs Gas ──────────────────────────────────────────────────────────
+  // â”€â”€ EV vs Gas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   if (tab === "evgas") {
     const ev  = VEHICLES.ev.find((v) => v.id === evgas_ev);
     const ice = VEHICLES.ice.find((v) => v.id === evgas_ice);
@@ -809,8 +838,27 @@ export function ComparePage() {
       <div>
         {h1}
         <p style={{ fontSize: 15, color: t.textMid, marginTop: 6, marginBottom: 0, maxWidth: 600 }}>
-          Full financial breakdown — purchase, operating, cost per mile, 5-year TCO, payback curve, and verdict.
+          Full financial breakdown: purchase, operating, cost per mile, 5-year TCO, payback curve, and verdict.
         </p>
+        <div style={{ marginTop: 16 }}>
+          <TrustStrip
+            title="Compare trust layer"
+            items={[
+              { label: "Rates", value: "User-adjusted inputs", note: "Use your actual utility and gas assumptions where possible.", tone: "positive" },
+              { label: "Ownership model", value: "Estimated TCO", note: "Insurance and maintenance remain benchmark-based.", tone: "neutral" },
+              { label: "Recent comparisons", value: compareHistory.length ? `${compareHistory.length} saved locally` : "None yet", note: "Recent compare sessions feed the dashboard.", tone: compareHistory.length ? "positive" : "low" },
+            ]}
+          />
+        </div>
+        {compareHistory.length ? (
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
+            {compareHistory.slice(0, 3).map((item) => (
+              <div key={`${item.title}-${item.summary}`} style={{ padding: "7px 10px", borderRadius: 999, background: t.card, border: `1px solid ${t.borderLight}`, fontSize: 11, color: t.textMid }}>
+                {item.title}
+              </div>
+            ))}
+          </div>
+        ) : null}
         <TabBar />
 
         {/* Vehicle selectors */}
@@ -824,7 +872,7 @@ export function ComparePage() {
           <div style={{ fontSize: 12, fontWeight: 700, color: t.textMid, marginBottom: 12, textTransform: "uppercase", letterSpacing: ".05em" }}>Personalize this comparison</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "0 24px" }}>
             <Slider label="Annual Miles" value={mi} onChange={setMi} min={3000} max={40000} step={500} />
-            <Slider label="Electricity rate" value={er} onChange={setEr} min={8} max={35} step={0.5} suffix="¢/kWh" />
+            <Slider label="Electricity rate" value={er} onChange={setEr} min={8} max={35} step={0.5} suffix=" cents/kWh" />
             <Slider label="Gas price" value={gp} onChange={v => setGp(Math.round(v * 100) / 100)} min={2.00} max={6.00} step={0.05} prefix="$" suffix="/gal" />
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", marginTop: 4 }}>
@@ -859,7 +907,7 @@ export function ComparePage() {
     );
   }
 
-  // ── EV vs EV ───────────────────────────────────────────────────────────
+  // â”€â”€ EV vs EV â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   if (tab === "evev") {
     const a = VEHICLES.ev.find((v) => v.id === evev1);
     const b = VEHICLES.ev.find((v) => v.id === evev2);
@@ -885,7 +933,7 @@ export function ComparePage() {
                 <tbody>
                   {[
                     { l: "Efficiency",     av: `${a.kwh} kWh/100mi`, bv: `${b.kwh} kWh/100mi`, better: a.kwh < b.kwh ? "a" : "b" },
-                    { l: "EPA Range",      av: `${EV_RANGE[a.id] ?? "—"} mi`, bv: `${EV_RANGE[b.id] ?? "—"} mi`, better: (EV_RANGE[a.id]??0) > (EV_RANGE[b.id]??0) ? "a" : "b" },
+                    { l: "EPA Range",      av: `${EV_RANGE[a.id] ?? "-"} mi`, bv: `${EV_RANGE[b.id] ?? "-"} mi`, better: (EV_RANGE[a.id]??0) > (EV_RANGE[b.id]??0) ? "a" : "b" },
                     { l: "MSRP",           av: `$${a.msrp.toLocaleString()}`, bv: `$${b.msrp.toLocaleString()}`, better: a.msrp < b.msrp ? "a" : "b" },
                     { l: "Federal Credit", av: `$${a.fc.toLocaleString()}`,   bv: `$${b.fc.toLocaleString()}`,   better: a.fc > b.fc ? "a" : "b" },
                     { l: "Net Price*",     av: `$${(a.msrp - a.fc).toLocaleString()}`, bv: `$${(b.msrp - b.fc).toLocaleString()}`, better: (a.msrp - a.fc) < (b.msrp - b.fc) ? "a" : "b" },
@@ -908,7 +956,7 @@ export function ComparePage() {
     );
   }
 
-  // ── Gas vs Gas ─────────────────────────────────────────────────────────
+  // â”€â”€ Gas vs Gas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   if (tab === "gasgas") {
     const a = VEHICLES.ice.find((v) => v.id === gg1);
     const b = VEHICLES.ice.find((v) => v.id === gg2);
@@ -950,7 +998,7 @@ export function ComparePage() {
     );
   }
 
-  // ── Power Stations ─────────────────────────────────────────────────────
+  // â”€â”€ Power Stations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const sa = POWER_STATIONS.find((s) => s.id === pSel1);
   const sb = POWER_STATIONS.find((s) => s.id === pSel2);
   const stationRows = sa && sb ? [
@@ -999,3 +1047,7 @@ export function ComparePage() {
     </div>
   );
 }
+
+
+
+

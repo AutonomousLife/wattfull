@@ -12,7 +12,10 @@ export function middleware(req: NextRequest) {
 
   if (pathname.startsWith("/admin")) {
     const cookie = req.cookies.get("wf_admin")?.value;
-    const password = process.env.ADMIN_PASSWORD ?? "admin";
+    const password = process.env.ADMIN_PASSWORD;
+    if (!password) {
+      return new NextResponse("Admin not configured (ADMIN_PASSWORD not set)", { status: 503 });
+    }
 
     if (cookie !== password) {
       const loginUrl = new URL("/admin/login", req.url);

@@ -287,6 +287,49 @@ function Thresholds({ result, t }) {
   );
 }
 
+function IncentivesPanel({ result, t }) {
+  const items = result.incentiveLineItems ?? [];
+  if (!items.length) return null;
+  const appliedTotal = items.reduce((sum, item) => sum + (item.applied ? item.amount : 0), 0);
+  const availableTotal = items.reduce((sum, item) => sum + item.amount, 0);
+
+  return (
+    <SectionCard
+      title="Available EV credits"
+      subtitle={result.inputs.includeIncentives
+        ? `${formatMoney(appliedTotal)} applied to this calculation. Verify eligibility before filing.`
+        : `${formatMoney(availableTotal)} in potential credits not yet applied. Toggle "Include credits" to see the impact.`}
+      t={t}
+    >
+      <div style={{ display: "grid", gap: 10 }}>
+        {items.map((item) => (
+          <div
+            key={`${item.label}-${item.amount}`}
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              gap: 12,
+              background: item.applied ? t.greenLight : t.card,
+              border: `1px solid ${item.applied ? t.green : t.borderLight}`,
+              borderRadius: 12,
+              padding: "12px 14px",
+            }}
+          >
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: t.text }}>{item.label}</div>
+              <div style={{ fontSize: 12, color: t.textMid, marginTop: 3, lineHeight: 1.5 }}>{item.eligibilityFlag}</div>
+            </div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: item.applied ? "#065f46" : t.textMid, flexShrink: 0 }}>
+              {formatMoney(item.amount)}
+            </div>
+          </div>
+        ))}
+      </div>
+    </SectionCard>
+  );
+}
+
 function AssumptionPanel({ result, t }) {
   return (
     <Collapsible title="Calculation assumptions" defaultOpen={false}>
@@ -295,19 +338,6 @@ function AssumptionPanel({ result, t }) {
           <div key={item} style={{ fontSize: 13, color: t.textMid, lineHeight: 1.5, padding: "8px 0", borderBottom: `1px solid ${t.borderLight}` }}>{item}</div>
         ))}
       </div>
-      {result.incentiveLineItems?.length ? (
-        <div style={{ marginTop: 14 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: t.textMid, marginBottom: 8 }}>Incentives reviewed</div>
-          <div style={{ display: "grid", gap: 8 }}>
-            {result.incentiveLineItems.map((item) => (
-              <div key={`${item.label}-${item.amount}`} style={{ background: t.card, border: `1px solid ${t.borderLight}`, borderRadius: 10, padding: "10px 12px" }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: t.text }}>{item.label}</div>
-                <div style={{ fontSize: 12, color: t.textMid }}>{formatMoney(item.amount)} - {item.eligibilityFlag}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : null}
       <div style={{ marginTop: 14, fontSize: 12, color: t.textLight }}>
         Confidence: {result.confidenceLevel}. Sources: {result.sources.join(", ")}
       </div>
@@ -415,6 +445,21 @@ function EVCalcInner() {
   function handleCalculate() {
     setError("");
     setIsDirty(false);
+
+    const chargingSum = (form.homePct || 0) + (form.publicPct || 0) + (form.dcfcPct || 0);
+    if (Math.abs(chargingSum - 100) > 1) {
+      setError(`Charging mix must sum to 100% (currently ${chargingSum}%). Adjust Home, Public, and DC Fast percentages.`);
+      return;
+    }
+    if ((form.milesPerYear || 0) <= 0) {
+      setError("Annual miles must be greater than 0.");
+      return;
+    }
+    if ((form.ownershipYears || 0) <= 0) {
+      setError("Ownership years must be greater than 0.");
+      return;
+    }
+
     startTransition(async () => {
       try {
         const isBuying = form.scenario === "buying";
@@ -600,6 +645,7 @@ function EVCalcInner() {
           {result ? (
             <>
               <VerdictPanel result={result} scenario={form.scenario} t={t} />
+              <IncentivesPanel result={result} t={t} />
               {form.scenario === "buying" ? <OwnershipBreakout result={result} t={t} /> : null}
               <CostChart result={result} scenario={form.scenario} t={t} />
               <Thresholds result={result} t={t} />

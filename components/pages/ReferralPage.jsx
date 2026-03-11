@@ -168,7 +168,7 @@ export function ReferralPage() {
 
       <div style={{ maxWidth: 760, marginBottom: 24, padding: "14px 18px", background: t.accentLight, border: `1px solid ${t.accent}22`, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
         <p style={{ margin: 0, fontSize: 13, color: t.textMid, lineHeight: 1.6 }}>
-          If a code here saved you money, keeping this site free &amp; ad-light takes a little effort — a coffee goes a long way.
+          If this page gave you value, it would mean a lot if you bought me a coffee — it helps keep the site free.
         </p>
         <a
           href={KOFI_URL}

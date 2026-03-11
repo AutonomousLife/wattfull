@@ -49,6 +49,15 @@ export function MarketplacePage() {
 
   return (
     <div>
+      <style>{`
+        .gear-top-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 14px; margin-bottom: 20px; }
+        .gear-product-grid { display: grid; grid-template-columns: 340px 1fr; gap: 24px; }
+        @media (max-width: 700px) {
+          .gear-top-grid { grid-template-columns: 1fr; }
+          .gear-product-grid { grid-template-columns: 1fr; }
+          .gear-product-list { max-height: none !important; overflow-y: visible !important; }
+        }
+      `}</style>
       <h1 style={{ fontSize: "clamp(24px,4vw,36px)", fontWeight: 800, color: t.text }}>Gear Reviews</h1>
       <p style={{ fontSize: 16, color: t.textMid, lineHeight: 1.6, marginTop: 8, maxWidth: 640 }}>
         Independent assessments from real owner reviews and field reports. Wattfull treats gear as a fit problem, not a generic shopping feed.
@@ -87,7 +96,7 @@ export function MarketplacePage() {
         ))}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1.1fr .9fr", gap: 14, marginBottom: 20 }}>
+      <div className="gear-top-grid">
         <VerdictPanel
           label={topPick ? `${topPick.name} is the current Wattfull top pick` : "Catalog needs a query reset"}
           tone="favorable"
@@ -130,8 +139,8 @@ export function MarketplacePage() {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "340px 1fr", gap: 24 }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 12, maxHeight: 720, overflowY: "auto", paddingRight: 8, paddingLeft: 3, paddingTop: 3, paddingBottom: 3 }}>
+      <div className="gear-product-grid">
+        <div className="gear-product-list" style={{ display: "flex", flexDirection: "column", gap: 12, maxHeight: 720, overflowY: "auto", paddingRight: 8, paddingLeft: 3, paddingTop: 3, paddingBottom: 3 }}>
           {filtered.map((p) => (
             <ProductCard key={p.id} product={p} type={type} onSelect={setSelected} selected={p.id === sel?.id} />
           ))}

@@ -216,20 +216,20 @@ const WIKI_ARTICLES = {
   nisanariya: "Nissan Ariya", subarosolt: "Subaru Solterra",
   toyotabz4x: "Toyota bZ4X", hondaprologue: "Honda Prologue",
   cadillaclyriq: "Cadillac Lyriq", mercedeseqb: "Mercedes-Benz EQB",
-  // ICE â€" Toyota
+  // ICE — Toyota
   camry: "Toyota Camry", corolla: "Toyota Corolla",
   rav4: "Toyota RAV4", rav4hybrid: "Toyota RAV4 Hybrid",
   prius: "Toyota Prius", tacoma: "Toyota Tacoma", highlander: "Toyota Highlander",
-  // ICE â€" Honda
+  // ICE — Honda
   civic: "Honda Civic", crv: "Honda CR-V", accord: "Honda Accord",
-  // ICE â€" American trucks
+  // ICE — American trucks
   f150gas: "Ford F-150", silverado: "Chevrolet Silverado", gmcsierra: "GMC Sierra",
-  // ICE â€" Others
+  // ICE — Others
   altima: "Nissan Altima", cx5: "Mazda CX-5",
   tucson: "Hyundai Tucson", sorento: "Kia Sorento", bmw330i: "BMW 3 Series",
 };
 
-// Module-level cache â€" survives re-renders, cleared on page refresh
+// Module-level cache — survives re-renders, cleared on page refresh
 const _photoCache = {};
 
 // Fetch car photo via MediaWiki action API (more reliable than REST summary).
@@ -248,7 +248,7 @@ async function fetchWikiPhoto(title) {
   return page?.thumbnail?.source ?? null;
 }
 
-// â"€â"€ VehiclePhoto â€" fetches real car photo from Wikipedia â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
+// â"€â"€ VehiclePhoto — fetches real car photo from Wikipedia â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
 function VehiclePhoto({ vehicleId, name, height = 140, flip = false, accentColor }) {
   const { t } = useTheme();
   const [src, setSrc]         = useState(_photoCache[vehicleId] ?? null);
@@ -444,8 +444,8 @@ function EVGasFullCompare({ ev, ice, mi, er, gp, driveStyle, incI, t }) {
   const vc = VERDICT_CFG[verdictType];
 
   const reasons = [];
-  if (er < 14.5) reasons.push(`Low electricity (${er} cents/kWh vs ~16 cents US avg) â€" charging is cheap`);
-  else if (er > 18.5) reasons.push(`High electricity (${er} cents/kWh vs ~16 cents US avg) â€" reduces EV advantage`);
+  if (er < 14.5) reasons.push(`Low electricity (${er} cents/kWh vs ~16 cents US avg) — charging is cheap`);
+  else if (er > 18.5) reasons.push(`High electricity (${er} cents/kWh vs ~16 cents US avg) — reduces EV advantage`);
   if (mi > 15000) reasons.push(`High mileage (${mi.toLocaleString()} mi/yr) amplifies fuel savings`);
   if (gp > 3.75) reasons.push(`Above-average gas ($${gp}/gal) favors the EV`);
   if (evCredit > 0) reasons.push(`$${evCredit.toLocaleString()} federal credit reduces effective EV price`);
@@ -643,13 +643,13 @@ function EVGasFullCompare({ ev, ice, mi, er, gp, driveStyle, incI, t }) {
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 12 }}>
             <div style={{ background: "#ede9fe", borderRadius: 10, padding: "12px 14px" }}>
-              <div style={{ fontSize: 11, color: "#4c1d95", fontWeight: 600, marginBottom: 6 }}>⚡ {evShort} â€" 5 years</div>
+              <div style={{ fontSize: 11, color: "#4c1d95", fontWeight: 600, marginBottom: 6 }}>⚡ {evShort} — 5 years</div>
               <div style={{ fontSize: 12, color: "#5b21b6" }}>Purchase: ${evEffective.toLocaleString()}</div>
               <div style={{ fontSize: 12, color: "#5b21b6" }}>Operating: ${Math.round(evAnnual * 5).toLocaleString()}</div>
               <div style={{ fontSize: 16, fontWeight: 800, color: "#4c1d95", marginTop: 4 }}>Total: ${ev5yr.toLocaleString()}</div>
             </div>
             <div style={{ background: t.card, borderRadius: 10, padding: "12px 14px" }}>
-              <div style={{ fontSize: 11, color: t.textMid, fontWeight: 600, marginBottom: 6 }}>⛽ {iceShort} â€" 5 years</div>
+              <div style={{ fontSize: 11, color: t.textMid, fontWeight: 600, marginBottom: 6 }}>⛽ {iceShort} — 5 years</div>
               <div style={{ fontSize: 12, color: t.textMid }}>Purchase: ${ice.msrp.toLocaleString()}</div>
               <div style={{ fontSize: 12, color: t.textMid }}>Operating: ${Math.round(iceAnnual * 5).toLocaleString()}</div>
               <div style={{ fontSize: 16, fontWeight: 800, color: t.text, marginTop: 4 }}>Total: ${ice5yr.toLocaleString()}</div>

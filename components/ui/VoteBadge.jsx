@@ -107,7 +107,7 @@ export default function VoteBadge({ itemType, itemId, compact = false }) {
       {!voted && (
         <div style={{ display: "flex", gap: 4 }}>
           <button
-            onClick={() => vote("up")}
+            onClick={(e) => { e.stopPropagation(); vote("up"); }}
             disabled={loading}
             title="Helpful"
             style={{
@@ -123,7 +123,7 @@ export default function VoteBadge({ itemType, itemId, compact = false }) {
             👍
           </button>
           <button
-            onClick={() => vote("down")}
+            onClick={(e) => { e.stopPropagation(); vote("down"); }}
             disabled={loading}
             title="Not helpful"
             style={{

@@ -89,7 +89,7 @@ export function ProductDetail({ product, type }) {
     <div style={{ background: t.white, border: `1px solid ${t.borderLight}`, borderRadius: 16, overflow: "hidden" }}>
       <div style={{ padding: 24, borderBottom: `1px solid ${t.borderLight}` }}>
         <div style={{ marginBottom: 16 }}>
-          <ProductImage product={product} t={t} />
+          <ProductImage key={product.id} product={product} t={t} />
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
           <div>

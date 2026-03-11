@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
   }
 
   // Static fallback: federal only + state credit from stateData
-  const stateCredit = state ? (STATE_DATA[state]?.ec ?? 0) : 0;
+  const stateCredit = state ? ((STATE_DATA as Record<string, { ec?: number }>)[state]?.ec ?? 0) : 0;
   const items = [
     {
       id: 1,

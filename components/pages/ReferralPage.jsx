@@ -4,6 +4,8 @@ import { useTheme } from "@/lib/ThemeContext";
 import { Badge } from "@/components/ui";
 import { REFERRALS } from "@/lib/data/referrals";
 
+const KOFI_URL = "https://ko-fi.com/wattfull"; // ← swap in your Ko-fi URL
+
 const TYPES = ["Tesla", "SunPower", "Enphase", "Other"];
 
 function formatReferral(referral) {
@@ -104,7 +106,25 @@ export function ReferralPage() {
         Verified community referral codes for Tesla, solar brands, and energy products. Approved submissions appear here after review.
       </p>
 
-      <div style={{ display: "flex", gap: 8, marginTop: 22, marginBottom: 20, flexWrap: "wrap" }}>
+      <div style={{ maxWidth: 760, marginBottom: 20, padding: "16px 20px", background: t.warnBg, border: `1.5px solid ${t.warn}44`, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+        <p style={{ margin: 0, fontSize: 13, color: t.textMid, lineHeight: 1.6 }}>
+          If this page gave you value, it would mean a lot — I built and maintain this in my spare time.
+        </p>
+        <a
+          href={KOFI_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ flexShrink: 0, textDecoration: "none" }}
+        >
+          <img
+            src="https://ko-fi.com/img/githubbutton_sm.svg"
+            alt="Buy Me a Coffee at ko-fi.com"
+            style={{ height: 36, display: "block" }}
+          />
+        </a>
+      </div>
+
+      <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
         {["all", ...TYPES].map((item) => {
           const active = filter === item;
           return (

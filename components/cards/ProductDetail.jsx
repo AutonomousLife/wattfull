@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useTheme } from "@/lib/ThemeContext";
 import { Stars } from "@/components/ui";
-import { amazonLink, amazonDP } from "@/lib/helpers";
+import { productHref } from "@/lib/helpers";
 
 const SAVED_GEAR_KEY = "wattfull_saved_gear";
 
@@ -52,7 +52,7 @@ export function ProductDetail({ product, type }) {
         { l: "Warranty", v: product.warranty },
       ];
 
-  const href = product.asin ? amazonDP(product.asin) : amazonLink(product.amazonSearch);
+  const href = productHref(product);
 
   return (
     <div style={{ background: t.white, border: `1px solid ${t.borderLight}`, borderRadius: 16, overflow: "hidden" }}>

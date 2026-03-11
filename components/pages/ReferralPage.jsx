@@ -28,6 +28,7 @@ export function ReferralPage() {
   const [form, setForm] = useState({ type: "Tesla", name: "", code: "", desc: "", website: "" });
   const [submitState, setSubmitState] = useState("idle");
   const [submitError, setSubmitError] = useState("");
+  const [reported, setReported] = useState({});
 
   useEffect(() => {
     fetch("/api/community")
@@ -55,6 +56,22 @@ export function ReferralPage() {
     navigator.clipboard.writeText(code);
     setCopied(code);
     setTimeout(() => setCopied(null), 1800);
+  }
+
+  async function reportExpired(referral) {
+    const key = referral.id ?? referral.code;
+    if (reported[key]) return;
+    setReported((prev) => ({ ...prev, [key]: "loading" }));
+    try {
+      await fetch("/api/community/report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: referral.id }),
+      });
+    } catch {
+      // best-effort
+    }
+    setReported((prev) => ({ ...prev, [key]: "done" }));
   }
 
   async function handleSubmit(event) {
@@ -169,6 +186,20 @@ export function ReferralPage() {
                     Visit link
                   </a>
                 ) : null}
+                {(() => {
+                  const key = referral.id ?? referral.code;
+                  const state = reported[key];
+                  if (state === "done") return <span style={{ fontSize: 11, color: t.textLight }}>Thanks for the report</span>;
+                  return (
+                    <button
+                      onClick={() => reportExpired(referral)}
+                      disabled={state === "loading"}
+                      style={{ fontSize: 11, padding: "5px 10px", borderRadius: 8, border: `1px solid ${t.border}`, background: "transparent", color: t.textLight, cursor: state === "loading" ? "wait" : "pointer" }}
+                    >
+                      Code no longer works?
+                    </button>
+                  );
+                })()}
               </div>
             </div>
             <div style={{ minWidth: 88, textAlign: "right" }}>

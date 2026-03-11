@@ -21,6 +21,9 @@ export function ChargingPage() {
   const [chargerPrice, setChargerPrice] = useState(399);
   const [electricity, setElectricity] = useState(16);
   const [publicShare, setPublicShare] = useState(20);
+  const [touEnabled, setTouEnabled] = useState(false);
+  const [offPeakRate, setOffPeakRate] = useState(9);
+  const [offPeakPct, setOffPeakPct] = useState(80);
   const [result, setResult] = useState(null);
 
   useEffect(() => {
@@ -44,23 +47,33 @@ export function ChargingPage() {
 
   function calculate() {
     const annualKwh = miles * 0.29;
-    const homeRate = electricity / 100;
-    const publicRate = homeRate + 0.18;
-    const currentPublicShare = homeAccess ? publicShare / 100 : 0.85;
+    const baseHomeRate = electricity / 100;
+    // TOU: blend off-peak and peak rates for home charging
+    const effectiveHomeRate = touEnabled
+      ? ((offPeakPct / 100) * (offPeakRate / 100) + (1 - offPeakPct / 100) * baseHomeRate)
+      : baseHomeRate;
+    const publicRate = baseHomeRate + 0.18;
+
+    const isRenterNoSpot = !homeAccess;
+    const currentPublicShare = isRenterNoSpot ? 0.85 : publicShare / 100;
     const currentHomeShare = 1 - currentPublicShare;
-    const l1Cost = annualKwh * ((currentHomeShare * homeRate) + (currentPublicShare * publicRate));
-    const l2PublicShare = homeAccess ? Math.max(0.05, currentPublicShare - 0.15) : currentPublicShare;
+    const l1Cost = annualKwh * ((currentHomeShare * effectiveHomeRate) + (currentPublicShare * publicRate));
+    const l2PublicShare = isRenterNoSpot ? currentPublicShare : Math.max(0.05, currentPublicShare - 0.15);
     const l2HomeShare = 1 - l2PublicShare;
-    const l2Cost = annualKwh * ((l2HomeShare * homeRate) + (l2PublicShare * publicRate));
+    const l2Cost = annualKwh * ((l2HomeShare * effectiveHomeRate) + (l2PublicShare * publicRate));
     const annualSavings = Math.round(l1Cost - l2Cost);
     const timeValue = Math.round((miles / 1200) * (homeAccess ? 3 : 0));
     const yearlyValue = annualSavings + timeValue * 20;
     const totalUpfront = installCost + chargerPrice;
     const paybackYears = yearlyValue > 0 ? Number((totalUpfront / yearlyValue).toFixed(1)) : null;
-    const verdictTone = !homeowner && !homeAccess ? "lowConfidence" : paybackYears && paybackYears <= 5 ? "favorable" : paybackYears && paybackYears <= 9 ? "marginal" : "lowConfidence";
+    const verdictTone = isRenterNoSpot ? "renter" : paybackYears && paybackYears <= 5 ? "favorable" : paybackYears && paybackYears <= 9 ? "marginal" : "lowConfidence";
     const topPicks = CHARGERS
       .filter((charger) => homeowner ? charger.amps >= 40 : charger.id === "lectron-portable" || charger.amps <= 16)
       .slice(0, 3);
+
+    // Renter-specific: estimate annual public-charging cost at typical DCFC rates
+    const renterPublicAnnualCost = Math.round(annualKwh * 0.85 * publicRate);
+    const renterDcfcAnnualCost = Math.round(annualKwh * 0.85 * 0.35);
 
     const next = {
       annualKwh: Math.round(annualKwh),
@@ -73,6 +86,10 @@ export function ChargingPage() {
       verdictTone,
       topPicks,
       recommendations: topPicks.map((charger) => `${charger.name} | ${charger.tag}`),
+      isRenterNoSpot,
+      renterPublicAnnualCost,
+      renterDcfcAnnualCost,
+      effectiveHomeRateCents: Math.round(effectiveHomeRate * 100 * 10) / 10,
     };
 
     setResult(next);
@@ -127,6 +144,25 @@ export function ChargingPage() {
               <input type="range" min={0} max={90} step={5} value={publicShare} onChange={(e) => setPublicShare(Number(e.target.value))} style={{ width: "100%", marginTop: 8, accentColor: "#10b981" }} />
               <div style={{ fontSize: 12, color: t.text, fontWeight: 700 }}>{publicShare}%</div>
             </label>
+            <div style={{ borderTop: `1px solid ${t.borderLight}`, paddingTop: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+                <span style={{ fontSize: 12, color: t.textMid }}>Time-of-use (TOU) plan</span>
+                <button onClick={() => setTouEnabled(!touEnabled)} style={{ padding: "4px 10px", borderRadius: 8, border: `1px solid ${touEnabled ? "#10b981" : t.borderLight}`, background: touEnabled ? "#d1fae5" : t.card, color: touEnabled ? "#065f46" : t.textMid, fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
+                  {touEnabled ? "On" : "Off"}
+                </button>
+              </div>
+              {touEnabled && (
+                <div style={{ display: "grid", gap: 8 }}>
+                  <label style={{ fontSize: 12, color: t.textMid }}>Off-peak rate (¢/kWh)
+                    <input type="number" value={offPeakRate} onChange={(e) => setOffPeakRate(Number(e.target.value) || 0)} style={{ width: "100%", marginTop: 4, padding: "8px 10px", borderRadius: 8, border: `1px solid ${t.borderLight}`, background: t.card, color: t.text }} />
+                  </label>
+                  <label style={{ fontSize: 12, color: t.textMid }}>Off-peak share of home charging
+                    <input type="range" min={0} max={100} step={5} value={offPeakPct} onChange={(e) => setOffPeakPct(Number(e.target.value))} style={{ width: "100%", marginTop: 6, accentColor: "#10b981" }} />
+                    <div style={{ fontSize: 12, color: t.text, fontWeight: 700 }}>{offPeakPct}%</div>
+                  </label>
+                </div>
+              )}
+            </div>
             <div style={{ display: "flex", gap: 8 }}>
               <button onClick={() => setHomeowner(true)} style={{ flex: 1, padding: "10px 12px", borderRadius: 10, border: `1px solid ${homeowner ? "#10b981" : t.borderLight}`, background: homeowner ? "#d1fae5" : t.card, color: homeowner ? "#065f46" : t.text }}>Own</button>
               <button onClick={() => setHomeowner(false)} style={{ flex: 1, padding: "10px 12px", borderRadius: 10, border: `1px solid ${!homeowner ? "#10b981" : t.borderLight}`, background: !homeowner ? "#d1fae5" : t.card, color: !homeowner ? "#065f46" : t.text }}>Rent</button>
@@ -147,6 +183,40 @@ export function ChargingPage() {
             </div>
           ) : (
             <>
+              {result.isRenterNoSpot ? (
+                <div style={cardStyle(t)}>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: t.text, marginBottom: 8 }}>Public charging is your primary option</div>
+                  <div style={{ fontSize: 13, color: t.textMid, lineHeight: 1.65, marginBottom: 16 }}>
+                    Without a dedicated parking spot, home Level 2 installation isn't available right now. Your best path is optimizing public charging cost and mix.
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 10, marginBottom: 16 }}>
+                    {[
+                      { label: "Annual kWh demand", value: `${result.annualKwh.toLocaleString()} kWh` },
+                      { label: "L2 public charging cost", value: `$${result.renterPublicAnnualCost.toLocaleString()}/yr`, sub: "at local rate + $0.18 markup" },
+                      { label: "DC fast charging cost", value: `$${result.renterDcfcAnnualCost.toLocaleString()}/yr`, sub: "at typical $0.35/kWh" },
+                    ].map((item) => (
+                      <div key={item.label} style={{ background: t.card, borderRadius: 10, padding: "12px 14px" }}>
+                        <div style={{ fontSize: 11, color: t.textLight, textTransform: "uppercase", letterSpacing: ".05em" }}>{item.label}</div>
+                        <div style={{ fontSize: 18, fontWeight: 800, color: t.text, marginTop: 4 }}>{item.value}</div>
+                        {item.sub && <div style={{ fontSize: 10, color: t.textLight, marginTop: 2 }}>{item.sub}</div>}
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ display: "grid", gap: 8 }}>
+                    {[
+                      "Look for ChargePoint, Blink, or EVgo L2 chargers near home or work — often cheaper than DC fast.",
+                      "Tesla owners: Supercharger costs (~$0.28–0.40/kWh) vary by location; check in-app pricing.",
+                      "Ask your building management or employer about installing EV charging — many buildings now offer it.",
+                      "A portable L1 cord can supplement at any 120V outlet when available.",
+                    ].map((tip) => (
+                      <div key={tip} style={{ display: "flex", gap: 8, fontSize: 12, color: t.textMid, lineHeight: 1.55 }}>
+                        <span style={{ color: t.green, flexShrink: 0 }}>•</span>
+                        <span>{tip}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
               <VerdictPanel
                 label={result.verdictTone === "favorable" ? "Level 2 looks financially and practically justified" : result.verdictTone === "marginal" ? "Level 2 looks useful, but quote-sensitive" : "Treat home charging as a convenience decision first"}
                 tone={result.verdictTone}
@@ -159,7 +229,8 @@ export function ChargingPage() {
                   `${result.annualKwh.toLocaleString()} kWh/year of charging demand gives home charging enough volume to matter.`,
                   `Estimated annual savings versus your current setup: ${result.annualSavings >= 0 ? "+" : "-"}$${Math.abs(result.annualSavings).toLocaleString()}.`,
                   result.paybackYears ? `Simple payback is about ${result.paybackYears} years on a $${result.totalUpfront.toLocaleString()} all-in setup.` : "There is no clean payback at the current assumptions.",
-                ]}
+                  touEnabled ? `TOU off-peak rate (${offPeakRate}¢/kWh) reduces your effective home rate to ${result.effectiveHomeRateCents}¢/kWh.` : null,
+                ].filter(Boolean)}
                 caveats={[
                   "Public DC fast charging pricing varies a lot by network and region.",
                   "Install cost is highly panel- and wiring-dependent.",
@@ -167,14 +238,16 @@ export function ChargingPage() {
                 changes={[
                   "Higher annual miles improve the charger case quickly.",
                   "A lower electrician quote can move a marginal case into favorable territory.",
-                  "Apartment or shared-parking constraints can override the math.",
+                  "A TOU off-peak plan can significantly lower your effective home charging rate.",
                 ]}
                 confidence={state ? "Estimated with state context" : "Estimated benchmark"}
                 nextAction="Next best action: shortlist the charger type, then confirm install cost with a local electrician."
               />
+              )}
 
+              {!result.isRenterNoSpot && (
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 12 }}>
-                {[ 
+                {[
                   { label: "Current charging cost", value: `$${result.l1Cost.toLocaleString()}/yr` },
                   { label: "With Level 2", value: `$${result.l2Cost.toLocaleString()}/yr` },
                   { label: "All-in upfront", value: `$${result.totalUpfront.toLocaleString()}` },
@@ -186,12 +259,13 @@ export function ChargingPage() {
                   </div>
                 ))}
               </div>
+              )}
 
               <AssumptionGrid
                 title="Charging assumptions"
                 items={[
                   { label: "ZIP / state", value: state ? `${zip} / ${state}` : zip || "No ZIP" },
-                  { label: "Electricity", value: `${electricity} cents/kWh` },
+                  { label: "Electricity", value: touEnabled ? `${result.effectiveHomeRateCents}¢/kWh (TOU blended)` : `${electricity} cents/kWh` },
                   { label: "Annual miles", value: `${miles.toLocaleString()} / year` },
                   { label: "Public mix now", value: `${homeAccess ? publicShare : 85}%` },
                   { label: "Install cost", value: `$${installCost.toLocaleString()}` },
@@ -200,6 +274,7 @@ export function ChargingPage() {
                 footer="Use this as a screening model. Real electrician quotes and parking constraints still matter more than the slider values."
               />
 
+              {!result.isRenterNoSpot && (
               <div style={cardStyle(t)}>
                 <div style={{ fontSize: 15, fontWeight: 800, color: t.text, marginBottom: 10 }}>Recommended charger picks</div>
                 <div style={{ display: "grid", gap: 10 }}>
@@ -222,6 +297,7 @@ export function ChargingPage() {
                   <Link href="/gear" style={{ textDecoration: "none", color: t.green, fontSize: 13, fontWeight: 700 }}>Open Gear for more product context</Link>
                 </div>
               </div>
+              )}
 
               <FaqList
                 title="Charging questions"

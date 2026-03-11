@@ -24,6 +24,16 @@ export type CalcInput = {
   includeIncentives?: boolean;
   driveStyle?: "efficient" | "normal" | "aggressive";
   applyClimateAdjustment?: boolean;
+  // TOU
+  touOffPeakRate?: number;
+  touOffPeakHomePct?: number;
+  // Ownership extras
+  batteryReplacementCost?: number;
+  batteryReplacementYear?: number;
+  evResidualPct?: number;
+  iceResidualPct?: number;
+  evInsurancePerYear?: number;
+  iceInsurancePerYear?: number;
 };
 
 export type TCOInput = {

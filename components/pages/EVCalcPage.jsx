@@ -36,6 +36,20 @@ const DEFAULT_FORM = {
   evMaintPerYear: 800,
   iceMaintPerYear: 1500,
   scenario: "operating",
+  // TOU
+  touEnabled: false,
+  touOffPeakRate: 9,
+  touOffPeakHomePct: 80,
+  // Buying-mode extras
+  insuranceEnabled: false,
+  evInsurancePerYear: 2200,
+  iceInsurancePerYear: 1800,
+  batteryReplacementEnabled: false,
+  batteryReplacementCost: 10000,
+  batteryReplacementYear: 10,
+  depreciationEnabled: false,
+  evResidualPct: 35,
+  iceResidualPct: 40,
 };
 
 const SCENARIO_OPTIONS = [
@@ -174,6 +188,7 @@ function VerdictPanel({ result, scenario, t }) {
 }
 
 function OwnershipBreakout({ result, t }) {
+  const bd = result.breakdown;
   return (
     <SectionCard
       title="Purchase vs operating cost"
@@ -189,10 +204,25 @@ function OwnershipBreakout({ result, t }) {
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 10, marginTop: 16 }}>
-        <CostMetric label="EV fuel total" value={formatMoney(result.breakdown.evFuelTotal)} t={t} />
-        <CostMetric label="Gas fuel total" value={formatMoney(result.breakdown.iceFuelTotal)} t={t} />
-        <CostMetric label="EV maintenance total" value={formatMoney(result.breakdown.evMaintTotal)} t={t} />
-        <CostMetric label="Gas maintenance total" value={formatMoney(result.breakdown.iceMaintTotal)} t={t} />
+        <CostMetric label="EV fuel total" value={formatMoney(bd.evFuelTotal)} t={t} />
+        <CostMetric label="Gas fuel total" value={formatMoney(bd.iceFuelTotal)} t={t} />
+        <CostMetric label="EV maintenance total" value={formatMoney(bd.evMaintTotal)} t={t} />
+        <CostMetric label="Gas maintenance total" value={formatMoney(bd.iceMaintTotal)} t={t} />
+        {(bd.evInsuranceTotal > 0 || bd.iceInsuranceTotal > 0) && (
+          <>
+            <CostMetric label="EV insurance total" value={formatMoney(bd.evInsuranceTotal)} t={t} />
+            <CostMetric label="Gas insurance total" value={formatMoney(bd.iceInsuranceTotal)} t={t} />
+          </>
+        )}
+        {bd.batteryReplacementCost > 0 && (
+          <CostMetric label="Battery replacement" value={formatMoney(bd.batteryReplacementCost)} sublabel="One-time EV cost" t={t} />
+        )}
+        {(bd.evResidual > 0 || bd.iceResidual > 0) && (
+          <>
+            <CostMetric label="EV resale value" value={`-${formatMoney(bd.evResidual)}`} sublabel="Reduces net cost" t={t} />
+            <CostMetric label="Gas resale value" value={`-${formatMoney(bd.iceResidual)}`} sublabel="Reduces net cost" t={t} />
+          </>
+        )}
       </div>
     </SectionCard>
   );
@@ -371,6 +401,7 @@ function EVCalcInner() {
     setError("");
     startTransition(async () => {
       try {
+        const isBuying = form.scenario === "buying";
         const payload = {
           zip: form.zip?.trim() || undefined,
           evId: form.evId,
@@ -385,6 +416,16 @@ function EVCalcInner() {
           applyClimateAdjustment: form.applyClimateAdjustment,
           evMaintPerYear: form.evMaintPerYear,
           iceMaintPerYear: form.iceMaintPerYear,
+          // TOU
+          touOffPeakRate: form.touEnabled ? form.touOffPeakRate : undefined,
+          touOffPeakHomePct: form.touEnabled ? form.touOffPeakHomePct / 100 : undefined,
+          // Buying-mode extras
+          evInsurancePerYear: isBuying && form.insuranceEnabled ? form.evInsurancePerYear : 0,
+          iceInsurancePerYear: isBuying && form.insuranceEnabled ? form.iceInsurancePerYear : 0,
+          batteryReplacementCost: isBuying && form.batteryReplacementEnabled ? form.batteryReplacementCost : 0,
+          batteryReplacementYear: isBuying && form.batteryReplacementEnabled ? form.batteryReplacementYear : null,
+          evResidualPct: isBuying && form.depreciationEnabled ? form.evResidualPct / 100 : 0,
+          iceResidualPct: isBuying && form.depreciationEnabled ? form.iceResidualPct / 100 : 0,
         };
         const next = await runCalc(payload);
         setResult(next);
@@ -451,6 +492,50 @@ function EVCalcInner() {
               <Input label="Gas maintenance" type="number" value={form.iceMaintPerYear} onChange={(value) => updateField("iceMaintPerYear", Number(value || 0))} prefix="$" suffix="/yr" min={0} />
             </div>
           </Collapsible>
+
+          <Collapsible title="Time-of-use (TOU) plan" defaultOpen={false}>
+            <Toggle label="I charge on an off-peak rate" value={form.touEnabled} onChange={(value) => updateField("touEnabled", value)} />
+            {form.touEnabled && (
+              <div style={{ display: "grid", gap: 10, marginTop: 10 }}>
+                <Input label="Off-peak rate" type="number" value={form.touOffPeakRate} onChange={(value) => updateField("touOffPeakRate", Number(value || 0))} suffix="¢/kWh" min={0} />
+                <Slider label="Home charging that's off-peak" value={form.touOffPeakHomePct} onChange={(value) => updateField("touOffPeakHomePct", value)} min={0} max={100} step={5} suffix="%" />
+                <div style={{ fontSize: 11, color: t.textLight, lineHeight: 1.5 }}>
+                  Most EV owners charge overnight. Off-peak rates can significantly reduce your effective home charging cost.
+                </div>
+              </div>
+            )}
+          </Collapsible>
+
+          {form.scenario === "buying" && (
+            <Collapsible title="Full ownership costs" defaultOpen={false}>
+              <div style={{ display: "grid", gap: 12 }}>
+                <Toggle label="Include insurance estimates" value={form.insuranceEnabled} onChange={(value) => updateField("insuranceEnabled", value)} />
+                {form.insuranceEnabled && (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: 10 }}>
+                    <Input label="EV insurance" type="number" value={form.evInsurancePerYear} onChange={(value) => updateField("evInsurancePerYear", Number(value || 0))} prefix="$" suffix="/yr" min={0} />
+                    <Input label="Gas insurance" type="number" value={form.iceInsurancePerYear} onChange={(value) => updateField("iceInsurancePerYear", Number(value || 0))} prefix="$" suffix="/yr" min={0} />
+                  </div>
+                )}
+                <Toggle label="Include battery replacement estimate" value={form.batteryReplacementEnabled} onChange={(value) => updateField("batteryReplacementEnabled", value)} />
+                {form.batteryReplacementEnabled && (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: 10 }}>
+                    <Input label="Replacement cost" type="number" value={form.batteryReplacementCost} onChange={(value) => updateField("batteryReplacementCost", Number(value || 0))} prefix="$" min={0} />
+                    <Input label="At year" type="number" value={form.batteryReplacementYear} onChange={(value) => updateField("batteryReplacementYear", Math.min(15, Math.max(1, Number(value || 1))))} suffix=" yr" min={1} max={15} />
+                  </div>
+                )}
+                <Toggle label="Include resale value" value={form.depreciationEnabled} onChange={(value) => updateField("depreciationEnabled", value)} />
+                {form.depreciationEnabled && (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: 10 }}>
+                    <Input label="EV residual" type="number" value={form.evResidualPct} onChange={(value) => updateField("evResidualPct", Math.min(80, Math.max(0, Number(value || 0))))} suffix="% of MSRP" min={0} max={80} />
+                    <Input label="Gas residual" type="number" value={form.iceResidualPct} onChange={(value) => updateField("iceResidualPct", Math.min(80, Math.max(0, Number(value || 0))))} suffix="% of MSRP" min={0} max={80} />
+                  </div>
+                )}
+                <div style={{ fontSize: 11, color: t.textLight, lineHeight: 1.5 }}>
+                  These inputs make buying-mode results more complete. Insurance, battery replacement, and resale value all affect true total cost.
+                </div>
+              </div>
+            </Collapsible>
+          )}
 
           {error ? <div style={{ marginTop: 12, fontSize: 13, color: t.err }}>{error}</div> : null}
 

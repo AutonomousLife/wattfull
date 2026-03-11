@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useTheme } from "@/lib/ThemeContext";
 import { POWER_STATIONS, STATE_DATA } from "@/lib/data";
+import { HOME_BATTERIES, matchHomeBatteries } from "@/lib/data/homeBatteries";
 import { resolveStateFromZip } from "@/lib/geo";
 import { AssumptionGrid, FaqList, TrustStrip, VerdictPanel } from "@/components/ui";
 import { STORAGE_KEYS, getStoredJson, pushStoredHistory } from "@/lib/profileStore";
@@ -51,6 +52,8 @@ export function BatteryPage() {
     const paybackYears = annualValue > 0 ? Number((batteryCost / annualValue).toFixed(1)) : null;
     const verdictTone = paybackYears && paybackYears <= 12 ? "favorable" : paybackYears && paybackYears <= 18 ? "marginal" : "lowConfidence";
     const stationPicks = recommendStations(criticalLoadKw, Math.min(outageHours, 12));
+    // Show home battery catalog for full home-battery-sized selections (>= 8 kWh)
+    const homeBatteryPicks = batteryKwh >= 8 ? matchHomeBatteries(batteryKwh, 3) : [];
 
     const next = {
       usableKwh: Number(usableKwh.toFixed(1)),
@@ -61,6 +64,8 @@ export function BatteryPage() {
       paybackYears,
       verdictTone,
       stationPicks,
+      homeBatteryPicks,
+      showHomeBatteries: batteryKwh >= 8,
     };
 
     setResult(next);
@@ -89,7 +94,7 @@ export function BatteryPage() {
           items={[
             { label: "Economics", value: "Directional", note: "Best for screening, not final underwriting.", tone: "caution" },
             { label: "State context", value: state ? `${state} loaded` : "Fallback context", note: "Used to frame solar-pair and grid context only.", tone: state ? "neutral" : "low" },
-            { label: "Gear matches", value: "Portable backup picks", note: "Home battery catalog is not live yet, so backup gear fills the recommendation gap.", tone: "low" },
+            { label: "Gear matches", value: "Home battery catalog live", note: "Matched by capacity to your selection. Portable backup shown for smaller sizes.", tone: "positive" },
           ]}
         />
       </div>
@@ -189,31 +194,61 @@ export function BatteryPage() {
                 footer="This preview is intentionally conservative about pure financial ROI. Many battery purchases are partly about resilience, not just payback."
               />
 
-              <div style={cardStyle(t)}>
-                <div style={{ fontSize: 15, fontWeight: 800, color: t.text, marginBottom: 10 }}>Backup gear alternatives</div>
-                <div style={{ fontSize: 12, color: t.textLight, lineHeight: 1.65, marginBottom: 12 }}>
-                  Until Wattfull has a fuller home-battery catalog, these portable backup options are the closest fit for your critical-load profile.
-                </div>
-                <div style={{ display: "grid", gap: 10 }}>
-                  {result.stationPicks.map((station) => (
-                    <div key={station.id} style={{ background: t.card, borderRadius: 12, padding: "12px 14px" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
-                        <div>
-                          <div style={{ fontSize: 13, fontWeight: 700, color: t.text }}>{station.name}</div>
-                          <div style={{ fontSize: 11, color: t.textLight, marginTop: 4 }}>{station.capacity} | {station.output} | {station.battery}</div>
+              {result.showHomeBatteries ? (
+                <div style={cardStyle(t)}>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: t.text, marginBottom: 4 }}>Home battery options near this size</div>
+                  <div style={{ fontSize: 12, color: t.textLight, lineHeight: 1.65, marginBottom: 12 }}>
+                    Typical installed costs (hardware + labor). Most buyers can claim the 30% federal ITC, which would reduce these by ~30%.
+                  </div>
+                  <div style={{ display: "grid", gap: 10 }}>
+                    {result.homeBatteryPicks.map((battery) => (
+                      <div key={battery.id} style={{ background: t.card, borderRadius: 12, padding: "14px 16px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", marginBottom: 6 }}>
+                          <div>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: t.text }}>{battery.name}</div>
+                            <div style={{ fontSize: 11, color: t.textLight, marginTop: 2 }}>{battery.brand} · {battery.capacityKwh} kWh · {battery.outputKw} kW · {battery.warranty} warranty</div>
+                          </div>
+                          <div style={{ textAlign: "right", flexShrink: 0 }}>
+                            <div style={{ fontSize: 12, fontWeight: 800, color: t.green }}>{battery.priceRange}</div>
+                            <div style={{ fontSize: 10, color: t.textLight, marginTop: 2 }}>{battery.includedInverter ? "Inverter included" : "Separate inverter needed"}</div>
+                          </div>
                         </div>
-                        <div style={{ textAlign: "right" }}>
-                          <div style={{ fontSize: 12, fontWeight: 700, color: t.green }}>${station.price}</div>
-                          <div style={{ fontSize: 11, color: t.textLight, marginTop: 4 }}>{station.bestFor}</div>
+                        <div style={{ fontSize: 11, color: t.textMid }}>{battery.bestFor}</div>
+                        {battery.notes && <div style={{ fontSize: 10, color: t.textLight, marginTop: 4, fontStyle: "italic" }}>{battery.notes}</div>}
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ marginTop: 12, padding: "10px 12px", background: t.card, borderRadius: 10, fontSize: 11, color: t.textMid, lineHeight: 1.6 }}>
+                    Prices vary by region, installer, and electrical work required. Always get 2–3 quotes. The 30% federal ITC (Form 5695) applies to most residential battery installs paired with solar.
+                  </div>
+                </div>
+              ) : (
+                <div style={cardStyle(t)}>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: t.text, marginBottom: 10 }}>Portable backup options for this load</div>
+                  <div style={{ fontSize: 12, color: t.textLight, lineHeight: 1.65, marginBottom: 12 }}>
+                    For smaller capacity needs, these portable power stations are well-matched to your critical-load profile.
+                  </div>
+                  <div style={{ display: "grid", gap: 10 }}>
+                    {result.stationPicks.map((station) => (
+                      <div key={station.id} style={{ background: t.card, borderRadius: 12, padding: "12px 14px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+                          <div>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: t.text }}>{station.name}</div>
+                            <div style={{ fontSize: 11, color: t.textLight, marginTop: 4 }}>{station.capacity} | {station.output} | {station.battery}</div>
+                          </div>
+                          <div style={{ textAlign: "right" }}>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: t.green }}>${station.price}</div>
+                            <div style={{ fontSize: 11, color: t.textLight, marginTop: 4 }}>{station.bestFor}</div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
+                  <div style={{ marginTop: 12 }}>
+                    <Link href="/gear" style={{ textDecoration: "none", color: t.green, fontSize: 13, fontWeight: 700 }}>Open Gear for more backup products</Link>
+                  </div>
                 </div>
-                <div style={{ marginTop: 12 }}>
-                  <Link href="/gear" style={{ textDecoration: "none", color: t.green, fontSize: 13, fontWeight: 700 }}>Open Gear for more backup products</Link>
-                </div>
-              </div>
+              )}
 
               <FaqList
                 title="Battery questions"

@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState, useTransition } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   Area,
@@ -64,9 +64,9 @@ const DRIVE_STYLE_OPTIONS = [
 ];
 
 const VERDICT_STYLES = {
-  favorable: { color: "#10b981", label: "Financially favorable" },
-  neutral: { color: "#f59e0b", label: "Marginal" },
-  unfavorable: { color: "#ef4444", label: "Unfavorable" },
+  favorable: { color: "#10b981", label: "EV Financially Favorable" },
+  neutral: { color: "#f59e0b", label: "Roughly Neutral" },
+  unfavorable: { color: "#ef4444", label: "EV Financially Unfavorable" },
 };
 
 const EV_OPTIONS = VEHICLES.ev.map((vehicle) => ({
@@ -377,6 +377,8 @@ function EVCalcInner() {
   const [form, setForm] = useState(DEFAULT_FORM);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
+  const resultRef = useRef(null);
+  const [isDirty, setIsDirty] = useState(false);
 
   useEffect(() => {
     const stored = getStoredJson(LS_KEY, null);
@@ -390,6 +392,18 @@ function EVCalcInner() {
     setStoredJson(LS_KEY, form);
   }, [form]);
 
+  // Auto-scroll to results when they first arrive
+  useEffect(() => {
+    if (result && resultRef.current) {
+      resultRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [result]);
+
+  // Mark dirty when form changes after a calculation has been run
+  useEffect(() => {
+    if (result) setIsDirty(true);
+  }, [form]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const selectedEv = useMemo(() => VEHICLES.ev.find((vehicle) => vehicle.id === form.evId), [form.evId]);
   const selectedIce = useMemo(() => VEHICLES.ice.find((vehicle) => vehicle.id === form.iceId), [form.iceId]);
 
@@ -399,6 +413,7 @@ function EVCalcInner() {
 
   function handleCalculate() {
     setError("");
+    setIsDirty(false);
     startTransition(async () => {
       try {
         const isBuying = form.scenario === "buying";
@@ -447,6 +462,14 @@ function EVCalcInner() {
 
   return (
     <div style={{ maxWidth: 1240, margin: "0 auto", padding: "28px 20px 52px" }}>
+      <style>{`
+        .ev-calc-grid{display:grid;grid-template-columns:minmax(320px,480px) minmax(360px,1fr);gap:20px;align-items:start}
+        .ev-input-col{position:sticky;top:72px;max-height:calc(100vh - 88px);overflow-y:auto;scrollbar-width:thin;border-radius:18px}
+        @media(max-width:820px){
+          .ev-calc-grid{grid-template-columns:1fr!important}
+          .ev-input-col{position:static!important;max-height:none!important;overflow-y:visible!important}
+        }
+      `}</style>
       <div style={{ marginBottom: 20 }}>
         <h1 style={{ fontSize: 28, lineHeight: 1.1, margin: 0, color: t.text }}>EV Savings Calculator</h1>
         <p style={{ fontSize: 15, color: t.textMid, marginTop: 12, maxWidth: 760 }}>
@@ -454,11 +477,17 @@ function EVCalcInner() {
         </p>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(320px,520px) minmax(360px,1fr)", gap: 20, alignItems: "start" }}>
+      <div className="ev-calc-grid">
+        <div className="ev-input-col">
         <SectionCard title="Inputs" subtitle="Set up your location, charging mix, and vehicle pair." t={t}>
           <ScenarioToggle value={form.scenario} onChange={(value) => updateField("scenario", value)} t={t} />
 
           <Input label="ZIP code" value={form.zip} onChange={(value) => updateField("zip", value)} placeholder="72712" maxLength={5} />
+          {!form.zip && (
+            <div style={{ marginTop: -8, marginBottom: 8, fontSize: 11, color: t.textLight, display: "flex", alignItems: "center", gap: 4 }}>
+              <span style={{ color: t.green, fontWeight: 700 }}>⚡</span> Enter ZIP for local electricity &amp; gas rates
+            </div>
+          )}
 
           {result ? (
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: -2, marginBottom: 12 }}>
@@ -538,6 +567,11 @@ function EVCalcInner() {
           )}
 
           {error ? <div style={{ marginTop: 12, fontSize: 13, color: t.err }}>{error}</div> : null}
+          {result && isDirty && (
+            <div style={{ marginBottom: 8, fontSize: 12, color: t.textMid, textAlign: "center", padding: "6px 10px", background: t.card, borderRadius: 8, border: `1px dashed ${t.border}` }}>
+              Inputs changed — recalculate to update
+            </div>
+          )}
 
           <button
             onClick={handleCalculate}
@@ -559,8 +593,9 @@ function EVCalcInner() {
             {isPending ? "Calculating..." : form.scenario === "buying" ? "Calculate ownership cost" : "Calculate EV savings"}
           </button>
         </SectionCard>
+        </div>
 
-        <div style={{ display: "grid", gap: 16 }}>
+        <div ref={resultRef} style={{ display: "grid", gap: 16 }}>
           {result ? (
             <>
               <VerdictPanel result={result} scenario={form.scenario} t={t} />

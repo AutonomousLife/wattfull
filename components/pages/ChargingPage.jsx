@@ -45,6 +45,12 @@ export function ChargingPage() {
     }
   }, [stateData]);
 
+  // Auto-calculate whenever any input changes (debounced 250ms)
+  useEffect(() => {
+    const timer = setTimeout(calculate, 250);
+    return () => clearTimeout(timer);
+  }, [zip, miles, homeowner, homeAccess, installCost, chargerPrice, electricity, publicShare, touEnabled, offPeakRate, offPeakPct]); // eslint-disable-line react-hooks/exhaustive-deps
+
   function calculate() {
     const annualKwh = miles * 0.29;
     const baseHomeRate = electricity / 100;
@@ -93,7 +99,7 @@ export function ChargingPage() {
     };
 
     setResult(next);
-    pushStoredHistory(STORAGE_KEYS.chargingHistory, {
+    pushStoredHistory(STORAGE_KEYS.chargingHistory, { // eslint-disable-line
       zip,
       state,
       miles,
@@ -123,30 +129,40 @@ export function ChargingPage() {
         />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "340px 1fr", gap: 22, alignItems: "start" }}>
-        <section style={cardStyle(t)}>
+      <style>{`
+        .ch-calc-grid{display:grid;grid-template-columns:340px 1fr;gap:22px;align-items:start}
+        .ch-input-col{position:sticky;top:72px;max-height:calc(100vh - 88px);overflow-y:auto;scrollbar-width:thin;border-radius:16px}
+        @media(max-width:760px){
+          .ch-calc-grid{grid-template-columns:1fr!important}
+          .ch-input-col{position:static!important;max-height:none!important;overflow-y:visible!important}
+        }
+      `}</style>
+      <div className="ch-calc-grid">
+        <section className="ch-input-col" style={cardStyle(t)}>
           <div style={{ fontSize: 14, fontWeight: 800, color: t.text, marginBottom: 12 }}>Your setup</div>
           <div style={{ display: "grid", gap: 12 }}>
-            <label style={{ fontSize: 12, color: t.textMid }}>ZIP code
-              <input value={zip} onChange={(e) => setZip(e.target.value.replace(/\D/g, "").slice(0, 5))} style={{ width: "100%", marginTop: 6, padding: "10px 12px", borderRadius: 10, border: `1px solid ${t.borderLight}`, background: t.card, color: t.text }} />
+            <label style={{ fontSize: 12, fontWeight: 600, color: t.textMid }}>ZIP code
+              <input value={zip} onChange={(e) => setZip(e.target.value.replace(/\D/g, "").slice(0, 5))} style={{ width: "100%", marginTop: 6, padding: "10px 12px", borderRadius: 10, border: `1px solid ${t.borderLight}`, background: t.card, color: t.text, fontWeight: 400 }} />
+              {!zip && <div style={{ marginTop: 4, fontSize: 11, color: t.textLight }}>No ZIP — using US average rates</div>}
+              {zip && state && <div style={{ marginTop: 4, fontSize: 11, color: t.green, fontWeight: 700 }}>{state} rate applied</div>}
             </label>
             <Slider label="Annual miles" value={miles} onChange={setMiles} min={4000} max={40000} step={500} editable inputModes={["year","week","day"]} suffix=" / year" />
-            <label style={{ fontSize: 12, color: t.textMid }}>Electricity rate
-              <input type="number" value={electricity} onChange={(e) => setElectricity(Number(e.target.value) || 0)} style={{ width: "100%", marginTop: 6, padding: "10px 12px", borderRadius: 10, border: `1px solid ${t.borderLight}`, background: t.card, color: t.text }} />
+            <label style={{ fontSize: 12, fontWeight: 600, color: t.textMid }}>Electricity rate (¢/kWh)
+              <input type="number" value={electricity} onChange={(e) => setElectricity(Number(e.target.value) || 0)} style={{ width: "100%", marginTop: 6, padding: "10px 12px", borderRadius: 10, border: `1px solid ${t.borderLight}`, background: t.card, color: t.text, fontWeight: 400 }} />
             </label>
-            <label style={{ fontSize: 12, color: t.textMid }}>Install cost
-              <input type="number" value={installCost} onChange={(e) => setInstallCost(Number(e.target.value) || 0)} style={{ width: "100%", marginTop: 6, padding: "10px 12px", borderRadius: 10, border: `1px solid ${t.borderLight}`, background: t.card, color: t.text }} />
+            <label style={{ fontSize: 12, fontWeight: 600, color: t.textMid }}>Install cost ($)
+              <input type="number" value={installCost} onChange={(e) => setInstallCost(Number(e.target.value) || 0)} style={{ width: "100%", marginTop: 6, padding: "10px 12px", borderRadius: 10, border: `1px solid ${t.borderLight}`, background: t.card, color: t.text, fontWeight: 400 }} />
             </label>
-            <label style={{ fontSize: 12, color: t.textMid }}>Charger hardware cost
-              <input type="number" value={chargerPrice} onChange={(e) => setChargerPrice(Number(e.target.value) || 0)} style={{ width: "100%", marginTop: 6, padding: "10px 12px", borderRadius: 10, border: `1px solid ${t.borderLight}`, background: t.card, color: t.text }} />
+            <label style={{ fontSize: 12, fontWeight: 600, color: t.textMid }}>Charger hardware cost ($)
+              <input type="number" value={chargerPrice} onChange={(e) => setChargerPrice(Number(e.target.value) || 0)} style={{ width: "100%", marginTop: 6, padding: "10px 12px", borderRadius: 10, border: `1px solid ${t.borderLight}`, background: t.card, color: t.text, fontWeight: 400 }} />
             </label>
-            <label style={{ fontSize: 12, color: t.textMid }}>Current public charging share
+            <label style={{ fontSize: 12, fontWeight: 600, color: t.textMid }}>Current public charging share
               <input type="range" min={0} max={90} step={5} value={publicShare} onChange={(e) => setPublicShare(Number(e.target.value))} style={{ width: "100%", marginTop: 8, accentColor: "#10b981" }} />
               <div style={{ fontSize: 12, color: t.text, fontWeight: 700 }}>{publicShare}%</div>
             </label>
             <div style={{ borderTop: `1px solid ${t.borderLight}`, paddingTop: 10 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-                <span style={{ fontSize: 12, color: t.textMid }}>Time-of-use (TOU) plan</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: t.textMid }}>Time-of-use (TOU) plan</span>
                 <button onClick={() => setTouEnabled(!touEnabled)} style={{ padding: "4px 10px", borderRadius: 8, border: `1px solid ${touEnabled ? "#10b981" : t.borderLight}`, background: touEnabled ? "#d1fae5" : t.card, color: touEnabled ? "#065f46" : t.textMid, fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
                   {touEnabled ? "On" : "Off"}
                 </button>
@@ -171,7 +187,9 @@ export function ChargingPage() {
               <button onClick={() => setHomeAccess(true)} style={{ flex: 1, padding: "10px 12px", borderRadius: 10, border: `1px solid ${homeAccess ? "#10b981" : t.borderLight}`, background: homeAccess ? "#d1fae5" : t.card, color: homeAccess ? "#065f46" : t.text }}>Dedicated spot</button>
               <button onClick={() => setHomeAccess(false)} style={{ flex: 1, padding: "10px 12px", borderRadius: 10, border: `1px solid ${!homeAccess ? "#10b981" : t.borderLight}`, background: !homeAccess ? "#d1fae5" : t.card, color: !homeAccess ? "#065f46" : t.text }}>No home spot</button>
             </div>
-            <button onClick={calculate} style={{ padding: "12px 14px", borderRadius: 12, border: "none", background: t.green, color: "#fff", fontWeight: 700, cursor: "pointer" }}>Evaluate charging setup</button>
+            {result && (
+              <div style={{ fontSize: 11, color: t.textLight, textAlign: "center", paddingTop: 4 }}>Updates automatically as you change inputs</div>
+            )}
           </div>
         </section>
 

@@ -167,27 +167,34 @@ export function ChatWidget({ navigate }) {
     return (
       <button
         onClick={() => setOpen(true)}
+        aria-label="Ask Wattbot — energy Q&A assistant"
+        title="Ask Wattbot"
         style={{
           position: "fixed",
           bottom: 24,
           right: 24,
-          width: 56,
-          height: 56,
-          borderRadius: 28,
+          height: 44,
+          borderRadius: 22,
+          padding: "0 18px 0 12px",
           background: t.green,
           color: "#fff",
           border: "none",
           cursor: "pointer",
-          fontSize: 24,
+          fontSize: 14,
+          fontWeight: 700,
+          letterSpacing: "-.01em",
           boxShadow: `0 4px 20px ${t.shadow}`,
           zIndex: 200,
           display: "flex",
           alignItems: "center",
-          justifyContent: "center",
-          transition: "transform .2s",
+          gap: 7,
+          transition: "transform .15s, box-shadow .15s",
         }}
+        onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = `0 8px 28px ${t.shadow}`; }}
+        onMouseLeave={(e) => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = `0 4px 20px ${t.shadow}`; }}
       >
-        ⚡
+        <span style={{ fontSize: 16 }}>⚡</span>
+        <span>Ask Wattbot</span>
       </button>
     );
 

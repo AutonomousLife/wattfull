@@ -4,6 +4,8 @@ import { useTheme } from "@/lib/ThemeContext";
 import { Badge } from "@/components/ui";
 import { REFERRALS } from "@/lib/data/referrals";
 
+const KOFI_URL = "https://ko-fi.com/wattfull"; // ← swap in your Ko-fi URL
+
 const TYPES = ["Tesla", "SunPower", "Enphase", "Other"];
 
 function formatReferral(referral) {
@@ -162,6 +164,20 @@ export function ReferralPage() {
             No approved referrals yet in this category.
           </div>
         ) : null}
+      </div>
+
+      <div style={{ maxWidth: 760, marginBottom: 24, padding: "14px 18px", background: t.accentLight, border: `1px solid ${t.accent}22`, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+        <p style={{ margin: 0, fontSize: 13, color: t.textMid, lineHeight: 1.6 }}>
+          If a code here saved you money, keeping this site free &amp; ad-light takes a little effort — a coffee goes a long way.
+        </p>
+        <a
+          href={KOFI_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ flexShrink: 0, fontSize: 12, fontWeight: 700, padding: "8px 14px", borderRadius: 9, background: t.white, border: `1px solid ${t.border}`, color: t.textMid, textDecoration: "none", whiteSpace: "nowrap" }}
+        >
+          ☕ Buy me a coffee
+        </a>
       </div>
 
       <div style={{ background: t.white, border: `1px solid ${t.borderLight}`, borderRadius: 18, padding: 24, maxWidth: 560 }}>

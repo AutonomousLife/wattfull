@@ -106,7 +106,25 @@ export function ReferralPage() {
         Verified community referral codes for Tesla, solar brands, and energy products. Approved submissions appear here after review.
       </p>
 
-      <div style={{ display: "flex", gap: 8, marginTop: 22, marginBottom: 20, flexWrap: "wrap" }}>
+      <div style={{ maxWidth: 760, marginBottom: 20, padding: "16px 20px", background: t.warnBg, border: `1.5px solid ${t.warn}44`, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+        <p style={{ margin: 0, fontSize: 13, color: t.textMid, lineHeight: 1.6 }}>
+          If this page gave you value, it would mean a lot — I built and maintain this in my spare time.
+        </p>
+        <a
+          href={KOFI_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ flexShrink: 0, textDecoration: "none" }}
+        >
+          <img
+            src="https://ko-fi.com/img/githubbutton_sm.svg"
+            alt="Buy Me a Coffee at ko-fi.com"
+            style={{ height: 36, display: "block" }}
+          />
+        </a>
+      </div>
+
+      <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
         {["all", ...TYPES].map((item) => {
           const active = filter === item;
           return (
@@ -164,20 +182,6 @@ export function ReferralPage() {
             No approved referrals yet in this category.
           </div>
         ) : null}
-      </div>
-
-      <div style={{ maxWidth: 760, marginBottom: 24, padding: "14px 18px", background: t.accentLight, border: `1px solid ${t.accent}22`, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
-        <p style={{ margin: 0, fontSize: 13, color: t.textMid, lineHeight: 1.6 }}>
-          If this page gave you value, it would mean a lot — I built and maintain this in my spare time.
-        </p>
-        <a
-          href={KOFI_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ flexShrink: 0, fontSize: 12, fontWeight: 700, padding: "8px 14px", borderRadius: 9, background: t.white, border: `1px solid ${t.border}`, color: t.textMid, textDecoration: "none", whiteSpace: "nowrap" }}
-        >
-          ☕ Buy me a coffee
-        </a>
       </div>
 
       <div style={{ background: t.white, border: `1px solid ${t.borderLight}`, borderRadius: 18, padding: 24, maxWidth: 560 }}>

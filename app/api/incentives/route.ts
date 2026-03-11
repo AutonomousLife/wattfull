@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
     items.push({
       id: 2,
       type: "state",
-      jurisdiction: state,
+      jurisdiction: state!,
       amount: stateCredit,
       amountType: "flat",
       eligibilityNotes: "State-level EV incentive — program rules vary. Verify current availability.",

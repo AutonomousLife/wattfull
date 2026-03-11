@@ -140,7 +140,8 @@ function ScenarioToggle({ value, onChange, t }) {
 }
 
 function VerdictPanel({ result, scenario, t }) {
-  const style = VERDICT_STYLES[result.analysis.verdictType] ?? VERDICT_STYLES.neutral;
+  const activeVerdictType = scenario === "buying" ? result.analysis.ownershipVerdictType : result.analysis.verdictType;
+  const style = VERDICT_STYLES[activeVerdictType] ?? VERDICT_STYLES.neutral;
   const headline = scenario === "buying"
     ? result.verdict
     : result.operating.totalSavings >= 0
@@ -177,7 +178,7 @@ function VerdictPanel({ result, scenario, t }) {
         <div style={{ display: "grid", gap: 8 }}>
           {reasons.slice(0, 5).map((reason) => (
             <div key={reason} style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 13, color: t.textMid }}>
-              <span style={{ color: style.color, fontWeight: 900, lineHeight: 1 }}>â€¢</span>
+              <span style={{ color: style.color, fontWeight: 900, lineHeight: 1 }}>•</span>
               <span>{reason}</span>
             </div>
           ))}

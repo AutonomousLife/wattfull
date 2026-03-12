@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export default function AdminActions({ id }: { id: number }) {
+export default function AdminActions({ id, deleteOnly = false }: { id: number; deleteOnly?: boolean }) {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState<string | null>(null);
 
@@ -27,6 +27,18 @@ export default function AdminActions({ id }: { id: number }) {
       <span style={{ color: done === "approve" ? "#4ade80" : "#f87171", fontSize: 13, fontWeight: 600 }}>
         {done === "approve" ? "Approved" : done === "reject" ? "Rejected" : "Deleted"}
       </span>
+    );
+  }
+
+  if (deleteOnly) {
+    return (
+      <button
+        onClick={() => act("delete")}
+        disabled={loading}
+        style={{ padding: "6px 12px", borderRadius: 6, background: "transparent", color: "#f87171", border: "1px solid #f87171", fontSize: 13, cursor: loading ? "wait" : "pointer" }}
+      >
+        {loading ? "..." : "Delete"}
+      </button>
     );
   }
 

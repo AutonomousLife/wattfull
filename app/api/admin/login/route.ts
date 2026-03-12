@@ -4,9 +4,19 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
-    const { password } = await req.json();
-    const adminPassword = process.env.ADMIN_PASSWORD ?? "admin";
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    if (!adminPassword) {
+      return NextResponse.json({ success: false, error: "Admin not configured" }, { status: 503 });
+    }
 
+    // Basic CSRF: require request to originate from same host
+    const origin = req.headers.get("origin");
+    const host = req.headers.get("host");
+    if (origin && host && new URL(origin).host !== host) {
+      return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
+    }
+
+    const { password } = await req.json();
     if (String(password ?? "") !== adminPassword) {
       return NextResponse.json({ success: false, error: "Invalid password" }, { status: 401 });
     }

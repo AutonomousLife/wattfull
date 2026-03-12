@@ -32,13 +32,12 @@ export default async function AdminPage() {
   }
 
   try {
-    const [pendingLinks, allLinks, emailCount, flaggedVotes, dataRows, approvedCount] = await Promise.all([
+    const [pendingLinks, approvedLinks, emailCount, flaggedVotes, dataRows] = await Promise.all([
       db.select().from(userLinks).where(eq(userLinks.status, "pending")).orderBy(desc(userLinks.createdAt)),
-      db.select().from(userLinks),
+      db.select().from(userLinks).where(eq(userLinks.status, "approved")).orderBy(desc(userLinks.createdAt)),
       db.select({ c: count() }).from(emailSubscribers),
       db.select().from(votes).where(eq(votes.flagged, true)).orderBy(desc(votes.createdAt)).limit(50),
       db.select().from(dataStatus),
-      db.select({ c: count() }).from(userLinks).where(eq(userLinks.status, "approved")),
     ]);
 
     const staleDatasets = dataRows.filter((row) => {
@@ -52,7 +51,7 @@ export default async function AdminPage() {
     }, {} as Record<string, number>);
     const cards = [
       card("Pending links", String(pendingLinks.length), "Needs review", pendingLinks.length ? "#f59e0b" : "#10b981"),
-      card("Approved links", String(approvedCount[0]?.c ?? 0), "Live community inventory"),
+      card("Approved links", String(approvedLinks.length), "Live community inventory"),
       card("Email subscribers", String(emailCount[0]?.c ?? 0), "Stored in newsletter table"),
       card("Stale datasets", String(staleDatasets.length), "Rows older than freshness threshold", staleDatasets.length ? "#ef4444" : "#10b981"),
     ];
@@ -156,6 +155,28 @@ export default async function AdminPage() {
                       <div style={{ color: "#64748b", fontSize: 11, marginTop: 6 }}>Submitted {formatDate(link.createdAt)} | Reports: {link.reportCount}</div>
                     </div>
                     <AdminActions id={link.id} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </Section>
+
+          <Section title={`Approved Community Links (${approvedLinks.length})`}>
+            {approvedLinks.length === 0 ? (
+              <p style={{ color: "#94a3b8" }}>No approved codes yet.</p>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {approvedLinks.map((link) => (
+                  <div key={link.id} style={{ background: "#111827", borderRadius: 12, padding: "14px 18px", display: "flex", gap: 16, alignItems: "center", border: "1px solid #1f2937" }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 700, marginBottom: 2 }}>{link.title}</div>
+                      <div style={{ color: "#94a3b8", fontSize: 13 }}>
+                        <b>{link.category}</b> | <code style={{ background: "#0f172a", padding: "1px 5px", borderRadius: 3 }}>{link.code}</code>
+                        {link.reportCount ? <span style={{ color: "#f59e0b", marginLeft: 10 }}>⚑ {link.reportCount} report{link.reportCount !== 1 ? "s" : ""}</span> : null}
+                      </div>
+                      <div style={{ color: "#64748b", fontSize: 11, marginTop: 4 }}>Approved {formatDate(link.reviewedAt)}</div>
+                    </div>
+                    <AdminActions id={link.id} deleteOnly />
                   </div>
                 ))}
               </div>

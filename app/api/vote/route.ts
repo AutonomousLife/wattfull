@@ -14,8 +14,9 @@ const BURST_THRESHOLD = 5; // 5+ votes on same item in 1hr → flag
  */
 export async function POST(req: NextRequest) {
   try {
+    const salt = process.env.VOTE_SALT ?? process.env.ADMIN_PASSWORD ?? "";
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
-    const ipHash = await sha256(ip + (process.env.ADMIN_PASSWORD ?? "wf-vote"));
+    const ipHash = await sha256(ip + salt);
 
     // Device hash from cookie (or generate new one)
     let deviceId = req.cookies.get(COOKIE_NAME)?.value;
@@ -24,7 +25,7 @@ export async function POST(req: NextRequest) {
       deviceId = crypto.randomUUID();
       newCookie = true;
     }
-    const deviceHash = await sha256(deviceId + (process.env.ADMIN_PASSWORD ?? "wf-vote"));
+    const deviceHash = await sha256(deviceId + salt);
 
     const body = await req.json();
     const { itemType, itemId, direction } = body;

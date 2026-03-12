@@ -26,6 +26,17 @@ import {
   Plus, Minus, Search, Filter, SlidersHorizontal,
   Lightbulb, Wrench, Truck, Wallet, CreditCard,
   LayoutGrid, SquareDashed,
+  // Icons used in PROCESS / WHY_WATTFULL / StatPill
+  FileSearch,
+  CircleArrowRight,  // lucide >=0.396 renamed ArrowRightCircle → CircleArrowRight
+  Compass,
+  Fuel,
+  Target,
+  Navigation,
+  Route,
+  CheckCircle2,
+  Sparkles,
+  FileText,
 } from "lucide-react";
 
 const ICONS = {
@@ -43,6 +54,18 @@ const ICONS = {
   Plus, Minus, Search, Filter, SlidersHorizontal,
   Lightbulb, Wrench, Truck, Wallet, CreditCard,
   LayoutGrid, SquareDashed,
+  // New
+  FileSearch,
+  ArrowRightCircle: CircleArrowRight,  // alias for backwards compat
+  CircleArrowRight,
+  Compass,
+  Fuel,
+  Target,
+  Navigation,
+  Route,
+  CheckCircle2,
+  Sparkles,
+  FileText,
 };
 
 export function Icon({

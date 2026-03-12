@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTheme } from "@/lib/ThemeContext";
 import { Badge } from "@/components/ui";
+import VoteBadge from "@/components/ui/VoteBadge";
 import { REFERRALS } from "@/lib/data/referrals";
 
 const KOFI_URL = "https://ko-fi.com/wattfull"; // ← swap in your Ko-fi URL
@@ -23,11 +24,13 @@ function formatReferral(referral) {
 export function ReferralPage() {
   const { t } = useTheme();
   const [filter, setFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("date");
   const [copied, setCopied] = useState(null);
   const [referrals, setReferrals] = useState(REFERRALS.map(formatReferral));
   const [form, setForm] = useState({ type: "Tesla", name: "", code: "", desc: "", website: "" });
   const [submitState, setSubmitState] = useState("idle");
   const [submitError, setSubmitError] = useState("");
+  const [reported, setReported] = useState({});
 
   useEffect(() => {
     fetch("/api/community")
@@ -48,13 +51,32 @@ export function ReferralPage() {
     const items = normalizedFilter === "all"
       ? referrals
       : referrals.filter((item) => String(item.type).toLowerCase() === normalizedFilter);
-    return [...items].sort((a, b) => String(b.date).localeCompare(String(a.date)));
-  }, [filter, referrals]);
+    return [...items].sort((a, b) => {
+      if (sortBy === "votes") return (b.upvotes ?? 0) - (a.upvotes ?? 0);
+      return String(b.date).localeCompare(String(a.date));
+    });
+  }, [filter, sortBy, referrals]);
 
   function copyCode(code) {
     navigator.clipboard.writeText(code);
     setCopied(code);
     setTimeout(() => setCopied(null), 1800);
+  }
+
+  async function reportExpired(referral) {
+    const key = referral.id ?? referral.code;
+    if (reported[key]) return;
+    setReported((prev) => ({ ...prev, [key]: "loading" }));
+    try {
+      await fetch("/api/community/report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: referral.id }),
+      });
+    } catch {
+      // best-effort
+    }
+    setReported((prev) => ({ ...prev, [key]: "done" }));
   }
 
   async function handleSubmit(event) {
@@ -124,7 +146,7 @@ export function ReferralPage() {
         </a>
       </div>
 
-      <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap", alignItems: "center" }}>
         {["all", ...TYPES].map((item) => {
           const active = filter === item;
           return (
@@ -148,6 +170,27 @@ export function ReferralPage() {
           );
         })}
       </div>
+      <div style={{ display: "flex", gap: 8, marginBottom: 20, alignItems: "center" }}>
+        <span style={{ fontSize: 12, color: t.textLight }}>Sort:</span>
+        {[{ val: "date", label: "Newest" }, { val: "votes", label: "Most voted" }].map(({ val, label }) => (
+          <button
+            key={val}
+            onClick={() => setSortBy(val)}
+            style={{
+              padding: "5px 12px",
+              borderRadius: 8,
+              fontSize: 12,
+              fontWeight: sortBy === val ? 700 : 500,
+              background: sortBy === val ? t.card : "transparent",
+              color: sortBy === val ? t.text : t.textLight,
+              border: `1px solid ${sortBy === val ? t.border : "transparent"}`,
+              cursor: "pointer",
+            }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
 
       <div style={{ display: "grid", gap: 12, maxWidth: 760, marginBottom: 28 }}>
         {filtered.map((referral) => (
@@ -169,6 +212,21 @@ export function ReferralPage() {
                     Visit link
                   </a>
                 ) : null}
+                <VoteBadge itemType="link" itemId={String(referral.id ?? referral.code)} />
+                {(() => {
+                  const key = referral.id ?? referral.code;
+                  const state = reported[key];
+                  if (state === "done") return <span style={{ fontSize: 11, color: t.textLight }}>Thanks for the report</span>;
+                  return (
+                    <button
+                      onClick={() => reportExpired(referral)}
+                      disabled={state === "loading"}
+                      style={{ fontSize: 11, padding: "5px 10px", borderRadius: 8, border: `1px solid ${t.border}`, background: "transparent", color: t.textLight, cursor: state === "loading" ? "wait" : "pointer" }}
+                    >
+                      Code no longer works?
+                    </button>
+                  );
+                })()}
               </div>
             </div>
             <div style={{ minWidth: 88, textAlign: "right" }}>

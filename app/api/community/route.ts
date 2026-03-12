@@ -75,7 +75,8 @@ export async function POST(req: NextRequest) {
       req.headers.get("x-real-ip")?.trim() ??
       "unknown";
     const agent = req.headers.get("user-agent")?.slice(0, 120) ?? "unknown-agent";
-    const ipHash = await sha256(`${ip}|${agent}|${process.env.ADMIN_PASSWORD ?? "wf"}`);
+    const salt = process.env.VOTE_SALT ?? process.env.ADMIN_PASSWORD ?? "";
+    const ipHash = await sha256(`${ip}|${agent}|${salt}`);
 
     if (isRateLimited(ipHash)) {
       return NextResponse.json({ error: "Too many submissions. Try again later." }, { status: 429 });

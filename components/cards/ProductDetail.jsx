@@ -4,6 +4,37 @@ import { useTheme } from "@/lib/ThemeContext";
 import { Stars } from "@/components/ui";
 import { productHref } from "@/lib/helpers";
 
+function ProductImage({ product, t }) {
+  const direct = product.image ?? null;
+  const proxy = product.asin ? `/api/img?asin=${product.asin}` : null;
+  const [src, setSrc] = useState(direct ?? proxy);
+  const [failed, setFailed] = useState(!direct && !proxy);
+
+  // If there's no src candidate at all, render placeholder immediately
+  if (failed || !src) {
+    return (
+      <div style={{ width: "100%", height: 200, background: t.card, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <span style={{ fontSize: 40 }}>📦</span>
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={product.name}
+      onError={() => {
+        if (src === direct && proxy) {
+          setSrc(proxy);
+        } else {
+          setFailed(true);
+        }
+      }}
+      style={{ width: "100%", height: 200, objectFit: "contain", borderRadius: 10, background: t.card }}
+    />
+  );
+}
+
 const SAVED_GEAR_KEY = "wattfull_saved_gear";
 
 export function ProductDetail({ product, type }) {
@@ -57,6 +88,9 @@ export function ProductDetail({ product, type }) {
   return (
     <div style={{ background: t.white, border: `1px solid ${t.borderLight}`, borderRadius: 16, overflow: "hidden" }}>
       <div style={{ padding: 24, borderBottom: `1px solid ${t.borderLight}` }}>
+        <div style={{ marginBottom: 16 }}>
+          <ProductImage key={product.id} product={product} t={t} />
+        </div>
         <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
           <div>
             <div style={{ fontSize: 12, fontWeight: 600, color: t.green, textTransform: "uppercase", letterSpacing: ".05em" }}>{product.brand}</div>

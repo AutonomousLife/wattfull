@@ -7,7 +7,8 @@ import { db, userLinks, emailSubscribers, dataStatus } from "@/lib/db/index";
 import { eq } from "drizzle-orm";
 
 function isAuthorized(req: NextRequest): boolean {
-  const password = process.env.ADMIN_PASSWORD ?? "admin";
+  const password = process.env.ADMIN_PASSWORD;
+  if (!password) return false;
   const auth = req.headers.get("authorization") ?? "";
   const cookie = req.cookies.get("wf_admin")?.value ?? "";
   return auth === `Bearer ${password}` || cookie === password;

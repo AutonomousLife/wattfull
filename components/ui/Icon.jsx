@@ -34,7 +34,7 @@ import {
   Target,
   Navigation,
   Route,
-  CheckCircle2,
+  CircleCheck,
   Sparkles,
   FileText,
 } from "lucide-react";
@@ -63,7 +63,7 @@ const ICONS = {
   Target,
   Navigation,
   Route,
-  CheckCircle2,
+  CircleCheck,
   Sparkles,
   FileText,
 };

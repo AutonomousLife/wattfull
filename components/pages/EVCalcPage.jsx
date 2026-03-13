@@ -16,15 +16,33 @@ import { useTheme } from "@/lib/ThemeContext";
 import { Input, Select, Slider, Toggle, Collapsible } from "@/components/ui";
 import { POPULAR_EV_IDS, POPULAR_ICE_IDS, VEHICLES, VEHICLE_YEARS } from "@/lib/data";
 import {
-  TeslaModel3, TeslaModelY, HyundaiIoniq5, ChevyEquinoxEV, FordMachE, VWID4,
-  ToyotaCamry, HondaCivic, ToyotaRAV4, HondaCRV, ToyotaCorolla,
+  TeslaModel3, TeslaModelY,
+  HyundaiIoniq5, HyundaiIoniq6, HyundaiTucson,
+  ChevyEquinoxEV, ChevySilverado,
+  FordMachE, F150Lightning, F150Gas,
+  VWID4, BMWI4, Polestar2,
+  KiaEV6, KiaEV9, KiaSorento,
+  NissanAriya, NissanAltima,
+  HondaPrologue, HondaAccord, HondaCivic, HondaCRV,
+  CadillacLyriq,
+  ToyotaCamry, ToyotaRAV4, ToyotaCorolla, ToyotaPrius, ToyotaHighlander, ToyotaTacoma,
+  MazdaCX5,
   vehicleIllustrations,
 } from "@/components/illustrations/vehicles";
 import { ShareBadge } from "@/components/widgets/ShareBadge";
 
 const ILLUS_COMPONENTS = {
-  TeslaModel3, TeslaModelY, HyundaiIoniq5, ChevyEquinoxEV, FordMachE, VWID4,
-  ToyotaCamry, HondaCivic, ToyotaRAV4, HondaCRV, ToyotaCorolla,
+  TeslaModel3, TeslaModelY,
+  HyundaiIoniq5, HyundaiIoniq6, HyundaiTucson,
+  ChevyEquinoxEV, ChevySilverado,
+  FordMachE, F150Lightning, F150Gas,
+  VWID4, BMWI4, Polestar2,
+  KiaEV6, KiaEV9, KiaSorento,
+  NissanAriya, NissanAltima,
+  HondaPrologue, HondaAccord, HondaCivic, HondaCRV,
+  CadillacLyriq,
+  ToyotaCamry, ToyotaRAV4, ToyotaCorolla, ToyotaPrius, ToyotaHighlander, ToyotaTacoma,
+  MazdaCX5,
 };
 
 function VehicleIllus({ vehicleId, size = 48 }) {

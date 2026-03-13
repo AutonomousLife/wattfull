@@ -111,7 +111,10 @@ export const vehicleIllustrations = {
   "4runner": "ToyotaHighlander",
   // Mazda CX-5 / Mazda 3
   cx5: "MazdaCX5", mazda3: "NissanAltima",
-  // Nissan Altima (duplicate key consolidated above via altima)
-  // Grand Cherokee / 4Runner
+  // Grand Cherokee / Telluride / Outback / Escape
   grandcherokee: "ToyotaHighlander",
+  // New models
+  dodgeev: "KiaEV6",
+  volvex40: "NissanAriya",
+  porschemacanev: "CadillacLyriq",
 };

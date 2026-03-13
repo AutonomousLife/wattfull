@@ -10,16 +10,25 @@ export { ToyotaRAV4 } from "./ToyotaRAV4";
 export { HondaCRV } from "./HondaCRV";
 export { ToyotaCorolla } from "./ToyotaCorolla";
 
+// Keyed by base vehicle ID (no year suffix). Look up with: id.replace(/-\d{4}$/, "")
 export const vehicleIllustrations = {
-  model3lr: "TeslaModel3",
-  modely: "TeslaModelY",
-  ioniq5: "HyundaiIoniq5",
-  bolt: "ChevyEquinox",
-  mache: "FordMachE",
-  id4: "VWID4",
+  // Tesla Model 3 variants
+  model3rwd: "TeslaModel3", model3lr: "TeslaModel3", model3perf: "TeslaModel3",
+  // Tesla Model Y variants
+  modelyrwd: "TeslaModelY", modely: "TeslaModelY", modelyperf: "TeslaModelY",
+  // Hyundai Ioniq 5 variants
+  ioniq5rwd: "HyundaiIoniq5", ioniq5: "HyundaiIoniq5", "ioniq5n": "HyundaiIoniq5",
+  // Chevy (old bolt id + new equinox ev id)
+  bolt: "ChevyEquinox", equinoxev: "ChevyEquinox", blazerev: "ChevyEquinox",
+  // Ford Mach-E variants
+  mache: "FordMachE", macheawd: "FordMachE",
+  // VW ID.4 variants
+  id4: "VWID4", id4awd: "VWID4",
+  // Toyota
   camry: "ToyotaCamry",
-  civic: "HondaCivic",
-  rav4: "ToyotaRAV4",
-  crv: "HondaCRV",
+  rav4: "ToyotaRAV4", rav4hybrid: "ToyotaRAV4",
   corolla: "ToyotaCorolla",
+  // Honda
+  civic: "HondaCivic",
+  crv: "HondaCRV",
 };

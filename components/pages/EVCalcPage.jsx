@@ -15,7 +15,24 @@ import {
 import { useTheme } from "@/lib/ThemeContext";
 import { Input, Select, Slider, Toggle, Collapsible } from "@/components/ui";
 import { POPULAR_EV_IDS, POPULAR_ICE_IDS, VEHICLES, VEHICLE_YEARS } from "@/lib/data";
+import {
+  TeslaModel3, TeslaModelY, HyundaiIoniq5, ChevyEquinox, FordMachE, VWID4,
+  ToyotaCamry, HondaCivic, ToyotaRAV4, HondaCRV, ToyotaCorolla,
+  vehicleIllustrations,
+} from "@/components/illustrations/vehicles";
 import { ShareBadge } from "@/components/widgets/ShareBadge";
+
+const ILLUS_COMPONENTS = {
+  TeslaModel3, TeslaModelY, HyundaiIoniq5, ChevyEquinox, FordMachE, VWID4,
+  ToyotaCamry, HondaCivic, ToyotaRAV4, HondaCRV, ToyotaCorolla,
+};
+
+function VehicleIllus({ vehicleId, size = 48 }) {
+  const baseId = vehicleId.replace(/-\d{4}$/, "");
+  const name = vehicleIllustrations[baseId];
+  const Comp = name ? ILLUS_COMPONENTS[name] : null;
+  return Comp ? <Comp size={size} /> : null;
+}
 import { runCalc } from "@/app/actions/calc";
 import DataFreshness from "@/components/ui/DataFreshness";
 import { STORAGE_KEYS, getStoredJson, pushStoredHistory, setStoredJson } from "@/lib/profileStore";
@@ -23,7 +40,7 @@ import { STORAGE_KEYS, getStoredJson, pushStoredHistory, setStoredJson } from "@
 const LS_KEY = STORAGE_KEYS.evCalc;
 const DEFAULT_FORM = {
   zip: "",
-  modelYear: VEHICLE_YEARS[1] ?? 2024,
+  modelYear: "all",
   evId: POPULAR_EV_IDS[0] ?? VEHICLES.ev[0]?.id ?? "",
   iceId: POPULAR_ICE_IDS[0] ?? VEHICLES.ice[0]?.id ?? "",
   milesPerYear: 12000,
@@ -70,18 +87,19 @@ const VERDICT_STYLES = {
   unfavorable: { color: "#ef4444", label: "EV Financially Unfavorable" },
 };
 
-const YEAR_OPTIONS = VEHICLE_YEARS.map((y) => ({ value: String(y), label: String(y) }));
+const YEAR_OPTIONS = [
+  { value: "all", label: "All years" },
+  ...VEHICLE_YEARS.map((y) => ({ value: String(y), label: String(y) })),
+];
 
 function evOptionsForYear(year) {
-  const filtered = VEHICLES.ev.filter((v) => !v.year || v.year === year);
-  const list = filtered.length ? filtered : VEHICLES.ev.filter((v) => v.year === VEHICLE_YEARS[0]);
-  return list.map((v) => ({ value: v.id, label: `${v.name} — ${v.kwh} kWh/100mi` }));
+  const list = year === "all" ? VEHICLES.ev : VEHICLES.ev.filter((v) => v.year === Number(year));
+  return (list.length ? list : VEHICLES.ev).map((v) => ({ value: v.id, label: `${v.name} — ${v.kwh} kWh/100mi` }));
 }
 
 function iceOptionsForYear(year) {
-  const filtered = VEHICLES.ice.filter((v) => !v.year || v.year === year);
-  const list = filtered.length ? filtered : VEHICLES.ice.filter((v) => v.year === VEHICLE_YEARS[0]);
-  return list.map((v) => ({ value: v.id, label: `${v.name} — ${v.mpg} MPG` }));
+  const list = year === "all" ? VEHICLES.ice : VEHICLES.ice.filter((v) => v.year === Number(year));
+  return (list.length ? list : VEHICLES.ice).map((v) => ({ value: v.id, label: `${v.name} — ${v.mpg} MPG` }));
 }
 
 function formatMoney(value) {
@@ -359,26 +377,30 @@ function Rankings({ result, form, setForm, t }) {
       <div style={{ display: "grid", gap: 8 }}>
         {top.map((vehicle, index) => {
           const selected = vehicle.id === form.evId;
+          const hasIllus = vehicleIllustrations[vehicle.id.replace(/-\d{4}$/, "")];
           return (
             <button
               key={vehicle.id}
               onClick={() => setForm((current) => ({ ...current, evId: vehicle.id }))}
               style={{
                 display: "grid",
-                gridTemplateColumns: "36px 1fr auto",
+                gridTemplateColumns: hasIllus ? "56px 1fr auto" : "36px 1fr auto",
                 alignItems: "center",
                 gap: 10,
-                padding: "12px 14px",
+                padding: "10px 14px",
                 borderRadius: 12,
                 border: `1.5px solid ${selected ? t.green : t.borderLight}`,
                 background: selected ? "rgba(16,185,129,0.08)" : t.card,
                 cursor: "pointer",
               }}
             >
-              <div style={{ width: 28, height: 28, borderRadius: 14, background: selected ? t.green : t.border, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800 }}>{index + 1}</div>
+              {hasIllus
+                ? <div style={{ display: "flex", alignItems: "center", justifyContent: "center", opacity: selected ? 1 : 0.7 }}><VehicleIllus vehicleId={vehicle.id} size={52} /></div>
+                : <div style={{ width: 28, height: 28, borderRadius: 14, background: selected ? t.green : t.border, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800 }}>{index + 1}</div>
+              }
               <div style={{ textAlign: "left" }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: t.text }}>{vehicle.name}</div>
-                <div style={{ fontSize: 12, color: t.textLight }}>{vehicle.kwh} kWh/100mi</div>
+                <div style={{ fontSize: 12, color: t.textLight }}>{vehicle.kwh} kWh/100mi · #{index + 1} pick</div>
               </div>
               <div style={{ fontSize: 13, fontWeight: 800, color: vehicle.annSavings >= 0 ? "#10b981" : "#ef4444" }}>{formatSignedMoney(vehicle.annSavings)}/yr</div>
             </button>

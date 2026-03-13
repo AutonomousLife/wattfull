@@ -285,7 +285,7 @@ function VehiclePhoto({ vehicleId, name, height = 140, flip = false, accentColor
       setLoading(false);
       return;
     }
-    const article = WIKI_ARTICLES[vehicleId];
+    const article = WIKI_ARTICLES[vehicleId.replace(/-\d{4}$/, "")];
     if (!article) { _photoCache[vehicleId] = null; setLoading(false); return; }
 
     let cancelled = false;

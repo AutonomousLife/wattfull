@@ -16,14 +16,14 @@ import { useTheme } from "@/lib/ThemeContext";
 import { Input, Select, Slider, Toggle, Collapsible } from "@/components/ui";
 import { POPULAR_EV_IDS, POPULAR_ICE_IDS, VEHICLES, VEHICLE_YEARS } from "@/lib/data";
 import {
-  TeslaModel3, TeslaModelY, HyundaiIoniq5, ChevyEquinox, FordMachE, VWID4,
+  TeslaModel3, TeslaModelY, HyundaiIoniq5, ChevyEquinoxEV, FordMachE, VWID4,
   ToyotaCamry, HondaCivic, ToyotaRAV4, HondaCRV, ToyotaCorolla,
   vehicleIllustrations,
 } from "@/components/illustrations/vehicles";
 import { ShareBadge } from "@/components/widgets/ShareBadge";
 
 const ILLUS_COMPONENTS = {
-  TeslaModel3, TeslaModelY, HyundaiIoniq5, ChevyEquinox, FordMachE, VWID4,
+  TeslaModel3, TeslaModelY, HyundaiIoniq5, ChevyEquinoxEV, FordMachE, VWID4,
   ToyotaCamry, HondaCivic, ToyotaRAV4, HondaCRV, ToyotaCorolla,
 };
 

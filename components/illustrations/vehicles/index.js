@@ -1,7 +1,7 @@
 export { TeslaModel3 } from "./TeslaModel3";
 export { TeslaModelY } from "./TeslaModelY";
 export { HyundaiIoniq5 } from "./HyundaiIoniq5";
-export { ChevyEquinox } from "./ChevyEquinox";
+export { ChevyEquinoxEVEV } from "./ChevyEquinoxEVEV";
 export { FordMachE } from "./FordMachE";
 export { VWID4 } from "./VWID4";
 export { ToyotaCamry } from "./ToyotaCamry";
@@ -19,7 +19,7 @@ export const vehicleIllustrations = {
   // Hyundai Ioniq 5 variants
   ioniq5rwd: "HyundaiIoniq5", ioniq5: "HyundaiIoniq5", "ioniq5n": "HyundaiIoniq5",
   // Chevy (old bolt id + new equinox ev id)
-  bolt: "ChevyEquinox", equinoxev: "ChevyEquinox", blazerev: "ChevyEquinox",
+  bolt: "ChevyEquinoxEV", equinoxev: "ChevyEquinoxEV", blazerev: "ChevyEquinoxEV",
   // Ford Mach-E variants
   mache: "FordMachE", macheawd: "FordMachE",
   // VW ID.4 variants

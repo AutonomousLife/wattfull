@@ -23,7 +23,7 @@ import { STORAGE_KEYS, getStoredJson, pushStoredHistory, setStoredJson } from "@
 const LS_KEY = STORAGE_KEYS.evCalc;
 const DEFAULT_FORM = {
   zip: "",
-  modelYear: DEFAULT_YEAR,
+  modelYear: VEHICLE_YEARS[1] ?? 2024,
   evId: POPULAR_EV_IDS[0] ?? VEHICLES.ev[0]?.id ?? "",
   iceId: POPULAR_ICE_IDS[0] ?? VEHICLES.ice[0]?.id ?? "",
   milesPerYear: 12000,
@@ -69,8 +69,6 @@ const VERDICT_STYLES = {
   neutral: { color: "#f59e0b", label: "Roughly Neutral" },
   unfavorable: { color: "#ef4444", label: "EV Financially Unfavorable" },
 };
-
-const DEFAULT_YEAR = VEHICLE_YEARS[1] ?? 2024; // second entry = most complete year
 
 const YEAR_OPTIONS = VEHICLE_YEARS.map((y) => ({ value: String(y), label: String(y) }));
 

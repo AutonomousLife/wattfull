@@ -163,6 +163,8 @@ export async function GET(req: NextRequest) {
               const mpgeElec = v.combE ? Number(v.combE) : null;
               const kwhPer100mi = mpgeElec ? mpgeToKwh(mpgeElec) : null;
               const rangeEv = v.rangE ? Number(v.rangE) : (v.range ? Number(v.range) : null);
+              // basePrice is reported to EPA by manufacturers — use only if valid non-zero
+              const msrp = v.basePrice && Number(v.basePrice) > 0 ? Math.round(Number(v.basePrice)) : null;
 
               await db
                 .insert(vehicles)
@@ -174,6 +176,7 @@ export async function GET(req: NextRequest) {
                   make,
                   model,
                   year,
+                  msrp,
                   kwhPer100mi,
                   mpgCombined: isElectric ? mpgeElec : mpgCombined,
                   mpgCity: v.city08 ? Number(v.city08) : null,
@@ -185,6 +188,8 @@ export async function GET(req: NextRequest) {
                 .onConflictDoUpdate({
                   target: vehicles.id,
                   set: {
+                    // Only overwrite msrp if EPA provides a value; preserve seed data otherwise
+                    ...(msrp ? { msrp } : {}),
                     kwhPer100mi,
                     mpgCombined: isElectric ? mpgeElec : mpgCombined,
                     mpgCity: v.city08 ? Number(v.city08) : null,

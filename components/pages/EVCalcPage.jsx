@@ -14,7 +14,7 @@ import {
 } from "recharts";
 import { useTheme } from "@/lib/ThemeContext";
 import { Input, Select, Slider, Toggle, Collapsible } from "@/components/ui";
-import { POPULAR_EV_IDS, POPULAR_ICE_IDS, VEHICLES } from "@/lib/data";
+import { POPULAR_EV_IDS, POPULAR_ICE_IDS, VEHICLES, VEHICLE_YEARS } from "@/lib/data";
 import { ShareBadge } from "@/components/widgets/ShareBadge";
 import { runCalc } from "@/app/actions/calc";
 import DataFreshness from "@/components/ui/DataFreshness";
@@ -23,6 +23,7 @@ import { STORAGE_KEYS, getStoredJson, pushStoredHistory, setStoredJson } from "@
 const LS_KEY = STORAGE_KEYS.evCalc;
 const DEFAULT_FORM = {
   zip: "",
+  modelYear: DEFAULT_YEAR,
   evId: POPULAR_EV_IDS[0] ?? VEHICLES.ev[0]?.id ?? "",
   iceId: POPULAR_ICE_IDS[0] ?? VEHICLES.ice[0]?.id ?? "",
   milesPerYear: 12000,
@@ -69,15 +70,21 @@ const VERDICT_STYLES = {
   unfavorable: { color: "#ef4444", label: "EV Financially Unfavorable" },
 };
 
-const EV_OPTIONS = VEHICLES.ev.map((vehicle) => ({
-  value: vehicle.id,
-  label: `${vehicle.name} - ${vehicle.kwh} kWh/100mi`,
-}));
+const DEFAULT_YEAR = VEHICLE_YEARS[1] ?? 2024; // second entry = most complete year
 
-const ICE_OPTIONS = VEHICLES.ice.map((vehicle) => ({
-  value: vehicle.id,
-  label: `${vehicle.name} - ${vehicle.mpg} MPG`,
-}));
+const YEAR_OPTIONS = VEHICLE_YEARS.map((y) => ({ value: String(y), label: String(y) }));
+
+function evOptionsForYear(year) {
+  const filtered = VEHICLES.ev.filter((v) => !v.year || v.year === year);
+  const list = filtered.length ? filtered : VEHICLES.ev.filter((v) => v.year === VEHICLE_YEARS[0]);
+  return list.map((v) => ({ value: v.id, label: `${v.name} — ${v.kwh} kWh/100mi` }));
+}
+
+function iceOptionsForYear(year) {
+  const filtered = VEHICLES.ice.filter((v) => !v.year || v.year === year);
+  const list = filtered.length ? filtered : VEHICLES.ice.filter((v) => v.year === VEHICLE_YEARS[0]);
+  return list.map((v) => ({ value: v.id, label: `${v.name} — ${v.mpg} MPG` }));
+}
 
 function formatMoney(value) {
   return `$${Math.round(value ?? 0).toLocaleString()}`;
@@ -545,8 +552,21 @@ function EVCalcInner() {
 
           <DataFreshness />
 
-          <Select label="EV to evaluate" value={form.evId} onChange={(value) => updateField("evId", value)} options={EV_OPTIONS} />
-          <Select label="Gas vehicle to compare" value={form.iceId} onChange={(value) => updateField("iceId", value)} options={ICE_OPTIONS} />
+          <Select
+            label="Model year"
+            value={String(form.modelYear)}
+            onChange={(value) => {
+              const yr = Number(value);
+              const evOpts = evOptionsForYear(yr);
+              const iceOpts = iceOptionsForYear(yr);
+              updateField("modelYear", yr);
+              updateField("evId", evOpts[0]?.value ?? form.evId);
+              updateField("iceId", iceOpts[0]?.value ?? form.iceId);
+            }}
+            options={YEAR_OPTIONS}
+          />
+          <Select label="EV to evaluate" value={form.evId} onChange={(value) => updateField("evId", value)} options={evOptionsForYear(form.modelYear)} />
+          <Select label="Gas vehicle to compare" value={form.iceId} onChange={(value) => updateField("iceId", value)} options={iceOptionsForYear(form.modelYear)} />
 
           <Slider label="Annual miles" value={form.milesPerYear} onChange={(value) => updateField("milesPerYear", value)} min={2000} max={40000} step={500} suffix=" /year" editable inputModes={["year", "week", "day"]} />
           <Slider label="Ownership years" value={form.ownershipYears} onChange={(value) => updateField("ownershipYears", value)} min={1} max={15} step={1} suffix=" years" />

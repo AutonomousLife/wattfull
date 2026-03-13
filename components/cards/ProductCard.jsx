@@ -1,10 +1,13 @@
 "use client";
 import { useTheme } from "@/lib/ThemeContext";
-import { Stars, Badge } from "@/components/ui";
-import VoteBadge from "@/components/ui/VoteBadge";
+import { Stars } from "@/components/ui";
 
 export function ProductCard({ product, type, onSelect, selected }) {
   const { t } = useTheme();
+  const spec = type === "panel"
+    ? `${product.watts}W · ${product.weight}`
+    : `${product.capacity} · ${product.weight}`;
+  const tagLine = [product.tags?.[0], spec].filter(Boolean).join(" · ");
 
   return (
     <div
@@ -13,36 +16,47 @@ export function ProductCard({ product, type, onSelect, selected }) {
         background: selected ? t.greenLight : t.white,
         border: `1.5px solid ${selected ? t.green : t.borderLight}`,
         borderRadius: 14,
-        overflow: "hidden",
         cursor: "pointer",
-        transition: "all .2s",
-        transform: selected ? "scale(1.01)" : "scale(1)",
+        transition: "border-color .15s, background .15s",
+        padding: "14px 16px 16px",
+        display: "flex",
+        flexDirection: "column",
+        gap: 5,
       }}
     >
-      <div style={{ padding: 20 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8, gap: 12 }}>
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 600, color: t.textLight, textTransform: "uppercase", letterSpacing: ".04em" }}>{product.brand}</div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: t.text, marginTop: 2 }}>{product.name}</div>
-          </div>
-          <div style={{ fontSize: 20, fontWeight: 800, color: t.green, flexShrink: 0 }}>${product.price}</div>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-          <Stars n={product.rating} />
-          <span style={{ fontSize: 12, color: t.textLight }}>({product.reviews.toLocaleString()})</span>
-        </div>
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
-          {product.tags?.map((tag) => (
-            <Badge key={tag} type="tag">{tag}</Badge>
-          ))}
-          <span style={{ fontSize: 12, color: t.textMid, padding: "3px 0" }}>
-            {type === "panel" ? `${product.watts}W | ${product.weight}` : `${product.capacity} | ${product.weight}`}
-          </span>
-        </div>
-        <div style={{ fontSize: 13, color: t.textMid, lineHeight: 1.5, marginBottom: 10 }}>
-          <span style={{ fontWeight: 600 }}>Best for: </span>{product.bestFor}
-        </div>
-        <VoteBadge itemType="product" itemId={product.id} />
+      {/* brand + price */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+        <span style={{ fontSize: 10, fontWeight: 700, color: t.textLight, textTransform: "uppercase", letterSpacing: ".07em" }}>
+          {product.brand}
+        </span>
+        <span style={{ fontSize: 18, fontWeight: 800, color: t.green, flexShrink: 0, lineHeight: 1 }}>
+          ${product.price}
+        </span>
+      </div>
+      {/* name */}
+      <div style={{ fontSize: 14, fontWeight: 700, color: t.text, lineHeight: 1.3 }}>
+        {product.name}
+      </div>
+      {/* stars */}
+      <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+        <Stars n={product.rating} />
+        <span style={{ fontSize: 11, color: t.textLight }}>
+          {product.rating} ({product.reviews.toLocaleString()})
+        </span>
+      </div>
+      {/* spec + tag as plain text */}
+      <div style={{ fontSize: 12, color: t.textMid, marginTop: 2 }}>
+        {tagLine}
+      </div>
+      {/* bestFor */}
+      <div style={{
+        fontSize: 12,
+        color: t.textLight,
+        whiteSpace: "nowrap",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+      }}>
+        {product.bestFor}
       </div>
     </div>
   );

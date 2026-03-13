@@ -10,28 +10,53 @@ function ProductImage({ product, t }) {
   const [src, setSrc] = useState(direct ?? proxy);
   const [failed, setFailed] = useState(!direct && !proxy);
 
-  // If there's no src candidate at all, render placeholder immediately
   if (failed || !src) {
     return (
-      <div style={{ width: "100%", height: 200, background: t.card, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <span style={{ fontSize: 40 }}>📦</span>
+      <div style={{ width: "100%", height: 220, background: t.card, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <span style={{ fontSize: 48 }}>📦</span>
       </div>
     );
   }
 
+  const handleError = () => {
+    if (src === direct && proxy) setSrc(proxy);
+    else setFailed(true);
+  };
+
   return (
-    <img
-      src={src}
-      alt={product.name}
-      onError={() => {
-        if (src === direct && proxy) {
-          setSrc(proxy);
-        } else {
-          setFailed(true);
-        }
-      }}
-      style={{ width: "100%", height: 200, objectFit: "contain", borderRadius: 10, background: t.card }}
-    />
+    <div style={{ position: "relative", width: "100%", height: 220, borderRadius: 12, overflow: "hidden", background: t.card }}>
+      {/* blurred pillarbox background */}
+      <img
+        src={src}
+        alt=""
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          filter: "blur(22px) brightness(0.55) saturate(1.3)",
+          transform: "scale(1.15)",
+          pointerEvents: "none",
+        }}
+      />
+      {/* main contained image */}
+      <img
+        src={src}
+        alt={product.name}
+        onError={handleError}
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "contain",
+          padding: "12px",
+          boxSizing: "border-box",
+        }}
+      />
+    </div>
   );
 }
 

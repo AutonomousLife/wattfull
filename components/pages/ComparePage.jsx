@@ -198,35 +198,59 @@ const WIKI_ARTICLES = {
   model3rwd: "Tesla Model 3", model3lr: "Tesla Model 3", model3perf: "Tesla Model 3",
   modelyrwd: "Tesla Model Y", modely: "Tesla Model Y", modelyperf: "Tesla Model Y",
   models: "Tesla Model S", modelx: "Tesla Model X",
+  cybertruck: "Tesla Cybertruck", cyberbeast: "Tesla Cybertruck",
   // Hyundai
-  ioniq5rwd: "Hyundai Ioniq 5", ioniq5: "Hyundai Ioniq 5",
+  ioniq5rwd: "Hyundai Ioniq 5", ioniq5: "Hyundai Ioniq 5", ioniq5n: "Hyundai Ioniq 5 N",
   ioniq6rwd: "Hyundai Ioniq 6", ioniq6awd: "Hyundai Ioniq 6",
   konael: "Hyundai Kona Electric",
+  tucson: "Hyundai Tucson", sonata: "Hyundai Sonata", elantra: "Hyundai Elantra",
   // Kia
   ev6rwd: "Kia EV6", ev6awd: "Kia EV6", ev6gt: "Kia EV6",
-  ev9: "Kia EV9",
-  // Chevy / Ford
-  bolt: "Chevrolet Bolt EV",           // â† was wrongly "Chevrolet Equinox EV"
+  ev9: "Kia EV9", ev9awd: "Kia EV9",
+  sorento: "Kia Sorento", telluride: "Kia Telluride",
+  // Chevy / GMC
+  bolt: "Chevrolet Bolt EV",
+  equinoxev: "Chevrolet Equinox EV",
   blazerev: "Chevrolet Blazer EV",
-  mache: "Ford Mustang Mach-E", f150lightning: "Ford F-150 Lightning",
-  // VW / BMW / Polestar
-  id4: "Volkswagen ID.4", bmwi4: "BMW i4", polestar2: "Polestar 2",
-  // Rivian / Others
+  silverado: "Chevrolet Silverado", equinoxgas: "Chevrolet Equinox",
+  gmcsierra: "GMC Sierra", hummer: "GMC Hummer EV",
+  // Ford / Ram / Dodge
+  mache: "Ford Mustang Mach-E", macheawd: "Ford Mustang Mach-E",
+  f150lightning: "Ford F-150 Lightning", f150gas: "Ford F-150",
+  escape: "Ford Escape",
+  ram1500: "Ram 1500",
+  dodgeev: "Dodge Charger Daytona",
+  // VW / BMW / Polestar / Audi / Mercedes / Volvo / Porsche
+  id4: "Volkswagen ID.4", id4awd: "Volkswagen ID.4",
+  jetta: "Volkswagen Jetta",
+  bmwi4: "BMW i4", bmwi4m50: "BMW i4", bmwi5: "BMW i5", bmwix: "BMW iX",
+  bmw330i: "BMW 3 Series",
+  polestar2: "Polestar 2",
+  audiq4: "Audi Q4 e-tron",
+  mercedeseqb: "Mercedes-Benz EQB",
+  volvex40: "Volvo EX40",
+  porschemacanev: "Porsche Macan",
+  // Rivian / Lucid / Genesis / Nissan / Subaru / Toyota EV / Honda
   rivianr1t: "Rivian R1T", rivianr1s: "Rivian R1S",
-  nisanariya: "Nissan Ariya", subarosolt: "Subaru Solterra",
-  toyotabz4x: "Toyota bZ4X", hondaprologue: "Honda Prologue",
-  cadillaclyriq: "Cadillac Lyriq", mercedeseqb: "Mercedes-Benz EQB",
+  lucidair: "Lucid Air",
+  gv60: "Genesis GV60",
+  nisanariya: "Nissan Ariya", leaf: "Nissan Leaf",
+  subarosolt: "Subaru Solterra",
+  toyotabz4x: "Toyota bZ4X",
+  hondaprologue: "Honda Prologue",
+  cadillaclyriq: "Cadillac Lyriq",
   // ICE — Toyota
   camry: "Toyota Camry", corolla: "Toyota Corolla",
   rav4: "Toyota RAV4", rav4hybrid: "Toyota RAV4 Hybrid",
-  prius: "Toyota Prius", tacoma: "Toyota Tacoma", highlander: "Toyota Highlander",
+  prius: "Toyota Prius", tacoma: "Toyota Tacoma",
+  highlander: "Toyota Highlander", "4runner": "Toyota 4Runner",
   // ICE — Honda
   civic: "Honda Civic", crv: "Honda CR-V", accord: "Honda Accord",
-  // ICE — American trucks
-  f150gas: "Ford F-150", silverado: "Chevrolet Silverado", gmcsierra: "GMC Sierra",
-  // ICE — Others
-  altima: "Nissan Altima", cx5: "Mazda CX-5",
-  tucson: "Hyundai Tucson", sorento: "Kia Sorento", bmw330i: "BMW 3 Series",
+  // ICE — others
+  altima: "Nissan Altima",
+  cx5: "Mazda CX-5", mazda3: "Mazda3",
+  outback: "Subaru Outback",
+  grandcherokee: "Jeep Grand Cherokee",
 };
 
 // Module-level cache — survives re-renders, cleared on page refresh

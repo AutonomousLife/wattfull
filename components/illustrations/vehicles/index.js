@@ -1,7 +1,7 @@
 export { TeslaModel3 } from "./TeslaModel3";
 export { TeslaModelY } from "./TeslaModelY";
 export { HyundaiIoniq5 } from "./HyundaiIoniq5";
-export { ChevyEquinoxEVEV } from "./ChevyEquinoxEVEV";
+export { ChevyEquinoxEV } from "./ChevyEquinoxEV";
 export { FordMachE } from "./FordMachE";
 export { VWID4 } from "./VWID4";
 export { ToyotaCamry } from "./ToyotaCamry";

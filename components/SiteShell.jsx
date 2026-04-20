@@ -8,11 +8,12 @@ import { ChatWidget } from "@/components/widgets";
 import { Icon } from "@/components/ui/Icon";
 
 export function SiteShell({ children }) {
-  const { t, dark, toggleDark } = useTheme();
+  const { t, dark, toggleDark, advanced, toggleAdvanced } = useTheme();
   const pathname = usePathname();
   const [mobileMenu, setMobileMenu] = useState(false);
 
   const isActive = (href) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
+  const visibleNav = advanced ? NAV : NAV.filter((item) => item.core);
 
   return (
     <div
@@ -48,6 +49,8 @@ export function SiteShell({ children }) {
           border-color: ${t.featuredBorder}!important;
         }
       `}</style>
+
+      <a href="#main-content" className="wf-skip">Skip to content</a>
 
       <nav
         style={{
@@ -103,7 +106,7 @@ export function SiteShell({ children }) {
 
           <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
             <div className="wf-nav-links" style={{ display: "flex", gap: 2 }}>
-              {NAV.filter((item) => item.id !== "home").map((item) => {
+              {visibleNav.filter((item) => item.id !== "home").map((item) => {
                 const active = isActive(item.href);
                 return (
                   <Link
@@ -126,6 +129,33 @@ export function SiteShell({ children }) {
                 );
               })}
             </div>
+
+            <button
+              onClick={toggleAdvanced}
+              aria-pressed={advanced}
+              aria-label={advanced ? "Switch to simple mode" : "Switch to advanced mode (unlock all tools)"}
+              title={advanced ? "Simple mode: focused homepage + core tools" : "Advanced mode: unlock all tools and nav items"}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "6px 10px",
+                marginLeft: 8,
+                background: advanced ? t.greenGlass : "transparent",
+                border: `1px solid ${advanced ? t.featuredBorder : t.border}`,
+                borderRadius: "999px",
+                cursor: "pointer",
+                color: advanced ? t.green : t.textMid,
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: ".02em",
+                whiteSpace: "nowrap",
+                transition: "background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease)",
+              }}
+            >
+              <Icon name={advanced ? "SlidersHorizontal" : "Compass"} size={13} color="currentColor" strokeWidth={2} />
+              {advanced ? "Advanced" : "Simple"}
+            </button>
 
             <button
               className="wf-dark-toggle"
@@ -183,7 +213,7 @@ export function SiteShell({ children }) {
               borderTop: `1px solid ${t.borderLight}`,
             }}
           >
-            {NAV.map((item) => (
+            {visibleNav.map((item) => (
               <Link
                 key={item.id}
                 href={item.href}
@@ -206,7 +236,7 @@ export function SiteShell({ children }) {
         ) : null}
       </nav>
 
-      <main style={{ maxWidth: 1200, margin: "0 auto", padding: "36px clamp(16px,4vw,48px) 60px" }}>{children}</main>
+      <main id="main-content" style={{ maxWidth: 1200, margin: "0 auto", padding: "36px clamp(16px,4vw,48px) 60px" }}>{children}</main>
 
       <footer style={{ borderTop: `1px solid ${t.borderLight}`, padding: "32px clamp(16px,4vw,48px) 40px" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>

@@ -3,16 +3,6 @@ import { useState, useMemo } from "react";
 import { useTheme } from "@/lib/ThemeContext";
 import { Slider, AnimCount } from "@/components/ui";
 import { ShareBadge } from "@/components/widgets/ShareBadge";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
-
 export function CarbonPage() {
   const { t } = useTheme();
   const [miles, setMiles] = useState(12000);
@@ -58,16 +48,15 @@ export function CarbonPage() {
     },
   ];
 
-  /* --- Bar chart data --- */
-  const chartData = useMemo(
-    () =>
-      metrics.map((m) => ({
-        name: m.key,
-        value: typeof m.value === "number" ? m.value : parseFloat(m.value),
-      })),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [trees, flights, phones, homeDays]
-  );
+  /* --- Relative-magnitude rows ---
+     Each metric has its own reference ceiling so bars stay comparable
+     visually without forcing a shared y-axis across different magnitudes. */
+  const magnitudeRows = useMemo(() => ([
+    { key: "Trees",         value: trees,    ceiling: 1000,   unit: "trees",        icon: "\u{1F333}", ref: "A small forest (1,000)" },
+    { key: "Flights",       value: flights,  ceiling: 50,     unit: "flights",      icon: "\u2708\uFE0F", ref: "A decade of travel (50)" },
+    { key: "Phone Charges", value: phones,   ceiling: 500000, unit: "charges",      icon: "\uD83D\uDCF1", ref: "A lifetime of phones (500k)" },
+    { key: "Home-Days",     value: homeDays, ceiling: 3650,   unit: "home-days",    icon: "\uD83C\uDFE0", ref: "10 years of power (3,650)" },
+  ]), [trees, flights, phones, homeDays]);
 
   /* --- Tree grid --- */
   const TOTAL_GRID = 100; // 10x10 grid
@@ -244,7 +233,10 @@ export function CarbonPage() {
         </div>
       </div>
 
-      {/* --- Equivalency Bar Chart --- */}
+      {/* --- Relative Magnitude Rows ---
+         Metrics span very different magnitudes, so instead of forcing a
+         shared axis, each row shows its raw value plus a per-metric
+         progress bar against a meaningful reference ceiling. */}
       <div
         style={{
           marginTop: 36,
@@ -254,61 +246,45 @@ export function CarbonPage() {
           padding: 24,
         }}
       >
-        <h2
-          style={{
-            fontSize: 18,
-            fontWeight: 700,
-            color: t.text,
-            marginBottom: 20,
-          }}
-        >
-          Impact Comparison
-        </h2>
-        <div style={{ fontSize: 11, color: t.textLight, marginBottom: 8, textAlign: "right" }}>
-          Y-axis: log scale (values span different magnitudes)
+        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, marginBottom: 6, flexWrap: "wrap" }}>
+          <h2 style={{ fontSize: 18, fontWeight: 700, color: t.text }}>Impact at a glance</h2>
+          <span style={{ fontSize: 11, color: t.textLight }}>Each metric is scaled to its own reference — the bars are not directly comparable.</span>
         </div>
-        <ResponsiveContainer width="100%" height={280}>
-          <BarChart
-            data={chartData}
-            margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" stroke={t.borderLight} />
-            <XAxis
-              dataKey="name"
-              tick={{ fill: t.textMid, fontSize: 12 }}
-              axisLine={{ stroke: t.borderLight }}
-              tickLine={false}
-            />
-            <YAxis
-              scale="log"
-              domain={[1, "auto"]}
-              allowDataKey
-              tick={{ fill: t.textMid, fontSize: 11 }}
-              axisLine={{ stroke: t.borderLight }}
-              tickLine={false}
-              tickFormatter={(v) => {
-                if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(0)}M`;
-                if (v >= 1000) return `${(v / 1000).toFixed(0)}k`;
-                return String(Math.round(v));
-              }}
-            />
-            <Tooltip
-              contentStyle={{
-                background: t.white,
-                border: `1px solid ${t.borderLight}`,
-                borderRadius: 8,
-                fontSize: 13,
-              }}
-              formatter={(v) => [Number(v).toLocaleString(), "Value"]}
-            />
-            <Bar
-              dataKey="value"
-              fill={t.green}
-              radius={[6, 6, 0, 0]}
-              animationDuration={1200}
-            />
-          </BarChart>
-        </ResponsiveContainer>
+        <div style={{ display: "grid", gap: 14, marginTop: 14 }}>
+          {magnitudeRows.map((row) => {
+            const pct = Math.min(100, Math.max(0, (row.value / row.ceiling) * 100));
+            return (
+              <div key={row.key}>
+                <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10, marginBottom: 6 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+                    <span style={{ fontSize: 20, lineHeight: 1 }}>{row.icon}</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: t.text, whiteSpace: "nowrap" }}>{row.key}</span>
+                    <span style={{ fontSize: 11, color: t.textLight, marginLeft: 4 }}>{row.ref}</span>
+                  </div>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: t.green, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>
+                    {row.value.toLocaleString()} <span style={{ fontSize: 11, color: t.textLight, fontWeight: 600 }}>{row.unit}</span>
+                  </div>
+                </div>
+                <div style={{ position: "relative", height: 8, background: t.card, borderRadius: 4, overflow: "hidden" }}>
+                  <div
+                    style={{
+                      width: `${pct}%`,
+                      height: "100%",
+                      background: t.green,
+                      borderRadius: 4,
+                      transition: "width 360ms cubic-bezier(.2,.8,.2,1)",
+                    }}
+                  />
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: t.textFaint, marginTop: 4 }}>
+                  <span>0</span>
+                  <span>{row.value > row.ceiling ? `${Math.round((row.value / row.ceiling) * 100)}% past reference` : `${Math.round(pct)}% of reference`}</span>
+                  <span>{row.ceiling.toLocaleString()}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* --- Tree Equivalency (compact) --- */}

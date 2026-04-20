@@ -306,9 +306,9 @@ function StartCard({ item, t }) {
 
 function TrustRow({ t }) {
   return (
-    <div style={{ margin: "0 clamp(-16px,-4vw,-48px)", padding: "34px clamp(16px,4vw,48px)", background: t.bg2, borderTop: `1px solid ${t.borderLight}`, borderBottom: `1px solid ${t.borderLight}` }}>
+    <div style={{ margin: "0 clamp(-48px,-4vw,-16px)", padding: "34px clamp(16px,4vw,48px)", background: t.bg2, borderTop: `1px solid ${t.borderLight}`, borderBottom: `1px solid ${t.borderLight}` }}>
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 18, alignItems: "start" }}>
+        <div className="wf-trust-grid" style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 18, alignItems: "start" }}>
           <GlassCard variant="outlined" padding={22}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 14 }}>
               <div>
@@ -383,7 +383,7 @@ function WhyCard({ item, t }) {
 
 export function HomePage() {
   const router = useRouter();
-  const { t, dark } = useTheme();
+  const { t, dark, advanced, toggleAdvanced } = useTheme();
   const [heroZip, setHeroZip] = useState("");
   const [zipFocused, setZipFocused] = useState(false);
 
@@ -418,6 +418,9 @@ export function HomePage() {
                 <input
                   type="text"
                   inputMode="numeric"
+                  pattern="[0-9]{5}"
+                  autoComplete="postal-code"
+                  aria-label="ZIP code"
                   placeholder="Enter ZIP code"
                   maxLength={5}
                   value={heroZip}
@@ -437,9 +440,10 @@ export function HomePage() {
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <QuickLink href="#start-here" label="Start here" icon="Compass" t={t} />
-              <QuickLink href="#tools" label="Key tools" icon="LayoutGrid" t={t} />
-              <QuickLink href="#how-it-works" label="How it works" icon="FileSearch" t={t} />
-              <QuickLink href="#trust" label="Why trust it" icon="Shield" t={t} />
+              {advanced ? <QuickLink href="#tools" label="Key tools" icon="LayoutGrid" t={t} /> : null}
+              {advanced ? <QuickLink href="#how-it-works" label="How it works" icon="FileSearch" t={t} /> : null}
+              {advanced ? <QuickLink href="#trust" label="Why trust it" icon="Shield" t={t} /> : null}
+              {!advanced ? <QuickLink href="/methodology" label="How it works" icon="FileSearch" t={t} /> : null}
             </div>
           </div>
           <div style={{ flex: "1 1 38%", minWidth: 300, maxWidth: 440 }}>
@@ -457,6 +461,29 @@ export function HomePage() {
         </div>
       </section>
 
+      {!advanced ? (
+        <section style={{ padding: "clamp(40px,5vw,60px) 0 0" }}>
+          <GlassCard variant="outlined" padding={22} style={{ borderRadius: "var(--r-xl)" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 0 }}>
+                <div style={{ width: 42, height: 42, borderRadius: "var(--r-md)", background: t.greenGlass, border: `1px solid ${t.featuredBorder}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <Icon name="SlidersHorizontal" size={20} color={t.green} strokeWidth={1.75} />
+                </div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 11, fontWeight: 750, letterSpacing: ".08em", textTransform: "uppercase", color: t.green, marginBottom: 4 }}>Want more?</div>
+                  <div style={{ fontSize: 16, fontWeight: 750, color: t.text, lineHeight: 1.35 }}>Advanced mode unlocks 10 tools, state grades, gear reviews, and the full decision framework.</div>
+                </div>
+              </div>
+              <GlassButton variant="secondary" size="md" iconAfter="ArrowRight" onClick={toggleAdvanced}>
+                Enable advanced mode
+              </GlassButton>
+            </div>
+          </GlassCard>
+        </section>
+      ) : null}
+
+      {advanced ? (
+      <>
       <section id="tools" style={{ padding: "clamp(56px,7vw,86px) 0 0" }}>
         <SectionHeader eyebrow="TOOLS" title="The core Wattfull toolkit" desc="These are the tools that do the real work: calculators, comparison flows, and regional context built to answer practical purchase questions." />
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 18 }}>
@@ -500,7 +527,7 @@ export function HomePage() {
 
       <section id="trust" style={{ padding: "clamp(56px,7vw,86px) 0 0" }}>
         <SectionHeader eyebrow="WHY TRUST WATTFULL" title="Calm, source-aware, and built to explain the answer" desc="The goal is not to overwhelm you with dashboards. The goal is to make the recommendation legible and defensible." />
-        <div style={{ display: "grid", gridTemplateColumns: "1.1fr .9fr", gap: 16, alignItems: "start" }}>
+        <div className="wf-grid-split">
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 14 }}>
             {WHY_WATTFULL.map((item) => <WhyCard key={item.title} item={item} t={t} />)}
           </div>
@@ -516,10 +543,12 @@ export function HomePage() {
           </GlassCard>
         </div>
       </section>
+      </>
+      ) : null}
 
       <section style={{ padding: "clamp(56px,7vw,86px) 0 0" }}>
         <GlassCard variant="glass" padding={24} style={{ borderRadius: "var(--r-xl)" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1.1fr .9fr", gap: 18, alignItems: "center" }}>
+          <div className="wf-grid-split" style={{ gap: 18, alignItems: "center" }}>
             <div>
               <div style={{ fontSize: 11, fontWeight: 750, textTransform: "uppercase", letterSpacing: ".08em", color: t.green, marginBottom: 8 }}>Next move</div>
               <div style={{ fontSize: "clamp(24px,3.2vw,36px)", fontWeight: 820, color: t.text, lineHeight: 1.15, letterSpacing: "-.03em", marginBottom: 10 }}>Do not leave the homepage with a vague idea. Start with one grounded answer.</div>

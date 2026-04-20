@@ -159,30 +159,46 @@ export function MethodologyPageV2() {
           <div style={{ fontSize: 12, color: t.textLight, marginTop: 4 }}>The site mixes live integrations, maintained state seeds, and static reference data. This table is meant to make that visible.</div>
         </div>
         <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 760 }}>
+            <colgroup>
+              <col style={{ width: "14%" }} />
+              <col style={{ width: "22%" }} />
+              <col style={{ width: "14%" }} />
+              <col style={{ width: "18%" }} />
+              <col style={{ width: "32%" }} />
+            </colgroup>
             <thead>
               <tr style={{ background: t.card }}>
                 {["Source", "Used for", "Refresh cadence", "Current label", "Trust note"].map((label) => (
-                  <th key={label} style={{ padding: "12px 16px", textAlign: "left", fontSize: 11, color: t.textLight, textTransform: "uppercase", letterSpacing: ".05em" }}>{label}</th>
+                  <th key={label} style={{ padding: "12px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: t.textLight, textTransform: "uppercase", letterSpacing: ".06em", whiteSpace: "nowrap" }}>{label}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {DATA_SOURCES.map((row) => (
-                <tr key={row.source} style={{ borderTop: `1px solid ${t.borderLight}` }}>
-                  <td style={{ padding: "13px 16px", fontSize: 13, fontWeight: 700, color: t.text }}>{row.source}</td>
-                  <td style={{ padding: "13px 16px", fontSize: 13, color: t.textMid }}>{row.scope}</td>
-                  <td style={{ padding: "13px 16px", fontSize: 13, color: t.textMid }}>{row.cadence}</td>
-                  <td style={{ padding: "13px 16px" }}><span style={{ fontSize: 11, fontWeight: 700, color: row.status === "Live spec source" ? "#065f46" : row.status === "Static sample" ? "#92400e" : "#1d4ed8", background: row.status === "Live spec source" ? "#d1fae5" : row.status === "Static sample" ? "#fef3c7" : "#eff6ff", borderRadius: 999, padding: "4px 8px" }}>{row.status}</span></td>
-                  <td style={{ padding: "13px 16px", fontSize: 12, color: t.textLight, lineHeight: 1.6 }}>{row.note}</td>
-                </tr>
-              ))}
+              {DATA_SOURCES.map((row) => {
+                const tone = row.status === "Live spec source"
+                  ? { fg: "#065f46", bg: "#d1fae5", br: "#10b98155" }
+                  : row.status === "Static sample"
+                  ? { fg: "#92400e", bg: "#fef3c7", br: "#f59e0b55" }
+                  : { fg: "#1d4ed8", bg: "#eff6ff", br: "#3b82f655" };
+                return (
+                  <tr key={row.source} style={{ borderTop: `1px solid ${t.borderLight}` }}>
+                    <td style={{ padding: "14px 16px", fontSize: 13, fontWeight: 700, color: t.text, verticalAlign: "top" }}>{row.source}</td>
+                    <td style={{ padding: "14px 16px", fontSize: 13, color: t.textMid, verticalAlign: "top", lineHeight: 1.55 }}>{row.scope}</td>
+                    <td style={{ padding: "14px 16px", fontSize: 13, color: t.textMid, verticalAlign: "top", whiteSpace: "nowrap" }}>{row.cadence}</td>
+                    <td style={{ padding: "14px 16px", verticalAlign: "top" }}>
+                      <span style={{ display: "inline-block", fontSize: 11, fontWeight: 700, color: tone.fg, background: tone.bg, border: `1px solid ${tone.br}`, borderRadius: 999, padding: "4px 10px", whiteSpace: "nowrap", lineHeight: 1.4 }}>{row.status}</span>
+                    </td>
+                    <td style={{ padding: "14px 16px", fontSize: 12, color: t.textMid, lineHeight: 1.65, verticalAlign: "top" }}>{row.note}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
       </section>
 
-      <section style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 24 }}>
+      <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 14, marginBottom: 24 }}>
         <div style={{ background: t.white, border: `1px solid ${t.borderLight}`, borderRadius: 16, padding: "16px 18px" }}>
           <div style={{ fontSize: 16, fontWeight: 800, color: t.text, marginBottom: 8 }}>Calculation architecture</div>
           <div style={{ fontSize: 13, color: t.textMid, lineHeight: 1.7 }}>

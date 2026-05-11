@@ -5,7 +5,7 @@ import {
   ResponsiveContainer, AreaChart, Area, ReferenceLine, Legend,
 } from "recharts";
 import { useTheme } from "@/lib/ThemeContext";
-import { Slider, Toggle, Collapsible, ChartTip, TrustStrip } from "@/components/ui";
+import { Slider, Toggle, Collapsible, ChartTip } from "@/components/ui";
 import { VehicleSearch } from "@/components/ui/VehicleSearch";
 import { VEHICLES, POPULAR_EV_IDS, POPULAR_ICE_IDS, POWER_STATIONS, STATE_DATA } from "@/lib/data";
 import { fmt } from "@/lib/helpers";
@@ -890,25 +890,6 @@ export function ComparePage() {
         <p style={{ fontSize: 15, color: t.textMid, marginTop: 6, marginBottom: 0, maxWidth: 600 }}>
           Full financial breakdown: purchase, operating, cost per mile, 5-year TCO, payback curve, and verdict.
         </p>
-        <div style={{ marginTop: 16 }}>
-          <TrustStrip
-            title="Compare trust layer"
-            items={[
-              { label: "Rates", value: "User-adjusted inputs", note: "Use your actual utility and gas assumptions where possible.", tone: "positive" },
-              { label: "Ownership model", value: "Estimated TCO", note: "Insurance and maintenance remain benchmark-based.", tone: "neutral" },
-              { label: "Recent comparisons", value: compareHistory.length ? `${compareHistory.length} saved locally` : "None yet", note: "Recent compare sessions feed the dashboard.", tone: compareHistory.length ? "positive" : "low" },
-            ]}
-          />
-        </div>
-        {compareHistory.length ? (
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
-            {compareHistory.slice(0, 3).map((item) => (
-              <div key={`${item.title}-${item.summary}`} style={{ padding: "7px 10px", borderRadius: 999, background: t.card, border: `1px solid ${t.borderLight}`, fontSize: 11, color: t.textMid }}>
-                {item.title}
-              </div>
-            ))}
-          </div>
-        ) : null}
         <TabBar />
 
         {/* Vehicle selectors */}

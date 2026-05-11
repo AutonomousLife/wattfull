@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useTheme } from "@/lib/ThemeContext";
 import { ProductCard, ProductDetail } from "@/components/cards";
 import { SOLAR_PANELS, POWER_STATIONS } from "@/lib/data";
-import { TrustStrip, VerdictPanel } from "@/components/ui";
+import { VerdictPanel } from "@/components/ui";
 
 function scoreProduct(product, type) {
   const reviewScore = Math.min(30, Math.round(Math.log10(Math.max(product.reviews, 10)) * 10));
@@ -63,16 +63,6 @@ export function MarketplacePage() {
         Independent assessments from real owner reviews and field reports. Wattfull treats gear as a fit problem, not a generic shopping feed.
       </p>
 
-      <div style={{ marginTop: 18, marginBottom: 18 }}>
-        <TrustStrip
-          title="Product layer status"
-          items={[
-            { label: "Catalog", value: "Curated static set", note: "Human-curated shortlist of products, not a full marketplace ingest.", tone: "neutral" },
-            { label: "Verdicts", value: "Editorial synthesis", note: "Built from product specs, review volume, and field-report framing.", tone: "positive" },
-            { label: "Pricing", value: "Seeded price", note: "Verify merchant price before purchase; prices can drift.", tone: "caution" },
-          ]}
-        />
-      </div>
 
       <div style={{ display: "inline-flex", gap: 4, padding: 4, background: t.card, borderRadius: 10, marginTop: 20, marginBottom: 16 }}>
         {[{ id: "panels", label: "Solar Panels" }, { id: "stations", label: "Power Stations" }].map((tb) => (

@@ -394,7 +394,7 @@ export function HomePage() {
 
   return (
     <div>
-      <section className="wf-motif" style={{ padding: "clamp(56px,8vw,98px) 0 clamp(52px,7vw,78px)", position: "relative" }}>
+      <section className="wf-motif" style={{ padding: "clamp(36px,6vw,72px) 0 clamp(28px,4vw,52px)", position: "relative" }}>
         <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: dark ? "radial-gradient(ellipse at 72% 28%, rgba(106,175,123,0.08) 0%, transparent 58%)" : "radial-gradient(ellipse at 72% 28%, rgba(74,124,89,0.08) 0%, transparent 58%)" }} />
         <div style={{ display: "flex", alignItems: "flex-start", gap: "clamp(28px,5vw,64px)", flexWrap: "wrap", position: "relative" }}>
           <div style={{ flex: "1 1 54%", minWidth: 300, maxWidth: 620 }}>
@@ -402,13 +402,13 @@ export function HomePage() {
               <div style={{ width: 18, height: 18, borderRadius: 5, background: t.green, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Icon name="Shield" size={11} color="#fff" strokeWidth={2.25} />
               </div>
-              <span style={{ fontSize: 12, fontWeight: 700, color: t.green }}>Independent analysis | Transparent assumptions | Real decision tools</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: t.green }}>Independent analysis · Transparent assumptions</span>
             </div>
             <h1 style={{ fontSize: "clamp(34px,5vw,58px)", fontWeight: 820, color: t.text, lineHeight: 1.05, letterSpacing: "-.045em", maxWidth: 620, marginBottom: 18 }}>
               Make the expensive energy decision with the real numbers first.
             </h1>
-            <p style={{ fontSize: "clamp(16px,1.95vw,18px)", color: t.textMid, lineHeight: 1.72, maxWidth: 560, marginBottom: 24 }}>
-              Wattfull helps you evaluate EV ownership, solar payback, charging economics, batteries, and gear with source-backed data, practical cost logic, and verdicts that explain what actually matters.
+            <p style={{ fontSize: "clamp(15px,1.8vw,17px)", color: t.textMid, lineHeight: 1.65, maxWidth: 520, marginBottom: 22 }}>
+              EV ownership, solar payback, and charging economics — source-backed data and plain-language verdicts.
             </p>
             <div style={{ display: "flex", gap: 10, maxWidth: 500, marginBottom: 14, flexWrap: "wrap" }}>
               <div style={{ flex: "1 1 180px", minWidth: 0, position: "relative", display: "flex", alignItems: "center", background: t.white, border: `1.5px solid ${zipFocused ? t.green : t.border}`, borderRadius: "var(--r-lg)", boxShadow: zipFocused ? `0 0 0 3px ${t.green}22, ${t.shadowMd}` : t.shadowMd, transition: "border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease)" }}>
@@ -433,17 +433,10 @@ export function HomePage() {
               </div>
               <GlassButton variant="primary" size="md" iconAfter="ArrowRight" onClick={goToEV}>Start with EV savings</GlassButton>
             </div>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
-              <GlassButton variant="ghost" size="sm" href="/solar" icon="Sun">Check solar ROI</GlassButton>
-              <GlassButton variant="ghost" size="sm" href="/compare" icon="GitCompare">Compare options</GlassButton>
-              <GlassButton variant="ghost" size="sm" href="/states" icon="Map">See your state context</GlassButton>
-            </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <QuickLink href="#start-here" label="Start here" icon="Compass" t={t} />
-              {advanced ? <QuickLink href="#tools" label="Key tools" icon="LayoutGrid" t={t} /> : null}
-              {advanced ? <QuickLink href="#how-it-works" label="How it works" icon="FileSearch" t={t} /> : null}
-              {advanced ? <QuickLink href="#trust" label="Why trust it" icon="Shield" t={t} /> : null}
-              {!advanced ? <QuickLink href="/methodology" label="How it works" icon="FileSearch" t={t} /> : null}
+              <GlassButton variant="ghost" size="sm" href="/solar" icon="Sun">Solar ROI</GlassButton>
+              <GlassButton variant="ghost" size="sm" href="/compare" icon="GitCompare">Compare options</GlassButton>
+              {advanced ? <GlassButton variant="ghost" size="sm" href="/states" icon="Map">State grades</GlassButton> : null}
             </div>
           </div>
           <div style={{ flex: "1 1 38%", minWidth: 300, maxWidth: 440 }}>
@@ -452,17 +445,8 @@ export function HomePage() {
         </div>
       </section>
 
-      <TrustRow t={t} />
-
-      <section id="start-here" style={{ padding: "clamp(56px,7vw,86px) 0 0" }}>
-        <SectionHeader eyebrow="START HERE" title="Pick the decision path that matches what you are actually trying to decide" desc="The point is not to open every tool. The point is to start with the one that answers your real question first." />
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: 14 }}>
-          {START_PATHS.map((item) => <StartCard key={item.title} item={item} t={t} />)}
-        </div>
-      </section>
-
       {!advanced ? (
-        <section style={{ padding: "clamp(40px,5vw,60px) 0 0" }}>
+        <section style={{ padding: "clamp(28px,3vw,40px) 0 0" }}>
           <GlassCard variant="outlined" padding={22} style={{ borderRadius: "var(--r-xl)" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 0 }}>
@@ -484,106 +468,37 @@ export function HomePage() {
 
       {advanced ? (
       <>
-      <section id="tools" style={{ padding: "clamp(56px,7vw,86px) 0 0" }}>
-        <SectionHeader eyebrow="TOOLS" title="The core Wattfull toolkit" desc="These are the tools that do the real work: calculators, comparison flows, and regional context built to answer practical purchase questions." />
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 18 }}>
-          <StatPill icon="TrendingUp" value="Most-used: EV Calculator" variant="green" />
-          <StatPill icon="Sun" value="Best for homeowners: Solar ROI" variant="glass" />
-          <StatPill icon="GitCompare" value="Best for tradeoffs: Compare" variant="glass" />
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 14 }}>
+      <section id="tools" style={{ padding: "clamp(36px,4vw,56px) 0 0" }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: t.textLight, textTransform: "uppercase", letterSpacing: ".07em", marginBottom: 14 }}>All tools</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(210px, 1fr))", gap: 10 }}>
           {TOOLS.map((tool) => <ToolTile key={tool.href} {...tool} />)}
         </div>
       </section>
 
-      <section id="how-it-works" style={{ padding: "clamp(56px,7vw,86px) 0 0" }}>
-        <SectionHeader eyebrow="HOW IT WORKS" title="Problem, inputs, numbers, explanation, recommendation" desc="Wattfull should feel more like a decision engine than a content site. This is the structure behind the better tools." />
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14 }}>
-          {PROCESS.map((item) => (
-            <GlassCard key={item.step} variant="outlined" padding={20} style={{ height: "100%" }}>
-              <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-                <div style={{ flexShrink: 0 }}>
-                  <div style={{ fontSize: 10, fontWeight: 800, color: t.green, letterSpacing: ".06em", marginBottom: 5 }}>{item.step}</div>
-                  <div style={{ width: 40, height: 40, borderRadius: "var(--r-md)", background: t.greenGlass, border: `1px solid ${t.featuredBorder}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <Icon name={item.icon} size={20} color={t.green} strokeWidth={1.75} />
-                  </div>
-                </div>
-                <div>
-                  <div style={{ fontSize: 16, fontWeight: 760, color: t.text, marginBottom: 8, letterSpacing: "-.015em" }}>{item.title}</div>
-                  <div style={{ fontSize: 13, color: t.textMid, lineHeight: 1.65 }}>{item.desc}</div>
-                </div>
-              </div>
-            </GlassCard>
-          ))}
-        </div>
-      </section>
-
-      <section style={{ padding: "clamp(56px,7vw,86px) 0 0" }}>
-        <SectionHeader eyebrow="COMMON USE CASES" title="Where the platform is most useful" desc="The strongest use cases are the ones where assumptions change the answer. That is where transparent math matters the most." />
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 14 }}>
-          {USE_CASES.map((item) => <UseCaseCard key={item.title} item={item} t={t} dark={dark} />)}
-        </div>
-      </section>
-
-      <section id="trust" style={{ padding: "clamp(56px,7vw,86px) 0 0" }}>
-        <SectionHeader eyebrow="WHY TRUST WATTFULL" title="Calm, source-aware, and built to explain the answer" desc="The goal is not to overwhelm you with dashboards. The goal is to make the recommendation legible and defensible." />
-        <div className="wf-grid-split">
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 14 }}>
-            {WHY_WATTFULL.map((item) => <WhyCard key={item.title} item={item} t={t} />)}
-          </div>
-          <GlassCard variant="featured" padding={24} style={{ minHeight: "100%" }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 11, fontWeight: 700, color: t.green, letterSpacing: ".06em", textTransform: "uppercase", marginBottom: 12 }}>Founder note</div>
-            <div style={{ fontSize: 24, fontWeight: 800, color: t.text, lineHeight: 1.2, letterSpacing: "-.03em", marginBottom: 12 }}>Most calculators hide the assumptions that actually decide the outcome.</div>
-            <div style={{ fontSize: 14, color: t.textMid, lineHeight: 1.72, marginBottom: 16 }}>Whether an EV or solar setup makes sense depends on local rates, annual usage, incentives, and ownership horizon. Wattfull is built to make those drivers visible instead of burying them behind a generic average.</div>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <StatPill icon="Database" value="Open data" variant="green" />
+      <section id="trust" style={{ padding: "clamp(36px,4vw,56px) 0 0" }}>
+        <GlassCard variant="featured" padding={22}>
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 20, flexWrap: "wrap" }}>
+            <div style={{ flex: "1 1 300px" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: t.green, letterSpacing: ".06em", textTransform: "uppercase", marginBottom: 10 }}>Founder note</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: t.text, lineHeight: 1.2, letterSpacing: "-.03em", marginBottom: 10 }}>Most calculators hide the assumptions that actually decide the outcome.</div>
+              <div style={{ fontSize: 14, color: t.textMid, lineHeight: 1.7 }}>Whether an EV or solar setup makes sense depends on local rates, usage, incentives, and ownership horizon. Wattfull makes those drivers visible.</div>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, flexShrink: 0 }}>
+              <StatPill icon="Database" value="EIA · EPA · NREL data" variant="green" />
               <StatPill icon="Eye" value="Transparent math" variant="glass" />
-              <StatPill icon="Shield" value="Independent positioning" variant="glass" />
-            </div>
-          </GlassCard>
-        </div>
-      </section>
-      </>
-      ) : null}
-
-      <section style={{ padding: "clamp(56px,7vw,86px) 0 0" }}>
-        <GlassCard variant="glass" padding={24} style={{ borderRadius: "var(--r-xl)" }}>
-          <div className="wf-grid-split" style={{ gap: 18, alignItems: "center" }}>
-            <div>
-              <div style={{ fontSize: 11, fontWeight: 750, textTransform: "uppercase", letterSpacing: ".08em", color: t.green, marginBottom: 8 }}>Next move</div>
-              <div style={{ fontSize: "clamp(24px,3.2vw,36px)", fontWeight: 820, color: t.text, lineHeight: 1.15, letterSpacing: "-.03em", marginBottom: 10 }}>Do not leave the homepage with a vague idea. Start with one grounded answer.</div>
-              <div style={{ fontSize: 15, color: t.textMid, lineHeight: 1.7, maxWidth: 560, marginBottom: 16 }}>If you know your ZIP and annual miles, the EV calculator is the best first click. If you own your home, solar ROI is usually the second-best path. If the decision is already between two options, go straight to Compare.</div>
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                <GlassButton href={heroZip ? `/ev?zip=${heroZip}` : "/ev"} variant="primary" size="md" iconAfter="ArrowRight">Run EV Calculator</GlassButton>
-                <GlassButton href="/compare" variant="secondary" size="md" iconAfter="ArrowRight">Open Compare</GlassButton>
-                <GlassButton href="/solar" variant="ghost" size="md" iconAfter="ArrowRight">Check Solar ROI</GlassButton>
-              </div>
-            </div>
-            <div style={{ display: "grid", gap: 10 }}>
-              {[
-                { title: "Best first click", desc: "EV Calculator if you know your ZIP and miles.", icon: "Zap" },
-                { title: "Best second step", desc: "Compare if purchase price or ownership horizon matters.", icon: "GitCompare" },
-                { title: "Best homeowner path", desc: "Solar ROI when utility bills are part of the question.", icon: "Sun" },
-              ].map((item) => (
-                <div key={item.title} style={{ background: t.white, border: `1px solid ${t.borderLight}`, borderRadius: "var(--r-lg)", padding: "14px 16px", display: "flex", gap: 12, alignItems: "center" }}>
-                  <div style={{ width: 36, height: 36, borderRadius: "var(--r-md)", background: t.greenGlass, border: `1px solid ${t.featuredBorder}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <Icon name={item.icon} size={18} color={t.green} strokeWidth={1.75} />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 750, color: t.text }}>{item.title}</div>
-                    <div style={{ fontSize: 12, color: t.textLight, marginTop: 4, lineHeight: 1.5 }}>{item.desc}</div>
-                  </div>
-                </div>
-              ))}
+              <StatPill icon="Shield" value="Independent" variant="glass" />
             </div>
           </div>
         </GlassCard>
       </section>
+      </>
+      ) : null}
 
-      <section style={{ padding: "clamp(46px,6vw,64px) 0" }}>
-        <div style={{ maxWidth: 720, margin: "0 auto" }}>
-          <SectionHeader align="center" eyebrow="PROFILE" title="Save once, pre-fill everywhere" desc="Store your ZIP, annual miles, and driving context so the calculators stop starting from scratch." style={{ marginBottom: 20 }} />
-          <EnergyProfile />
+      <section style={{ padding: "clamp(36px,4vw,56px) 0 clamp(36px,4vw,56px)" }}>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+          <GlassButton href={heroZip ? `/ev?zip=${heroZip}` : "/ev"} variant="primary" size="md" iconAfter="ArrowRight">Run EV Calculator</GlassButton>
+          <GlassButton href="/compare" variant="secondary" size="md" iconAfter="ArrowRight">Compare options</GlassButton>
+          <GlassButton href="/solar" variant="ghost" size="md" iconAfter="ArrowRight">Solar ROI</GlassButton>
         </div>
       </section>
     </div>

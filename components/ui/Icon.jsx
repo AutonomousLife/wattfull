@@ -1,71 +1,45 @@
 "use client";
 /**
  * Icon — thin wrapper around Lucide React icons.
- *
- * Usage:
- *   <Icon name="Zap" size={20} color={t.green} />
- *   <Icon name="Moon" size={18} strokeWidth={2} />
- *
- * All icon names are PascalCase Lucide names (Zap, Sun, Moon, Map, etc.)
+ * Named imports only — unused icons are tree-shaken at build time.
  * Full list: https://lucide.dev/icons/
  */
-
-// Named imports keep the bundle small — only icons we use are included.
 import {
-  Zap, Sun, Moon, Map, Leaf, Plug, ShoppingBag, GitCompare,
-  Link as LinkIcon, Menu, X, ChevronRight, ChevronDown, ChevronUp,
-  ArrowRight, ArrowLeft, ArrowRightCircle, Check, Info, AlertTriangle, AlertCircle,
-  TrendingUp, TrendingDown, BarChart2, Activity, DollarSign,
-  Home, Settings, Copy, Share2, Bookmark, Star, Eye, EyeOff,
-  RefreshCw, Clock, Calendar, MapPin, Globe, Database,
-  Battery, BatteryCharging, Car, Gauge, Wind, Droplets,
-  Thermometer, CloudSun, FlameKindling, Flame, Fuel,
-  Calculator, PieChart, Layers, Grid, List, FileSearch,
-  User, Users, Building, Shield, Lock, Unlock, Compass,
-  Download, Upload, ExternalLink, Maximize2, Minimize2,
-  Plus, Minus, Search, Filter, SlidersHorizontal,
-  Lightbulb, Wrench, Truck, Wallet, CreditCard,
-  LayoutGrid, SquareDashed,
-  // Icons used in PROCESS / WHY_WATTFULL / StatPill
-  FileSearch,
-  CircleArrowRight,  // lucide >=0.396 renamed ArrowRightCircle → CircleArrowRight
-  Compass,
-  Fuel,
-  Target,
-  Navigation,
-  Route,
-  CircleCheck,
-  Sparkles,
-  FileText,
+  Activity, AlertCircle, AlertTriangle, ArrowLeft, ArrowRight,
+  ArrowRightCircle, BarChart2, Battery, BatteryCharging,
+  Bookmark, Building, Calculator, Calendar, Car,
+  Check, ChevronDown, ChevronRight, ChevronUp, CircleArrowRight,
+  CircleCheck, Clock, CloudSun, Compass, Copy, CreditCard,
+  Database, DollarSign, Download, Droplets, ExternalLink,
+  Eye, EyeOff, FileSearch, FileText, Filter, Flame,
+  FlameKindling, Fuel, Gauge, GitCompare, Globe, Grid,
+  Home, Info, LayoutGrid, Layers, Leaf, Lightbulb,
+  Link as LinkIcon, List, Lock, Map, MapPin, Maximize2,
+  Menu, Minimize2, Minus, Moon, Navigation, PieChart,
+  Plug, Plus, RefreshCw, Route, Search, Settings,
+  Shield, ShoppingBag, Share2, SlidersHorizontal, Sparkles,
+  SquareDashed, Star, Sun, Target, Thermometer, TrendingDown,
+  TrendingUp, Truck, Unlock, Upload, User, Users,
+  Wallet, Wind, Wrench, X, Zap,
 } from "lucide-react";
 
 const ICONS = {
-  Zap, Sun, Moon, Map, Leaf, Plug, ShoppingBag, GitCompare,
-  Link: LinkIcon, Menu, X, ChevronRight, ChevronDown, ChevronUp,
-  ArrowRight, ArrowLeft, ArrowRightCircle, Check, Info, AlertTriangle, AlertCircle,
-  TrendingUp, TrendingDown, BarChart2, Activity, DollarSign,
-  Home, Settings, Copy, Share2, Bookmark, Star, Eye, EyeOff,
-  RefreshCw, Clock, Calendar, MapPin, Globe, Database,
-  Battery, BatteryCharging, Car, Gauge, Wind, Droplets,
-  Thermometer, CloudSun, FlameKindling, Flame, Fuel,
-  Calculator, PieChart, Layers, Grid, List, FileSearch,
-  User, Users, Building, Shield, Lock, Unlock, Compass,
-  Download, Upload, ExternalLink, Maximize2, Minimize2,
-  Plus, Minus, Search, Filter, SlidersHorizontal,
-  Lightbulb, Wrench, Truck, Wallet, CreditCard,
-  LayoutGrid, SquareDashed,
-  // New
-  FileSearch,
-  ArrowRightCircle: CircleArrowRight,  // alias for backwards compat
-  CircleArrowRight,
-  Compass,
-  Fuel,
-  Target,
-  Navigation,
-  Route,
-  CircleCheck,
-  Sparkles,
-  FileText,
+  Activity, AlertCircle, AlertTriangle, ArrowLeft, ArrowRight,
+  ArrowRightCircle, BarChart2, Battery, BatteryCharging,
+  Bookmark, Building, Calculator, Calendar, Car,
+  Check, ChevronDown, ChevronRight, ChevronUp, CircleArrowRight,
+  CircleCheck, Clock, CloudSun, Compass, Copy, CreditCard,
+  Database, DollarSign, Download, Droplets, ExternalLink,
+  Eye, EyeOff, FileSearch, FileText, Filter, Flame,
+  FlameKindling, Fuel, Gauge, GitCompare, Globe, Grid,
+  Home, Info, LayoutGrid, Layers, Leaf, Lightbulb,
+  Link: LinkIcon, List, Lock, Map, MapPin, Maximize2,
+  Menu, Minimize2, Minus, Moon, Navigation, PieChart,
+  Plug, Plus, RefreshCw, Route, Search, Settings,
+  Shield, ShoppingBag, Share2, SlidersHorizontal, Sparkles,
+  SquareDashed, Star, Sun, Target, Thermometer, TrendingDown,
+  TrendingUp, Truck, Unlock, Upload, User, Users,
+  Wallet, Wind, Wrench, X, Zap,
 };
 
 export function Icon({

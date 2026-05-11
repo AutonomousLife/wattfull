@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useTheme } from "@/lib/ThemeContext";
 import { STATE_DATA } from "@/lib/data";
-import { AssumptionGrid, TrustStrip, VerdictPanel } from "@/components/ui";
+import { AssumptionGrid, VerdictPanel } from "@/components/ui";
 import { SaveStateButton } from "@/components/widgets";
 
 
@@ -134,16 +134,6 @@ export function StatesPageV2() {
         Browse every state as a decision context, not just a rank. Wattfull separates electricity cost, gas pressure, incentives, grid mix, and solar practicality so you can see why one state looks better than another.
       </p>
 
-      <div style={{ marginTop: 18, marginBottom: 18 }}>
-        <TrustStrip
-          title="State intelligence status"
-          items={[
-            { label: "Electricity", value: "Estimated state seed", note: "Directional state layer, not utility-bill precision.", tone: "neutral" },
-            { label: "Incentives", value: "Policy snapshot", note: "Verify before purchase; changes can outpace the snapshot.", tone: "caution" },
-            { label: "Solar context", value: "Static benchmark", note: "Useful for screening, not installer-grade design.", tone: "low" },
-          ]}
-        />
-      </div>
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 18, marginBottom: 18 }}>
         {[

@@ -5,7 +5,7 @@ import { useTheme } from "@/lib/ThemeContext";
 import { POWER_STATIONS, STATE_DATA } from "@/lib/data";
 import { HOME_BATTERIES, matchHomeBatteries } from "@/lib/data/homeBatteries";
 import { resolveStateFromZip } from "@/lib/geo";
-import { AssumptionGrid, FaqList, TrustStrip, VerdictPanel } from "@/components/ui";
+import { AssumptionGrid, FaqList, VerdictPanel } from "@/components/ui";
 import { STORAGE_KEYS, getStoredJson, pushStoredHistory } from "@/lib/profileStore";
 
 function cardStyle(t) {
@@ -88,16 +88,6 @@ export function BatteryPage() {
         Screen whether a home battery is mainly a resilience purchase, a TOU bill-arbitrage play, or a strong solar-pairing upgrade before you ask installers for quotes.
       </p>
 
-      <div style={{ marginTop: 18, marginBottom: 18 }}>
-        <TrustStrip
-          title="Battery tool trust layer"
-          items={[
-            { label: "Economics", value: "Directional", note: "Best for screening, not final underwriting.", tone: "caution" },
-            { label: "State context", value: state ? `${state} loaded` : "Fallback context", note: "Used to frame solar-pair and grid context only.", tone: state ? "neutral" : "low" },
-            { label: "Gear matches", value: "Home battery catalog live", note: "Matched by capacity to your selection. Portable backup shown for smaller sizes.", tone: "positive" },
-          ]}
-        />
-      </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "340px 1fr", gap: 22, alignItems: "start" }}>
         <section style={cardStyle(t)}>

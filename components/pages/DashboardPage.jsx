@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useTheme } from "@/lib/ThemeContext";
 import { STATE_DATA } from "@/lib/data";
 import { resolveStateFromZip } from "@/lib/geo";
-import { AssumptionGrid, PhaseRoadmap, TrustStrip, VerdictPanel } from "@/components/ui";
+import { AssumptionGrid, PhaseRoadmap, VerdictPanel } from "@/components/ui";
 import { STORAGE_KEYS, getStoredJson } from "@/lib/profileStore";
 
 function cardStyle(t) {
@@ -124,17 +124,6 @@ export function DashboardPage() {
         A lightweight command center for your stored assumptions, saved watchlists, recent decisions, and the next moves Wattfull thinks are worth your time.
       </p>
 
-      <div style={{ marginTop: 18, marginBottom: 20 }}>
-        <TrustStrip
-          title="Profile trust layer"
-          items={[
-            { label: "Location context", value: state ? `${state} estimated` : "No ZIP saved", note: "ZIP improves rates, incentives, and climate context.", tone: state ? "positive" : "low" },
-            { label: "Recent EV state", value: evCalc ? "Saved locally" : "No recent EV run", note: "Used to prefill dashboard and next steps.", tone: evCalc ? "neutral" : "low" },
-            { label: "Watchlists", value: `${savedStates.length} states | ${savedGear.length} gear`, note: "Saved locally until account-based profiles exist.", tone: savedStates.length || savedGear.length ? "positive" : "neutral" },
-            { label: "Freshness pulse", value: freshnessNote, note: "Powered by the admin data-status layer when available.", tone: dataStatus.length ? "positive" : "low" },
-          ]}
-        />
-      </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 20, marginTop: 24, alignItems: "start" }}>
         <section style={cardStyle(t)}>

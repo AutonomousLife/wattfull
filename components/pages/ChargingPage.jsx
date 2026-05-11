@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useTheme } from "@/lib/ThemeContext";
 import { CHARGERS, STATE_DATA } from "@/lib/data";
 import { resolveStateFromZip } from "@/lib/geo";
-import { AssumptionGrid, FaqList, Slider, TrustStrip, VerdictPanel } from "@/components/ui";
+import { AssumptionGrid, FaqList, Slider, VerdictPanel } from "@/components/ui";
 import { STORAGE_KEYS, getStoredJson, pushStoredHistory } from "@/lib/profileStore";
 
 function cardStyle(t) {
@@ -118,16 +118,6 @@ export function ChargingPage() {
         Decide whether Level 2 charging is worth it, what setup fits your living situation, and which charger style makes sense before you spend money on installation.
       </p>
 
-      <div style={{ marginTop: 18, marginBottom: 18 }}>
-        <TrustStrip
-          title="Charging tool trust layer"
-          items={[
-            { label: "Electricity", value: state ? `${state} estimated` : "Fallback estimate", note: "State average unless you saved a utility override.", tone: state ? "neutral" : "low" },
-            { label: "Install cost", value: "User input", note: "Use your electrician quote if you have one.", tone: "positive" },
-            { label: "Output", value: "Directional economics", note: "Best for screening whether Level 2 is worth deeper shopping.", tone: "caution" },
-          ]}
-        />
-      </div>
 
       <style>{`
         .ch-calc-grid{display:grid;grid-template-columns:340px 1fr;gap:22px;align-items:start}

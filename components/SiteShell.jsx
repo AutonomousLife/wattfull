@@ -236,9 +236,9 @@ export function SiteShell({ children }) {
         ) : null}
       </nav>
 
-      <main id="main-content" style={{ maxWidth: 1200, margin: "0 auto", padding: "36px clamp(16px,4vw,48px) 60px" }}>{children}</main>
+      <main id="main-content" style={{ maxWidth: 1200, margin: "0 auto", padding: "20px clamp(16px,4vw,48px) 48px" }}>{children}</main>
 
-      <footer style={{ borderTop: `1px solid ${t.borderLight}`, padding: "32px clamp(16px,4vw,48px) 40px" }}>
+      <footer style={{ borderTop: `1px solid ${t.borderLight}`, padding: "24px clamp(16px,4vw,48px) 32px" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
           <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 20, marginBottom: 24 }}>
             <div>

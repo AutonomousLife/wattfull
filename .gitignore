@@ -41,3 +41,9 @@ next-env.d.ts
 # claude
 .claude/settings.local.json
 .claude/worktrees/
+
+# Local tooling / temp
+.claire/
+.lh-tmp/
+.lighthouse-prod-after.json
+public/game/

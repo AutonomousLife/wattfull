@@ -681,9 +681,8 @@ export default function MaiaPage() {
     clearInterval(fadeRef.current);
 
     if (playing) {
-      // fade out then pause
       fadeRef.current = setInterval(() => {
-        if (audio.volume > 0.03) {
+        if (audio.volume > 0.04) {
           audio.volume = Math.max(0, audio.volume - 0.04);
         } else {
           audio.volume = 0;
@@ -694,17 +693,24 @@ export default function MaiaPage() {
       setPlaying(false);
     } else {
       audio.volume = 0;
-      audio.play().catch(() => {});
-      setPlaying(true);
-      // fade in
-      fadeRef.current = setInterval(() => {
-        if (audio.volume < 0.36) {
-          audio.volume = Math.min(0.4, audio.volume + 0.04);
-        } else {
+      // start fade AFTER play() resolves so we know audio is actually running
+      audio.play()
+        .then(() => {
+          setPlaying(true);
+          fadeRef.current = setInterval(() => {
+            if (audio.volume < 0.38) {
+              audio.volume = Math.min(0.4, audio.volume + 0.03);
+            } else {
+              audio.volume = 0.4;
+              clearInterval(fadeRef.current);
+            }
+          }, 40);
+        })
+        .catch(() => {
+          // autoplay blocked — bump volume and mark playing anyway
           audio.volume = 0.4;
-          clearInterval(fadeRef.current);
-        }
-      }, 40);
+          setPlaying(true);
+        });
     }
   }, [playing]);
 
@@ -719,27 +725,28 @@ export default function MaiaPage() {
       for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
       const src = ctx.createBufferSource();
       src.buffer = buf; src.loop = true;
-      // shape into rain character
-      const hi  = ctx.createBiquadFilter(); hi.type  = "highpass";  hi.frequency.value = 250;
-      const bp  = ctx.createBiquadFilter(); bp.type  = "bandpass";  bp.frequency.value = 1600; bp.Q.value = 0.45;
+      // shape into soft rain — highpass removes rumble, lowpass kills harshness, bandpass centres it
+      const hi  = ctx.createBiquadFilter(); hi.type = "highpass"; hi.frequency.value = 300;
+      const lp  = ctx.createBiquadFilter(); lp.type = "lowpass";  lp.frequency.value = 2800;
+      const bp  = ctx.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 900; bp.Q.value = 0.5;
       const gain = ctx.createGain(); gain.gain.value = 0;
       rainGainRef.current = gain;
-      src.connect(hi); hi.connect(bp); bp.connect(gain); gain.connect(ctx.destination);
+      src.connect(hi); hi.connect(lp); lp.connect(bp); bp.connect(gain); gain.connect(ctx.destination);
       src.start();
     }
     const g = rainGainRef.current; if (!g) return;
     clearInterval(rainFadeRef.current);
     if (raining) {
       rainFadeRef.current = setInterval(() => {
-        if (g.gain.value > 0.02) { g.gain.value = Math.max(0, g.gain.value - 0.018); }
+        if (g.gain.value > 0.005) { g.gain.value = Math.max(0, g.gain.value - 0.006); }
         else { g.gain.value = 0; clearInterval(rainFadeRef.current); }
       }, 40);
       setRaining(false);
     } else {
       g.gain.value = 0; setRaining(true);
       rainFadeRef.current = setInterval(() => {
-        if (g.gain.value < 0.28) { g.gain.value = Math.min(0.3, g.gain.value + 0.014); }
-        else { g.gain.value = 0.3; clearInterval(rainFadeRef.current); }
+        if (g.gain.value < 0.07) { g.gain.value = Math.min(0.08, g.gain.value + 0.004); }
+        else { g.gain.value = 0.08; clearInterval(rainFadeRef.current); }
       }, 40);
     }
   }, [raining]);

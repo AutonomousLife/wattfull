@@ -224,6 +224,7 @@ function sleep(ms: number): Promise<void> {
 // ─── Paper texture noise (inline SVG data URI) ────────────────────────────────
 
 const NOISE_BG = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)' opacity='0.038'/%3E%3C/svg%3E")`;
+const DOT_BG    = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22'%3E%3Ccircle cx='11' cy='11' r='0.85' fill='rgba(42%2C33%2C28%2C0.13)'/%3E%3C/svg%3E")`;
 
 // ─── SVG Art ──────────────────────────────────────────────────────────────────
 
@@ -592,6 +593,50 @@ function SpeakerButton({ playing, onToggle }: { playing: boolean; onToggle: () =
   );
 }
 
+// ─── Rain SVG + button ────────────────────────────────────────────────────────
+
+function ArtRain({ size = 26, on = false }: { size?: number; on?: boolean }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 28 28" fill="none"
+      stroke="#3a2a1e" strokeWidth="1.55" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      {/* cloud */}
+      <path d="M6,15 Q4,15 4,12.5 Q4,10 7,10 Q7.5,7 10.5,7 Q12.5,7 13.5,8.5 Q14.5,7 16.5,7 Q19.5,7 19.5,10.5 Q21.5,10.5 21.5,13 Q21.5,15 19.5,15 Z"/>
+      {/* rain drops — full when on, faint when off */}
+      <line x1="9"  y1="18" x2="7.5"  y2="23" strokeOpacity={on ? 1 : 0.3}/>
+      <line x1="13.5" y1="18" x2="12" y2="23" strokeOpacity={on ? 1 : 0.3}/>
+      <line x1="18" y1="18" x2="16.5" y2="23" strokeOpacity={on ? 1 : 0.3}/>
+    </svg>
+  );
+}
+
+function RainButton({ raining, onToggle }: { raining: boolean; onToggle: () => void }) {
+  return (
+    <motion.button
+      onClick={onToggle}
+      whileTap={{ scale: 0.85 }}
+      animate={{ opacity: raining ? 1 : 0.55 }}
+      transition={{ duration: 0.25 }}
+      style={{ background:"none", border:"none", cursor:"pointer", padding:0, lineHeight:0, display:"block" }}
+      aria-label={raining ? "stop rain" : "add rain sounds"}
+    >
+      <ArtRain size={26} on={raining}/>
+    </motion.button>
+  );
+}
+
+// ─── Time-aware footer hint ───────────────────────────────────────────────────
+
+function getFooterHint(): string {
+  const h = new Date().getHours();
+  if (h >= 1  && h < 4)  return "can't sleep?";
+  if (h >= 4  && h < 7)  return "still up...";
+  if (h >= 7  && h < 11) return "good morning";
+  if (h >= 11 && h < 14) return "afternoon texts";
+  if (h >= 14 && h < 18) return "sending more soon";
+  if (h >= 18 && h < 21) return "evening check-in";
+  return "it's getting late";
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function MaiaPage() {
@@ -606,11 +651,25 @@ export default function MaiaPage() {
   const [rightTime,   setRightTime]   = useState<string | undefined>();
   const [heartPop,    setHeartPop]    = useState(false);
 
-  const stopRef  = useRef(false);
+  const stopRef      = useRef(false);
+  const heroRef      = useRef<HTMLDivElement>(null);
+
+  // lo-fi audio
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fadeRef  = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
-
   const [playing, setPlaying] = useState(false);
+
+  // rain audio
+  const rainCtxRef   = useRef<AudioContext | null>(null);
+  const rainGainRef  = useRef<GainNode | null>(null);
+  const rainFadeRef  = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
+  const [raining, setRaining] = useState(false);
+
+  // parallax
+  const [parallax, setParallax] = useState({ x: 0, y: 0 });
+
+  // time-aware hint (computed once at mount)
+  const [footerHint] = useState(getFooterHint);
 
   const toggleAudio = useCallback(() => {
     if (!audioRef.current) {
@@ -649,11 +708,60 @@ export default function MaiaPage() {
     }
   }, [playing]);
 
+  const toggleRain = useCallback(() => {
+    if (!rainCtxRef.current) {
+      const ctx = new AudioContext();
+      rainCtxRef.current = ctx;
+      // white-noise buffer (3 s, looped)
+      const len = ctx.sampleRate * 3;
+      const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+      const d   = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      const src = ctx.createBufferSource();
+      src.buffer = buf; src.loop = true;
+      // shape into rain character
+      const hi  = ctx.createBiquadFilter(); hi.type  = "highpass";  hi.frequency.value = 250;
+      const bp  = ctx.createBiquadFilter(); bp.type  = "bandpass";  bp.frequency.value = 1600; bp.Q.value = 0.45;
+      const gain = ctx.createGain(); gain.gain.value = 0;
+      rainGainRef.current = gain;
+      src.connect(hi); hi.connect(bp); bp.connect(gain); gain.connect(ctx.destination);
+      src.start();
+    }
+    const g = rainGainRef.current; if (!g) return;
+    clearInterval(rainFadeRef.current);
+    if (raining) {
+      rainFadeRef.current = setInterval(() => {
+        if (g.gain.value > 0.02) { g.gain.value = Math.max(0, g.gain.value - 0.018); }
+        else { g.gain.value = 0; clearInterval(rainFadeRef.current); }
+      }, 40);
+      setRaining(false);
+    } else {
+      g.gain.value = 0; setRaining(true);
+      rainFadeRef.current = setInterval(() => {
+        if (g.gain.value < 0.28) { g.gain.value = Math.min(0.3, g.gain.value + 0.014); }
+        else { g.gain.value = 0.3; clearInterval(rainFadeRef.current); }
+      }, 40);
+    }
+  }, [raining]);
+
+  const onHeroMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (reduced) return;
+    const rect = heroRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const dx = (e.clientX - (rect.left + rect.width  / 2)) / rect.width;
+    const dy = (e.clientY - (rect.top  + rect.height / 2)) / rect.height;
+    setParallax({ x: dx * -10, y: dy * -6 });
+  }, [reduced]);
+
+  const onHeroMouseLeave = useCallback(() => setParallax({ x: 0, y: 0 }), []);
+
   // cleanup on unmount
   useEffect(() => {
     return () => {
       clearInterval(fadeRef.current);
+      clearInterval(rainFadeRef.current);
       if (audioRef.current) audioRef.current.pause();
+      if (rainCtxRef.current) rainCtxRef.current.close().catch(() => {});
     };
   }, []);
 
@@ -734,11 +842,11 @@ export default function MaiaPage() {
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
       `}</style>
 
-      {/* ── Page background (darker parchment + noise) ── */}
+      {/* ── Page background (dot grid + warm glow + noise) ── */}
       <div style={{
         minHeight: "100dvh",
-        background: "#d8ccb4",
-        backgroundImage: NOISE_BG,
+        background: `radial-gradient(ellipse 900px 520px at 50% 38%, rgba(195,155,90,0.22) 0%, transparent 65%), #d8ccb4`,
+        backgroundImage: `${DOT_BG}, ${NOISE_BG}`,
         display: "flex",
         justifyContent: "center",
         alignItems: "flex-start",
@@ -820,19 +928,27 @@ export default function MaiaPage() {
             </div>
           </div>
 
-          {/* ── HERO — full-width image crop showing only the two rooms ── */}
-          <div style={{
-            position: "relative",
-            width: "100%",
-            aspectRatio: "1024 / 478",
-            overflow: "hidden",
-            lineHeight: 0,
-          }}>
+          {/* ── HERO — full-width image crop with parallax ── */}
+          <div
+            ref={heroRef}
+            onMouseMove={onHeroMouseMove}
+            onMouseLeave={onHeroMouseLeave}
+            style={{
+              position: "relative",
+              width: "100%",
+              aspectRatio: "1024 / 478",
+              overflow: "hidden",
+              lineHeight: 0,
+              cursor: "default",
+            }}
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <motion.img
               src="/maia-rooms.jpg"
               alt="two cozy rooms at night"
-              style={{ width: "100%", display: "block", marginTop: "-16.5%" }}
+              animate={{ x: parallax.x, y: parallax.y }}
+              transition={{ type: "spring", stiffness: 90, damping: 22 }}
+              style={{ width: "calc(100% + 20px)", marginLeft: "-10px", display: "block", marginTop: "-16.5%" }}
             />
 
             {/* Bottom vignette */}
@@ -848,6 +964,30 @@ export default function MaiaPage() {
             {/* Right bubble */}
             <div style={{ position:"absolute", right:"5%", top:"32%", zIndex:10, display:"flex", justifyContent:"flex-end" }}>
               <Bubble text={rightText} typing={rightTyping} side="right" time={rightTime}/>
+            </div>
+          </div>
+
+          {/* ── NAME LABELS ── */}
+          <div style={{
+            display: "flex",
+            borderBottom: "1.5px solid rgba(42,33,28,0.08)",
+          }}>
+            <div style={{ flex: 1, textAlign: "center", padding: "7px 0 8px" }}>
+              <span style={{
+                fontFamily: "'Caveat', cursive",
+                fontSize: 13,
+                color: "rgba(42,28,20,0.38)",
+                letterSpacing: "0.1em",
+              }}>chase</span>
+            </div>
+            <div style={{ width: 1, background: "rgba(42,33,28,0.10)", flexShrink: 0 }}/>
+            <div style={{ flex: 1, textAlign: "center", padding: "7px 0 8px" }}>
+              <span style={{
+                fontFamily: "'Caveat', cursive",
+                fontSize: 13,
+                color: "rgba(42,28,20,0.38)",
+                letterSpacing: "0.1em",
+              }}>maia</span>
             </div>
           </div>
 
@@ -870,7 +1010,7 @@ export default function MaiaPage() {
             <div style={{ fontSize:12, color:"#9a8070", letterSpacing:"0.04em", textAlign:"center",
               flexGrow:1, display:"flex", alignItems:"center", justifyContent:"center", gap:5,
               fontFamily:"'Caveat', cursive" }}>
-              another message in a few seconds
+              {footerHint}
               <ArtHeart size={12}/>
             </div>
 
@@ -878,6 +1018,7 @@ export default function MaiaPage() {
               <ArtStar size={11}/>
               <ChickenButton size={32}/>
               <MapleButton size={28}/>
+              <RainButton raining={raining} onToggle={toggleRain}/>
               <SpeakerButton playing={playing} onToggle={toggleAudio}/>
             </div>
           </div>

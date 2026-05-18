@@ -552,6 +552,46 @@ function GardenNote() {
   );
 }
 
+// ─── Speaker SVG ─────────────────────────────────────────────────────────────
+
+function ArtSpeaker({ size = 26, on = false }: { size?: number; on?: boolean }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 28 28" fill="none"
+      stroke="#3a2a1e" strokeWidth="1.55" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      {/* body + cone */}
+      <path d="M3,10 L3,18 L9,18 L15,23 L15,5 L9,10 Z"/>
+      {on ? (
+        <>
+          {/* sound waves */}
+          <path d="M18,10.5 Q21,14 18,17.5"/>
+          <path d="M21,7.5 Q25.5,14 21,20.5"/>
+        </>
+      ) : (
+        <>
+          {/* muted X */}
+          <line x1="19" y1="11" x2="25" y2="17"/>
+          <line x1="25" y1="11" x2="19" y2="17"/>
+        </>
+      )}
+    </svg>
+  );
+}
+
+function SpeakerButton({ playing, onToggle }: { playing: boolean; onToggle: () => void }) {
+  return (
+    <motion.button
+      onClick={onToggle}
+      whileTap={{ scale: 0.85 }}
+      animate={{ opacity: playing ? 1 : 0.55 }}
+      transition={{ duration: 0.25 }}
+      style={{ background:"none", border:"none", cursor:"pointer", padding:0, lineHeight:0, display:"block" }}
+      aria-label={playing ? "pause lo-fi" : "play lo-fi"}
+    >
+      <ArtSpeaker size={26} on={playing}/>
+    </motion.button>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function MaiaPage() {
@@ -566,7 +606,56 @@ export default function MaiaPage() {
   const [rightTime,   setRightTime]   = useState<string | undefined>();
   const [heartPop,    setHeartPop]    = useState(false);
 
-  const stopRef = useRef(false);
+  const stopRef  = useRef(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const fadeRef  = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
+
+  const [playing, setPlaying] = useState(false);
+
+  const toggleAudio = useCallback(() => {
+    if (!audioRef.current) {
+      audioRef.current = new Audio("/audio/lofi.mp3");
+      audioRef.current.loop = true;
+      audioRef.current.volume = 0;
+    }
+    const audio = audioRef.current;
+    clearInterval(fadeRef.current);
+
+    if (playing) {
+      // fade out then pause
+      fadeRef.current = setInterval(() => {
+        if (audio.volume > 0.03) {
+          audio.volume = Math.max(0, audio.volume - 0.04);
+        } else {
+          audio.volume = 0;
+          audio.pause();
+          clearInterval(fadeRef.current);
+        }
+      }, 40);
+      setPlaying(false);
+    } else {
+      audio.volume = 0;
+      audio.play().catch(() => {});
+      setPlaying(true);
+      // fade in
+      fadeRef.current = setInterval(() => {
+        if (audio.volume < 0.36) {
+          audio.volume = Math.min(0.4, audio.volume + 0.04);
+        } else {
+          audio.volume = 0.4;
+          clearInterval(fadeRef.current);
+        }
+      }, 40);
+    }
+  }, [playing]);
+
+  // cleanup on unmount
+  useEffect(() => {
+    return () => {
+      clearInterval(fadeRef.current);
+      if (audioRef.current) audioRef.current.pause();
+    };
+  }, []);
 
   const runConvo = useCallback(async (idx: number) => {
     const convo = CONVOS[idx % CONVOS.length];
@@ -789,6 +878,7 @@ export default function MaiaPage() {
               <ArtStar size={11}/>
               <ChickenButton size={32}/>
               <MapleButton size={28}/>
+              <SpeakerButton playing={playing} onToggle={toggleAudio}/>
             </div>
           </div>
 

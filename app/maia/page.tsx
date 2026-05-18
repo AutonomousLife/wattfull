@@ -487,7 +487,7 @@ function GardenNote() {
       style={{ transform: "rotate(-4deg)", transformOrigin: "center", lineHeight: 0, cursor: "default" }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/maia-note.png" alt="garden ideas" width={72} height={72}
+      <img src="/maia-note.png" alt="garden ideas" width={96} height={96}
         style={{ display: "block", objectFit: "contain" }}
       />
     </motion.div>
@@ -806,7 +806,11 @@ export default function MaiaPage() {
         <div style={{
           width: "100%",
           maxWidth: 860,
-          background: `#f0e6d0 url('/maia-paper.png') center/cover no-repeat`,
+          backgroundColor: "#f0e6d0",
+          backgroundImage: `url('/maia-paper.png')`,
+          backgroundSize: "cover",
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "center",
           border: "2px solid rgba(42,33,28,0.16)",
           borderRadius: 20,
           overflow: "hidden",
@@ -827,9 +831,9 @@ export default function MaiaPage() {
             position: "relative",
             borderBottom: "1.5px solid rgba(42,33,28,0.09)",
           }}>
-            <div style={{ position: "absolute", left: 18, top: "50%", transform: "translateY(-50%)", display: "flex", alignItems: "center", gap: 8 }}>
-              <ArtMoon size={34} />
-              <ArtLeaves size={24} />
+            <div style={{ position: "absolute", left: 18, top: "50%", transform: "translateY(-50%)", display: "flex", alignItems: "center", gap: 10 }}>
+              <ArtMoon size={46} />
+              <ArtLeaves size={26} />
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: 8, position: "relative" }}>
@@ -849,7 +853,7 @@ export default function MaiaPage() {
                 style={{ background: "none", border: "none", cursor: "pointer", padding: "0 2px", position: "relative", lineHeight: 0 }}
                 aria-label="send heart"
               >
-                <ArtHeart size={30} pulse />
+                <ArtHeart size={38} pulse />
                 {heartPop && (
                   <span className="float-heart" style={{ top: -4, left: "50%", transform: "translateX(-50%)" }}>
                     <ArtHeart size={20} />
@@ -869,8 +873,8 @@ export default function MaiaPage() {
             </div>
 
             <div style={{ position: "absolute", right: 18, top: "50%", transform: "translateY(-50%)", display: "flex", alignItems: "flex-end", gap: 8 }}>
-              <ArtChicken size={38} />
-              <ArtPlant size={38} />
+              <ArtChicken size={50} />
+              <ArtPlant size={50} />
             </div>
           </div>
 
@@ -921,7 +925,7 @@ export default function MaiaPage() {
             borderTop: "1.5px solid rgba(42,33,28,0.08)",
           }}>
             <div style={{ display:"flex", alignItems:"flex-end", gap:12 }}>
-              <ArtSeedling size={26}/>
+              <ArtSeedling size={32}/>
               <GardenNote/>
               <ArtStar size={11}/>
             </div>
@@ -935,8 +939,8 @@ export default function MaiaPage() {
 
             <div style={{ display:"flex", alignItems:"flex-end", gap:12 }}>
               <ArtStar size={11}/>
-              <ChickenButton size={40}/>
-              <MapleButton size={36}/>
+              <ChickenButton size={52}/>
+              <MapleButton size={46}/>
               <RainButton raining={raining} onToggle={toggleRain}/>
               <SpeakerButton playing={playing} onToggle={toggleAudio}/>
             </div>

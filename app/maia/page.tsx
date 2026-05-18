@@ -1,566 +1,723 @@
 "use client";
-import { useState, useCallback } from "react";
 
-// ── Types ─────────────────────────────────────────────────────────────────────
+import { useState, useEffect, useRef, useCallback } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 
-type ItemId = "record" | "mug" | "window" | "books" | "photo" | "lights";
-type SoundKey = "lofi" | "rain" | "chime" | "rustle" | "sparkle" | "ding";
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-interface RoomItem {
-  id: ItemId;
-  label: string;
-  note: string;
-  subtext: string;
-  emoji: string;
-  cx: number; cy: number; r: number;   // SVG click region (900×560 space)
-  px: string; py: string;              // popup position (viewport %)
-  rot: number;                         // sticky note rotation (deg)
-  bg: string;                          // sticky note color
-  sound: SoundKey;
+interface Msg {
+  from: "you" | "maia";
+  text: string;
+  time: string;
 }
 
-// ── Room content ──────────────────────────────────────────────────────────────
+// ─── Conversations ────────────────────────────────────────────────────────────
 
-const ITEMS: RoomItem[] = [
-  {
-    id: "record", label: "Record Player",
-    note: "currently spinning:",
-    subtext: "Rumours — Fleetwood Mac\nat 2am, always.",
-    emoji: "🎵", cx: 120, cy: 348, r: 58, px: "5%", py: "44%",
-    rot: -3, bg: "#fef9c3", sound: "lofi",
-  },
-  {
-    id: "mug", label: "The Mug",
-    note: "oat milk. no sugar.",
-    subtext: "reheated three times.\nstill not finished.",
-    emoji: "☕", cx: 680, cy: 330, r: 45, px: "58%", py: "34%",
-    rot: 2, bg: "#fce4d6", sound: "chime",
-  },
-  {
-    id: "window", label: "The Window",
-    note: "somewhere cold.",
-    subtext: "🇨🇦  pines and aurora.\nit matters a lot.",
-    emoji: "🌲", cx: 412, cy: 130, r: 100, px: "27%", py: "2%",
-    rot: -1.5, bg: "#d4edda", sound: "rain",
-  },
-  {
-    id: "books", label: "The Shelf",
-    note: "marked on page 47:",
-    subtext: "\"not all those who wander\nare lost.\"",
-    emoji: "📚", cx: 800, cy: 200, r: 75, px: "68%", py: "8%",
-    rot: 3, bg: "#fef9c3", sound: "rustle",
-  },
-  {
-    id: "photo", label: "Polaroids",
-    note: "a kept thing.",
-    subtext: "blurry but it felt\nexactly right.",
-    emoji: "📸", cx: 160, cy: 175, r: 60, px: "5%", py: "8%",
-    rot: -4, bg: "#fce4d6", sound: "sparkle",
-  },
-  {
-    id: "lights", label: "String Lights",
-    note: "they stay on all night.",
-    subtext: "it makes the dark\nfeel smaller.",
-    emoji: "✨", cx: 450, cy: 22, r: 40, px: "34%", py: "4%",
-    rot: 1, bg: "#fffde7", sound: "ding",
-  },
+const CONVOS: Msg[][] = [
+  // 1 — work check-in
+  [
+    { from: "you",  text: "how was work",                         time: "10:31 PM" },
+    { from: "maia", text: "it was okay",                          time: "10:32 PM" },
+    { from: "you",  text: "people annoying?",                     time: "10:32 PM" },
+    { from: "maia", text: "a little lol",                         time: "10:32 PM" },
+    { from: "you",  text: "what u doing",                         time: "10:33 PM" },
+    { from: "maia", text: "just got home, making tea",            time: "10:33 PM" },
+    { from: "you",  text: "nice",                                  time: "10:33 PM" },
+    { from: "maia", text: "yep and looking at dumb videos",       time: "10:33 PM" },
+    { from: "you",  text: "u got any plans tomorrow",             time: "10:34 PM" },
+    { from: "maia", text: "not yet, maybe go outside if it's not freezing", time: "10:34 PM" },
+    { from: "you",  text: "sounds good",                          time: "10:34 PM" },
+    { from: "maia", text: "yeah we'll see",                       time: "10:34 PM" },
+    { from: "you",  text: "canada update",                        time: "10:34 PM" },
+    { from: "maia", text: "still cold",                           time: "10:34 PM" },
+    { from: "you",  text: "of course",                            time: "10:34 PM" },
+    { from: "maia", text: "shut up",                              time: "10:34 PM" },
+  ],
+  // 2 — productive nothing
+  [
+    { from: "you",  text: "what u doing",       time: "11:08 PM" },
+    { from: "maia", text: "laying here",         time: "11:08 PM" },
+    { from: "you",  text: "productive",          time: "11:09 PM" },
+    { from: "maia", text: "extremely",           time: "11:09 PM" },
+    { from: "you",  text: "proud of u",          time: "11:09 PM" },
+    { from: "maia", text: "thanks i worked hard",time: "11:09 PM" },
+    { from: "you",  text: "same honestly",       time: "11:10 PM" },
+    { from: "maia", text: "wow inspiring",        time: "11:10 PM" },
+  ],
+  // 3 — canada weather
+  [
+    { from: "you",  text: "canada update",    time: "9:54 PM" },
+    { from: "maia", text: "still cold",       time: "9:54 PM" },
+    { from: "you",  text: "shocking",         time: "9:55 PM" },
+    { from: "maia", text: "shut up",          time: "9:55 PM" },
+    { from: "you",  text: "sorry",            time: "9:55 PM" },
+    { from: "maia", text: "no ur not",        time: "9:55 PM" },
+    { from: "you",  text: "true",             time: "9:55 PM" },
+  ],
+  // 4 — chickens + garden
+  [
+    { from: "you",  text: "still want chickens?",         time: "10:17 PM" },
+    { from: "maia", text: "yes",                           time: "10:17 PM" },
+    { from: "you",  text: "how many",                     time: "10:18 PM" },
+    { from: "maia", text: "enough",                       time: "10:18 PM" },
+    { from: "you",  text: "suspicious answer",            time: "10:18 PM" },
+    { from: "maia", text: "normal answer",                time: "10:18 PM" },
+    { from: "you",  text: "sure",                         time: "10:18 PM" },
+    { from: "maia", text: "we also need tomatoes",        time: "10:19 PM" },
+  ],
+  // 5 — late night
+  [
+    { from: "you",  text: "why are we awake",   time: "1:12 AM" },
+    { from: "maia", text: "bad choices",         time: "1:12 AM" },
+    { from: "you",  text: "fair",                time: "1:12 AM" },
+    { from: "maia", text: "what are u doing",   time: "1:13 AM" },
+    { from: "you",  text: "nothing",             time: "1:13 AM" },
+    { from: "maia", text: "same",                time: "1:13 AM" },
+    { from: "you",  text: "elite lifestyle",     time: "1:13 AM" },
+    { from: "maia", text: "honestly yeah",       time: "1:13 AM" },
+  ],
+  // 6 — check-in
+  [
+    { from: "you",  text: "u good?",                    time: "11:42 PM" },
+    { from: "maia", text: "yeah i'm fine",               time: "11:42 PM" },
+    { from: "you",  text: "good",                        time: "11:42 PM" },
+    { from: "maia", text: "u?",                          time: "11:43 PM" },
+    { from: "you",  text: "yeah",                        time: "11:43 PM" },
+    { from: "maia", text: "okay",                        time: "11:43 PM" },
+    { from: "you",  text: "very emotional conversation", time: "11:43 PM" },
+    { from: "maia", text: "extremely",                   time: "11:43 PM" },
+  ],
+  // 7 — plans
+  [
+    { from: "you",  text: "u got any plans tomorrow",           time: "10:05 PM" },
+    { from: "maia", text: "not really",                         time: "10:05 PM" },
+    { from: "you",  text: "same",                               time: "10:06 PM" },
+    { from: "maia", text: "maybe go outside if it's not gross", time: "10:06 PM" },
+    { from: "you",  text: "ambitious",                          time: "10:06 PM" },
+    { from: "maia", text: "i know",                             time: "10:06 PM" },
+    { from: "you",  text: "proud of us",                        time: "10:07 PM" },
+    { from: "maia", text: "don't overdo it",                    time: "10:07 PM" },
+  ],
+  // 8 — garden or chickens first
+  [
+    { from: "you",  text: "important question",                       time: "9:30 PM" },
+    { from: "maia", text: "what",                                      time: "9:30 PM" },
+    { from: "you",  text: "garden first or chickens first",           time: "9:31 PM" },
+    { from: "maia", text: "garden",                                    time: "9:31 PM" },
+    { from: "you",  text: "controversial",                            time: "9:31 PM" },
+    { from: "maia", text: "chickens need somewhere to judge us from", time: "9:31 PM" },
+    { from: "you",  text: "fair",                                      time: "9:31 PM" },
+  ],
 ];
 
-// ── Audio synthesis ───────────────────────────────────────────────────────────
+// ─── Garden note labels ───────────────────────────────────────────────────────
 
-function makeCtx(): AudioContext {
-  return new ((window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext || AudioContext)();
+const GARDEN_LABELS = ["garden ideas", "tomatoes maybe", "chickens eventually", "no people nearby"];
+
+// ─── Stars (fixed to avoid hydration mismatch) ────────────────────────────────
+
+const STARS_LEFT  = [
+  { cx: 18, cy: 22, r: 1.2, op: 0.9 }, { cx: 42, cy: 14, r: 0.8, op: 0.7 },
+  { cx: 67, cy: 30, r: 1.0, op: 0.8 }, { cx: 88, cy: 10, r: 0.6, op: 0.6 },
+  { cx: 25, cy: 48, r: 0.7, op: 0.5 }, { cx: 55, cy: 55, r: 1.1, op: 0.7 },
+  { cx: 78, cy: 42, r: 0.9, op: 0.8 }, { cx: 10, cy: 65, r: 0.6, op: 0.5 },
+  { cx: 45, cy: 70, r: 0.8, op: 0.6 }, { cx: 92, cy: 60, r: 1.0, op: 0.7 },
+];
+const STARS_RIGHT = [
+  { cx: 12, cy: 18, r: 1.0, op: 0.8 }, { cx: 35, cy: 8,  r: 0.7, op: 0.7 },
+  { cx: 60, cy: 25, r: 1.2, op: 0.9 }, { cx: 82, cy: 15, r: 0.8, op: 0.6 },
+  { cx: 20, cy: 45, r: 0.6, op: 0.5 }, { cx: 50, cy: 52, r: 1.0, op: 0.7 },
+  { cx: 75, cy: 38, r: 0.7, op: 0.8 }, { cx: 90, cy: 60, r: 0.9, op: 0.6 },
+  { cx: 38, cy: 68, r: 1.1, op: 0.7 }, { cx: 65, cy: 72, r: 0.6, op: 0.5 },
+];
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function rand(min: number, max: number) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-const SOUNDS: Record<SoundKey, () => void> = {
-  lofi() {
-    try {
-      const ctx = makeCtx();
-      const notes = [261.63, 311.13, 369.99, 311.13, 261.63];
-      notes.forEach((freq, i) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        const lp = ctx.createBiquadFilter();
-        lp.type = "lowpass"; lp.frequency.value = 1600;
-        osc.type = "sine"; osc.frequency.value = freq;
-        osc.connect(lp); lp.connect(gain); gain.connect(ctx.destination);
-        const t = ctx.currentTime + i * 0.45;
-        gain.gain.setValueAtTime(0, t);
-        gain.gain.linearRampToValueAtTime(0.15, t + 0.06);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
-        osc.start(t); osc.stop(t + 0.5);
-      });
-      setTimeout(() => ctx.close(), 3000);
-    } catch { /* noop */ }
-  },
-  rain() {
-    try {
-      const ctx = makeCtx();
-      const buf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
-      const d = buf.getChannelData(0);
-      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-      const src = ctx.createBufferSource(); src.buffer = buf;
-      const f = ctx.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = 450; f.Q.value = 0.3;
-      const g = ctx.createGain();
-      g.gain.setValueAtTime(0, ctx.currentTime);
-      g.gain.linearRampToValueAtTime(0.11, ctx.currentTime + 0.3);
-      g.gain.linearRampToValueAtTime(0, ctx.currentTime + 2);
-      src.connect(f); f.connect(g); g.connect(ctx.destination);
-      src.start(); src.stop(ctx.currentTime + 2);
-      setTimeout(() => ctx.close(), 2500);
-    } catch { /* noop */ }
-  },
-  chime() {
-    try {
-      const ctx = makeCtx();
-      [880, 1109].forEach((freq, i) => {
-        const osc = ctx.createOscillator(); const g = ctx.createGain();
-        osc.type = "sine"; osc.frequency.value = freq;
-        osc.connect(g); g.connect(ctx.destination);
-        const t = ctx.currentTime + i * 0.18;
-        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.13, t + 0.02);
-        g.gain.exponentialRampToValueAtTime(0.001, t + 0.9);
-        osc.start(t); osc.stop(t + 1);
-      });
-      setTimeout(() => ctx.close(), 1500);
-    } catch { /* noop */ }
-  },
-  rustle() {
-    try {
-      const ctx = makeCtx();
-      const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.3), ctx.sampleRate);
-      const d = buf.getChannelData(0);
-      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
-      const src = ctx.createBufferSource(); src.buffer = buf;
-      const f = ctx.createBiquadFilter(); f.type = "highpass"; f.frequency.value = 1800;
-      const g = ctx.createGain(); g.gain.value = 0.18;
-      src.connect(f); f.connect(g); g.connect(ctx.destination);
-      src.start(); src.stop(ctx.currentTime + 0.3);
-      setTimeout(() => ctx.close(), 600);
-    } catch { /* noop */ }
-  },
-  sparkle() {
-    try {
-      const ctx = makeCtx();
-      [1318, 1568, 2093].forEach((freq, i) => {
-        const osc = ctx.createOscillator(); const g = ctx.createGain();
-        osc.type = "sine"; osc.frequency.value = freq;
-        osc.connect(g); g.connect(ctx.destination);
-        const t = ctx.currentTime + i * 0.1;
-        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.09, t + 0.02);
-        g.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
-        osc.start(t); osc.stop(t + 0.6);
-      });
-      setTimeout(() => ctx.close(), 1000);
-    } catch { /* noop */ }
-  },
-  ding() {
-    try {
-      const ctx = makeCtx();
-      const osc = ctx.createOscillator(); const g = ctx.createGain();
-      osc.type = "triangle"; osc.frequency.value = 740;
-      osc.connect(g); g.connect(ctx.destination);
-      g.gain.setValueAtTime(0, ctx.currentTime);
-      g.gain.linearRampToValueAtTime(0.14, ctx.currentTime + 0.01);
-      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
-      osc.start(); osc.stop(ctx.currentTime + 1.3);
-      setTimeout(() => ctx.close(), 1800);
-    } catch { /* noop */ }
-  },
-};
+function sleep(ms: number): Promise<void> {
+  return new Promise(r => setTimeout(r, ms));
+}
 
-// ── Book shelf data ───────────────────────────────────────────────────────────
+// ─── TypingDots ───────────────────────────────────────────────────────────────
 
-const S1 = [ // shelf 1 — base y=170
-  {x:724,w:16,h:68,c:"#e05050"},{x:742,w:12,h:55,c:"#5070d0"},{x:756,w:18,h:72,c:"#50a050"},
-  {x:776,w:14,h:60,c:"#d0a030"},{x:792,w:10,h:50,c:"#8050c0"},{x:804,w:16,h:65,c:"#e08050"},
-  {x:822,w:13,h:58,c:"#40a0b0"},{x:837,w:15,h:70,c:"#c05080"},{x:854,w:8, h:45,c:"#606060"},
-];
-const S2 = [ // shelf 2 — base y=250
-  {x:724,w:14,h:58,c:"#d06040"},{x:740,w:18,h:65,c:"#4060c0"},{x:760,w:12,h:52,c:"#60b060"},
-  {x:774,w:16,h:62,c:"#c09040"},{x:792,w:10,h:48,c:"#9060b0"},{x:804,w:14,h:60,c:"#e07060"},
-  {x:820,w:18,h:68,c:"#50b0b0"},{x:840,w:12,h:54,c:"#d05070"},{x:854,w:9, h:42,c:"#808080"},
-];
-const S3 = [ // shelf 3 — base y=330
-  {x:724,w:16,h:60,c:"#b04040"},{x:742,w:11,h:50,c:"#4050b0"},{x:755,w:15,h:64,c:"#50904a"},
-  {x:772,w:13,h:56,c:"#b08030"},{x:787,w:17,h:70,c:"#7040a0"},{x:806,w:12,h:54,c:"#c06040"},
-  {x:820,w:14,h:62,c:"#3090a0"},{x:836,w:16,h:58,c:"#b04060"},
-];
+function TypingDots({ side }: { side: "you" | "maia" }) {
+  return (
+    <div className={`flex items-end gap-1 mb-1 ${side === "maia" ? "justify-end" : "justify-start"}`}>
+      <div
+        className="flex items-center gap-[5px] px-4 py-3 rounded-[18px]"
+        style={{
+          background: side === "maia" ? "#d7a39a" : "#f0e4d0",
+          border: "1.5px solid rgba(42,33,28,0.12)",
+          minWidth: 56,
+        }}
+      >
+        {[0, 1, 2].map(i => (
+          <span
+            key={i}
+            className="block rounded-full"
+            style={{
+              width: 7, height: 7,
+              background: side === "maia" ? "#8a4a40" : "#8a6a50",
+              animation: `dotPulse 1.2s ease-in-out ${i * 0.2}s infinite`,
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
 
-// Fixed snow positions
-const SNOW = [
-  {x:335,y:85},{x:358,y:115},{x:380,y:75},{x:415,y:130},{x:438,y:98},
-  {x:462,y:120},{x:488,y:80},{x:498,y:110},{x:348,y:148},{x:372,y:160},
-];
+// ─── MessageBubble ────────────────────────────────────────────────────────────
 
-// Polaroid configs
-const POLAROIDS = [
-  {x:75, y:95, rot:-7, fill:"#e0d0be"},
-  {x:132,y:88, rot:4,  fill:"#bfd0e0"},
-  {x:178,y:118,rot:-5, fill:"#d0e0be"},
-];
+function MessageBubble({ msg, reduced }: { msg: Msg; reduced: boolean }) {
+  const isMaia = msg.from === "maia";
+  return (
+    <motion.div
+      className={`flex items-end gap-2 ${isMaia ? "justify-end" : "justify-start"}`}
+      initial={reduced ? false : { opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25, ease: "easeOut" }}
+    >
+      <div className={`flex flex-col gap-0.5 max-w-[72%] ${isMaia ? "items-end" : "items-start"}`}>
+        <div
+          className="px-4 py-2.5 text-sm leading-snug"
+          style={{
+            background: isMaia ? "#d7a39a" : "#f0e4d0",
+            color: "#2a211c",
+            border: "1.5px solid rgba(42,33,28,0.10)",
+            borderRadius: isMaia
+              ? "18px 4px 18px 18px"
+              : "4px 18px 18px 18px",
+            fontFamily: '"Segoe Print", "Bradley Hand", "Comic Sans MS", cursive, system-ui',
+            fontSize: "0.9rem",
+            boxShadow: "0 1px 3px rgba(42,33,28,0.07)",
+          }}
+        >
+          {msg.text}
+        </div>
+        <span
+          className="text-[10px] px-1"
+          style={{ color: "#a08878", fontFamily: "system-ui" }}
+        >
+          {msg.time}
+        </span>
+      </div>
+    </motion.div>
+  );
+}
 
-// String light colors
-const BULB_COLORS = ["#ffdd60","#ff8060","#60ccff","#a0ff80","#ff80cc","#ffcc40"];
-const BULB_XS     = [55,110,170,230,290,350,410,470,530,590,650,710,770,830];
+// ─── Room panel — CSS-illustrated cozy room ───────────────────────────────────
 
-// Pine data for window silhouette
-const PINES: Array<{x:number;base:number;w:number;h:number}> = [
-  {x:325,base:200,w:12,h:35},{x:340,base:200,w:10,h:42},{x:358,base:200,w:13,h:38},
-  {x:374,base:200,w:11,h:32},{x:390,base:200,w:12,h:40},{x:406,base:200,w:13,h:45},
-  {x:422,base:200,w:11,h:36},{x:440,base:200,w:12,h:38},{x:460,base:200,w:10,h:30},
-  {x:478,base:200,w:12,h:42},{x:496,base:200,w:11,h:35},
-];
+function RoomPanel({ side, typing }: { side: "left" | "right"; typing: boolean }) {
+  const isMaia = side === "right";
+  const stars   = isMaia ? STARS_RIGHT : STARS_LEFT;
 
-// ── Component ─────────────────────────────────────────────────────────────────
+  return (
+    <div
+      className="relative overflow-hidden flex-1"
+      style={{
+        background: "#0f1520",
+        borderRadius: side === "left" ? "14px 0 0 14px" : "0 14px 14px 0",
+        minHeight: 240,
+        border: "1.5px solid rgba(42,33,28,0.18)",
+        borderRight: side === "left" ? "none" : "1.5px solid rgba(42,33,28,0.18)",
+        borderLeft:  side === "right" ? "none" : "1.5px solid rgba(42,33,28,0.18)",
+      }}
+    >
+      {/* Night sky gradient */}
+      <div className="absolute inset-0" style={{
+        background: "linear-gradient(180deg,#060d1a 0%,#0f1825 55%,#1a1008 100%)",
+      }}/>
+
+      {/* Stars */}
+      <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="xMidYMid slice" viewBox="0 0 100 100">
+        {stars.map((s, i) => (
+          <circle key={i} cx={s.cx} cy={s.cy} r={s.r} fill="white" opacity={s.op}>
+            <animate attributeName="opacity"
+              values={`${s.op};${s.op * 0.35};${s.op}`}
+              dur={`${2.5 + i * 0.4}s`} repeatCount="indefinite"/>
+          </circle>
+        ))}
+        {/* Moon — left panel only */}
+        {!isMaia && (
+          <path d="M72,18 A10,10 0 1,1 72,38 A6,7 0 1,0 72,18 Z" fill="#f0e0b0" opacity=".9"/>
+        )}
+      </svg>
+
+      {/* Window frame */}
+      <div className="absolute" style={{
+        top: "8%", left: "50%", transform: "translateX(-50%)",
+        width: "58%", height: "46%",
+        border: "2px solid rgba(200,170,120,0.55)",
+        borderRadius: 4,
+        boxShadow: "inset 0 0 20px rgba(15,24,38,0.6)",
+      }}>
+        {/* Window cross */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div style={{ width: "100%", height: "1.5px", background: "rgba(200,170,120,0.45)" }}/>
+        </div>
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div style={{ width: "1.5px", height: "100%", background: "rgba(200,170,120,0.45)" }}/>
+        </div>
+        {/* Maple leaf on Maia's window */}
+        {isMaia && (
+          <div className="absolute bottom-2 left-2 text-xs" style={{ fontSize: 14 }} aria-hidden>🍁</div>
+        )}
+      </div>
+
+      {/* String lights — Maia's room */}
+      {isMaia && (
+        <div className="absolute flex gap-3 items-end" style={{ top: "57%", left: "8%", right: "8%" }}>
+          {[0,1,2,3,4,5,6,7].map(i => (
+            <div key={i} className="flex flex-col items-center">
+              <div style={{ width: 1, height: 10, background: "rgba(160,120,60,0.5)" }}/>
+              <div style={{
+                width: 8, height: 10, borderRadius: "50% 50% 45% 45%",
+                background: ["#f8d070","#f0a060","#d0f0a0","#a0d8f8","#f8a0c0"][i%5],
+                opacity: 0.85,
+                boxShadow: `0 0 6px 2px ${["#f8d07088","#f0a06088","#d0f0a088","#a0d8f888","#f8a0c088"][i%5]}`,
+              }}/>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Lamp glow */}
+      <div className="absolute" style={{
+        bottom: "22%",
+        left: isMaia ? "auto" : "12%",
+        right: isMaia ? "12%" : "auto",
+        width: 28, height: 36,
+      }}>
+        <div style={{ position: "absolute", bottom: 0, left: "50%", transform: "translateX(-50%)", width: 3, height: 24, background: "#b08040" }}/>
+        <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: 20, height: 14, borderRadius: "50% 50% 0 0", background: "#e8c060" }}/>
+        <div style={{
+          position: "absolute", top: "30%", left: "50%", transform: "translateX(-50%)",
+          width: 80, height: 60, borderRadius: "50%",
+          background: "radial-gradient(ellipse, rgba(230,180,80,0.3) 0%, transparent 70%)",
+          pointerEvents: "none",
+        }}/>
+      </div>
+
+      {/* Bookshelf hints */}
+      <div className="absolute" style={{
+        top: "10%",
+        left: isMaia ? "auto" : "5%",
+        right: isMaia ? "5%" : "auto",
+      }}>
+        <div style={{ display: "flex", gap: 2, alignItems: "flex-end" }}>
+          {[18,24,20,16,22].map((h, i) => (
+            <div key={i} style={{ width: 6, height: h, borderRadius: 1, background: ["#a05048","#4860a0","#508050","#c0a040","#806090"][i], opacity: 0.7 }}/>
+          ))}
+        </div>
+      </div>
+
+      {/* Plant */}
+      <div className="absolute text-base" style={{
+        bottom: "30%",
+        left: isMaia ? "6%" : "auto",
+        right: isMaia ? "auto" : "6%",
+        fontSize: 18,
+      }} aria-hidden>🌿</div>
+
+      {/* Person silhouette — lying on bed looking at phone glow */}
+      <div className="absolute" style={{ bottom: 0, left: 0, right: 0 }}>
+        {/* Bed / blanket */}
+        <div style={{
+          position: "absolute", bottom: 0, left: 0, right: 0,
+          height: "36%",
+          background: isMaia
+            ? "linear-gradient(180deg,#3a2535 0%,#2a1828 100%)"
+            : "linear-gradient(180deg,#3d2020 0%,#2a1010 100%)",
+          borderTop: "1px solid rgba(255,255,255,0.06)",
+        }}/>
+        {/* Person body (silhouette) */}
+        <div style={{
+          position: "absolute",
+          bottom: "28%",
+          left: isMaia ? "auto" : "18%",
+          right: isMaia ? "18%" : "auto",
+          width: 60, height: 28,
+          background: "#1a1208",
+          borderRadius: "40% 40% 0 0",
+          opacity: 0.85,
+        }}/>
+        {/* Head */}
+        <div style={{
+          position: "absolute",
+          bottom: "52%",
+          left: isMaia ? "auto" : "32%",
+          right: isMaia ? "32%" : "auto",
+          width: 22, height: 22,
+          background: isMaia ? "#c49060" : "#c49060",
+          borderRadius: "50%",
+          opacity: 0.9,
+          boxShadow: "0 1px 4px rgba(0,0,0,0.4)",
+        }}/>
+        {/* Phone glow */}
+        <div style={{
+          position: "absolute",
+          bottom: "44%",
+          left: isMaia ? "auto" : "42%",
+          right: isMaia ? "42%" : "auto",
+          width: 14, height: 22,
+          background: "rgba(180,210,255,0.7)",
+          borderRadius: 3,
+          boxShadow: "0 0 16px 8px rgba(160,195,255,0.35)",
+        }}/>
+      </div>
+
+      {/* Typing bubble above person */}
+      <AnimatePresence>
+        {typing && (
+          <motion.div
+            key="typing-hero"
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.3 }}
+            className="absolute flex items-center gap-1 px-3 py-2 rounded-2xl"
+            style={{
+              bottom: "68%",
+              left: isMaia ? "auto" : "28%",
+              right: isMaia ? "28%" : "auto",
+              background: "rgba(240,228,210,0.92)",
+              border: "1.5px solid rgba(42,33,28,0.14)",
+              backdropFilter: "blur(4px)",
+            }}
+          >
+            {[0,1,2].map(i => (
+              <span key={i} style={{
+                display: "block", width: 5, height: 5, borderRadius: "50%",
+                background: "#8a6a50",
+                animation: `dotPulse 1.2s ease-in-out ${i * 0.2}s infinite`,
+              }}/>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Label */}
+      <div className="absolute top-2 w-full text-center" style={{
+        fontSize: 11,
+        fontFamily: '"Segoe Print","Bradley Hand","Comic Sans MS",cursive',
+        color: "rgba(240,228,200,0.45)",
+        letterSpacing: "0.08em",
+      }}>
+        {isMaia ? "maia" : "you"}
+      </div>
+    </div>
+  );
+}
+
+// ─── Doodle components ────────────────────────────────────────────────────────
+
+function ChickenDoodle() {
+  const [hop, setHop] = useState(false);
+  return (
+    <motion.button
+      onClick={() => { setHop(true); setTimeout(() => setHop(false), 400); }}
+      animate={hop ? { y: [-8, 0] } : { y: 0 }}
+      transition={{ duration: 0.35 }}
+      className="text-2xl cursor-pointer select-none bg-transparent border-0 p-0"
+      aria-label="chicken doodle"
+      title="bawk"
+    >🐔</motion.button>
+  );
+}
+
+function MapleLeafDoodle() {
+  const [spin, setSpin] = useState(false);
+  return (
+    <motion.button
+      onClick={() => { setSpin(true); setTimeout(() => setSpin(false), 500); }}
+      animate={spin ? { rotate: 360 } : { rotate: 0 }}
+      transition={{ duration: 0.45 }}
+      className="text-2xl cursor-pointer select-none bg-transparent border-0 p-0"
+      aria-label="maple leaf"
+    >🍁</motion.button>
+  );
+}
+
+function GardenNote() {
+  const [idx, setIdx] = useState(0);
+  return (
+    <motion.button
+      onClick={() => setIdx(i => (i + 1) % GARDEN_LABELS.length)}
+      whileHover={{ rotate: 1 }}
+      className="cursor-pointer select-none bg-transparent border-0 p-0"
+      aria-label="garden note"
+    >
+      <div style={{
+        background: "#f5f0d8",
+        border: "1.5px solid rgba(42,33,28,0.2)",
+        borderRadius: 4,
+        padding: "6px 10px",
+        fontFamily: '"Segoe Print","Bradley Hand","Comic Sans MS",cursive',
+        fontSize: 11,
+        color: "#4a3828",
+        boxShadow: "2px 2px 6px rgba(42,33,28,0.1)",
+        transform: "rotate(-2deg)",
+        display: "flex",
+        flexDirection: "column",
+        gap: 1,
+      }}>
+        <span style={{ fontSize: 14 }}>📒</span>
+        <AnimatePresence mode="wait">
+          <motion.span
+            key={idx}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            {GARDEN_LABELS[idx]}
+          </motion.span>
+        </AnimatePresence>
+      </div>
+    </motion.button>
+  );
+}
+
+// ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function MaiaPage() {
-  const [active, setActive] = useState<ItemId | null>(null);
-  const [spinning, setSpinning] = useState(false);
+  const reduced = useReducedMotion() ?? false;
 
-  const handleClick = useCallback((item: RoomItem, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (active === item.id) {
-      setActive(null);
-      if (item.id === "record") setSpinning(false);
-      return;
+  const [visibleMsgs, setVisibleMsgs]   = useState<Msg[]>([]);
+  const [typingSender, setTypingSender] = useState<"you" | "maia" | null>(null);
+  const [heroTyping, setHeroTyping]     = useState<{ left: boolean; right: boolean }>({ left: false, right: false });
+  const [convoIdx, setConvoIdx]         = useState(0);
+  const [heartPop, setHeartPop]         = useState(false);
+  const [clearing, setClearing]         = useState(false);
+
+  const chatEndRef = useRef<HTMLDivElement>(null);
+  const stopRef    = useRef(false);
+
+  // Scroll to bottom on new messages
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [visibleMsgs, typingSender]);
+
+  const runConvo = useCallback(async (idx: number) => {
+    const convo = CONVOS[idx % CONVOS.length];
+    setVisibleMsgs([]);
+    setTypingSender(null);
+
+    for (const msg of convo) {
+      if (stopRef.current) return;
+
+      // Show typing
+      setTypingSender(msg.from);
+      setHeroTyping({ left: msg.from === "you", right: msg.from === "maia" });
+      await sleep(rand(reduced ? 300 : 700, reduced ? 600 : 1400));
+      if (stopRef.current) return;
+
+      // Append message
+      setTypingSender(null);
+      setHeroTyping({ left: false, right: false });
+      setVisibleMsgs(prev => [...prev, msg]);
+      await sleep(rand(reduced ? 150 : 300, reduced ? 300 : 700));
+      if (stopRef.current) return;
     }
-    setActive(item.id);
-    SOUNDS[item.sound]();
-    if (item.id === "record") setSpinning(true);
-  }, [active]);
 
-  const activeItem = active ? ITEMS.find(i => i.id === active) ?? null : null;
+    // Pause, then clear
+    await sleep(rand(2500, 4000));
+    if (stopRef.current) return;
+
+    setClearing(true);
+    await sleep(500);
+    setClearing(false);
+    setConvoIdx(prev => prev + 1);
+  }, [reduced]);
+
+  useEffect(() => {
+    stopRef.current = false;
+    runConvo(convoIdx);
+    return () => { stopRef.current = true; };
+  }, [convoIdx, runConvo]);
 
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&display=swap');
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body { height: 100%; overflow: hidden; background: #f2e8d5; }
-
-        @keyframes spin        { to { transform: rotate(360deg); } }
-        @keyframes aurora      { 0%,100%{transform:translateX(-10px) scaleX(1);opacity:.5} 50%{transform:translateX(14px) scaleX(1.08);opacity:.75} }
-        @keyframes glow        { 0%,100%{opacity:.75} 50%{opacity:1} }
-        @keyframes panelIn     { from{opacity:0;transform:translateY(8px) scale(.96) rotate(var(--note-rot,0deg))} to{opacity:1;transform:translateY(0) scale(1) rotate(var(--note-rot,0deg))} }
-        @keyframes bulbPulse   { 0%,100%{opacity:.82} 50%{opacity:1} }
-        @keyframes snowDrift   { from{transform:translate(0,0)} to{transform:translate(4px,18px)} }
-        @keyframes steamRise   { 0%{transform:translateY(0) scaleX(1);opacity:.65} 50%{transform:translateY(-8px) scaleX(1.3);opacity:.32} 100%{transform:translateY(-16px);opacity:0} }
-
-        .room-wrap  { width:100vw; height:100dvh; position:relative; overflow:hidden; }
-        .room-svg   { position:absolute; inset:0; width:100%; height:100%; }
-        .hotspot    { cursor:pointer; }
-        .hotspot:focus-visible { outline:2px dashed #8b7355; outline-offset:4px; }
-
-        .spin-group { transform-origin: 120px 348px; }
-        .spinning   { animation: spin 4s linear infinite; }
-
-        .aurora-band { animation: aurora 5s ease-in-out infinite; transform-origin: 50% 50%; }
-
-        .bulb { animation: bulbPulse 2.5s ease-in-out infinite; }
-
-        .steam-path { animation: steamRise 2.2s ease-in-out infinite; }
-        .steam-path:nth-of-type(2) { animation-delay:.7s; }
-        .steam-path:nth-of-type(3) { animation-delay:1.4s; }
-
-        .snow-dot { animation: snowDrift linear infinite; }
-
-        .sticky {
-          position: absolute;
-          font-family: 'Caveat', cursive;
-          padding: 14px 16px 10px;
-          min-width: 150px;
-          max-width: 210px;
-          box-shadow: 3px 5px 16px rgba(0,0,0,.15), 0 1px 4px rgba(0,0,0,.08);
-          animation: panelIn .22s ease forwards;
-          z-index: 200;
-          line-height: 1.42;
-          pointer-events: all;
+        @keyframes dotPulse {
+          0%, 60%, 100% { transform: scale(1); opacity: .5; }
+          30%            { transform: scale(1.3); opacity: 1; }
         }
-        .sticky::before {
-          content:'';
-          position:absolute;
-          top:-9px; left:50%; transform:translateX(-50%);
-          width:38px; height:16px;
-          background:rgba(190,215,255,.58);
-          border-radius:2px;
-          box-shadow:0 1px 4px rgba(0,0,0,.1);
+        @keyframes heartBeat {
+          0%, 100% { transform: scale(1); }
+          30%       { transform: scale(1.22); }
+          60%       { transform: scale(0.92); }
         }
-        .hint-label {
-          position: absolute;
-          bottom: 22px; left: 50%;
-          transform: translateX(-50%);
-          font-family: 'Caveat', cursive;
-          font-size: clamp(15px,2.2vw,22px);
-          color: #8b7355;
-          opacity: .5;
-          letter-spacing: .08em;
-          pointer-events: none;
-          white-space: nowrap;
+        @keyframes floatUp {
+          0%   { opacity: 1; transform: translateY(0) scale(1); }
+          100% { opacity: 0; transform: translateY(-48px) scale(1.4); }
         }
+        .heart-pulse { animation: heartBeat 2.4s ease-in-out infinite; }
+        .float-heart { animation: floatUp 0.8s ease-out forwards; }
+        * { box-sizing: border-box; }
       `}</style>
 
-      <div className="room-wrap" onClick={() => setActive(null)}>
+      {/* Page wrapper */}
+      <div style={{
+        minHeight: "100dvh",
+        background: "#f4ead8",
+        backgroundImage: `
+          radial-gradient(ellipse at 20% 20%, rgba(180,140,100,0.07) 0%, transparent 60%),
+          radial-gradient(ellipse at 80% 80%, rgba(160,120,80,0.06) 0%, transparent 55%),
+          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E")`,
+        fontFamily: '"Segoe Print","Bradley Hand","Comic Sans MS",cursive,system-ui',
+        padding: "24px 16px 40px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+      }}>
+        <div style={{ width: "100%", maxWidth: 1100 }}>
 
-        {/* ─── SVG Room ───────────────────────────────────────────────── */}
-        <svg
-          className="room-svg"
-          viewBox="0 0 900 560"
-          preserveAspectRatio="xMidYMid meet"
-        >
-          <defs>
-            {/* Sketch / hand-drawn displacement */}
-            <filter id="sketch" x="-6%" y="-6%" width="112%" height="112%">
-              <feTurbulence type="fractalNoise" baseFrequency="0.038" numOctaves="3" seed="5" result="n"/>
-              <feDisplacementMap in="SourceGraphic" in2="n" scale="2.8" xChannelSelector="R" yChannelSelector="G"/>
-            </filter>
-            {/* Soft glow */}
-            <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="5" result="b"/>
-              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-            {/* Sky gradient */}
-            <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%"   stopColor="#07111f"/>
-              <stop offset="100%" stopColor="#152840"/>
-            </linearGradient>
-            {/* Wood floor */}
-            <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%"   stopColor="#c49060"/>
-              <stop offset="100%" stopColor="#a87040"/>
-            </linearGradient>
-            {/* Lamp warm glow radial */}
-            <radialGradient id="lampHalo" cx="50%" cy="30%" r="65%">
-              <stop offset="0%"   stopColor="#ffe08a" stopOpacity="0.52"/>
-              <stop offset="100%" stopColor="#ffe08a" stopOpacity="0"/>
-            </radialGradient>
-          </defs>
-
-          {/* ── WALL ────────────────────────────────────────────────── */}
-          <rect x="0" y="0" width="900" height="415" fill="#f2e8d5"/>
-          <line x1="0" y1="210" x2="900" y2="214" stroke="#dfd4c0" strokeWidth="0.6" opacity=".4"/>
-          <line x1="0" y1="310" x2="900" y2="308" stroke="#dfd4c0" strokeWidth="0.5" opacity=".3"/>
-
-          {/* ── FLOOR ───────────────────────────────────────────────── */}
-          <rect x="0" y="415" width="900" height="145" fill="url(#floor)"/>
-          {([420,433,445,457,468,479,490,500,510,519,528,537,546,554] as number[]).map((y,i) => (
-            <line key={i} x1="0" y1={y} x2="900" y2={y+(i%3-1)} stroke="#9a6830" strokeWidth=".7" opacity=".3"/>
-          ))}
-          {([145,290,435,580,725] as number[]).map((x,i) => (
-            <line key={i} x1={x} y1="415" x2={x+4} y2="560" stroke="#8a5820" strokeWidth="1" opacity=".2"/>
-          ))}
-
-          {/* Baseboard */}
-          <rect x="0" y="408" width="900" height="13" fill="#e0cdb0" filter="url(#sketch)"/>
-
-          {/* ── RUG ─────────────────────────────────────────────────── */}
-          <ellipse cx="450" cy="462" rx="205" ry="68" fill="#8b3f60" opacity=".68" filter="url(#sketch)"/>
-          <ellipse cx="450" cy="462" rx="180" ry="57" fill="none" stroke="#c06080" strokeWidth="4" opacity=".45"/>
-          <ellipse cx="450" cy="462" rx="145" ry="43" fill="none" stroke="#a04060" strokeWidth="2" opacity=".38"/>
-
-          {/* ── STRING LIGHTS ────────────────────────────────────────── */}
-          <path d="M0,16 Q55,26 110,14 Q170,4 230,16 Q290,26 350,14 Q410,4 470,16 Q530,26 590,14 Q650,4 710,16 Q770,26 830,14 Q865,10 900,18"
-            stroke="#706050" strokeWidth="1.5" fill="none"/>
-          {BULB_XS.map((x, i) => {
-            const y = i % 2 === 0 ? 23 : 19;
-            const c = BULB_COLORS[i % BULB_COLORS.length];
-            return (
-              <g key={i}>
-                <line x1={x} y1={y-3} x2={x} y2={y+9} stroke="#504030" strokeWidth="1"/>
-                <ellipse cx={x} cy={y+13} rx="7" ry="9" fill={c} className="bulb" filter="url(#glow)"
-                  style={{animationDelay:`${i*0.18}s`}}/>
-                <ellipse cx={x} cy={y+10} rx="4.5" ry="3.5" fill={c} opacity=".38"/>
-              </g>
-            );
-          })}
-
-          {/* ── WINDOW ───────────────────────────────────────────────── */}
-          {/* Sky pane */}
-          <rect x="322" y="42" width="182" height="174" fill="url(#sky)" rx="3"/>
-          {/* Stars */}
-          {([
-            [342,66],[362,56],[392,73],[422,61],[458,69],[476,53],[496,71],[337,91],[347,81]
-          ] as [number,number][]).map(([sx,sy],i) => (
-            <circle key={i} cx={sx} cy={sy} r="1.6" fill="white" opacity=".8">
-              <animate attributeName="opacity" values=".8;.25;.8" dur={`${2+i*0.38}s`} repeatCount="indefinite"/>
-            </circle>
-          ))}
-          {/* Aurora */}
-          <g className="aurora-band">
-            <path d="M322,114 Q362,99 402,111 Q442,122 504,108"
-              stroke="#38e088" strokeWidth="11" fill="none" opacity=".55" strokeLinecap="round" filter="url(#glow)"/>
-            <path d="M332,125 Q376,112 412,122 Q452,133 504,120"
-              stroke="#60d09a" strokeWidth="6"  fill="none" opacity=".32" strokeLinecap="round"/>
-          </g>
-          {/* Snow dots */}
-          {SNOW.map((s, i) => (
-            <circle key={i} cx={s.x} cy={s.y} r="1.3" fill="white" opacity=".72" className="snow-dot"
-              style={{animationDuration:`${3.2+i*0.45}s`, animationDelay:`${i*0.3}s`}}/>
-          ))}
-          {/* Pine silhouettes */}
-          {PINES.map((p,i) => (
-            <polygon key={i}
-              points={`${p.x},${p.base-p.h} ${p.x-p.w/2},${p.base} ${p.x+p.w/2},${p.base}`}
-              fill="#0c1c11"/>
-          ))}
-          {/* Window frame */}
-          <rect x="316" y="37" width="194" height="183" fill="none" stroke="#8b7355" strokeWidth="7" rx="4" filter="url(#sketch)"/>
-          <line x1="316" y1="128" x2="510" y2="128" stroke="#8b7355" strokeWidth="5" filter="url(#sketch)"/>
-          <line x1="413" y1="37"  x2="413" y2="220" stroke="#8b7355" strokeWidth="4" filter="url(#sketch)"/>
-          {/* Window sill */}
-          <rect x="309" y="218" width="208" height="11" fill="#c4a870" rx="2" filter="url(#sketch)"/>
-          {/* Left curtain */}
-          <path d="M282,18 Q302,78 297,138 Q292,198 310,223 L302,223 Q284,198 289,138 Q294,78 274,18 Z"
-            fill="#c4856a" opacity=".74" filter="url(#sketch)"/>
-          {/* Right curtain */}
-          <path d="M544,18 Q524,78 529,138 Q534,198 517,223 L525,223 Q541,198 536,138 Q531,78 552,18 Z"
-            fill="#c4856a" opacity=".74" filter="url(#sketch)"/>
-          {/* Window plant */}
-          <ellipse cx="348" cy="219" rx="12" ry="5" fill="#8b6340"/>
-          <path d="M348,219 Q338,192 328,180" stroke="#4a7c40" strokeWidth="4" fill="none" strokeLinecap="round"/>
-          <ellipse cx="328" cy="180" rx="12" ry="8" fill="#5a9c50" transform="rotate(-20 328 180)"/>
-          <path d="M348,219 Q357,196 367,186" stroke="#4a7c40" strokeWidth="3" fill="none" strokeLinecap="round"/>
-          <ellipse cx="367" cy="186" rx="10" ry="7" fill="#4a8a40" transform="rotate(15 367 186)"/>
-
-          {/* ── BOOKSHELF ────────────────────────────────────────────── */}
-          <rect x="718" y="78"  width="157" height="300" fill="#c8a870" rx="3" filter="url(#sketch)"/>
-          <rect x="710" y="78"  width="163" height="10"  fill="#a07840" rx="2" filter="url(#sketch)"/>
-          <rect x="710" y="170" width="163" height="10"  fill="#a07840" rx="2" filter="url(#sketch)"/>
-          <rect x="710" y="250" width="163" height="10"  fill="#a07840" rx="2" filter="url(#sketch)"/>
-          <rect x="710" y="330" width="163" height="10"  fill="#a07840" rx="2" filter="url(#sketch)"/>
-          <rect x="710" y="78"  width="10"  height="300" fill="#a07840" rx="2"/>
-          <rect x="863" y="78"  width="10"  height="300" fill="#a07840" rx="2"/>
-          {/* Small figure on top */}
-          <circle cx="852" cy="72" r="8" fill="#f0c080"/>
-          <rect x="846" y="72" width="11" height="12" fill="#6080e0" rx="2"/>
-          {/* Books shelf 1 */}
-          {S1.map((b,i) => <rect key={i} x={b.x} y={170-b.h} width={b.w} height={b.h} fill={b.c} rx="1" opacity=".9"/>)}
-          {/* Books shelf 2 */}
-          {S2.map((b,i) => <rect key={i} x={b.x} y={250-b.h} width={b.w} height={b.h} fill={b.c} rx="1" opacity=".9"/>)}
-          {/* Books shelf 3 */}
-          {S3.map((b,i) => <rect key={i} x={b.x} y={330-b.h} width={b.w} height={b.h} fill={b.c} rx="1" opacity=".9"/>)}
-
-          {/* ── RECORD PLAYER ────────────────────────────────────────── */}
-          {/* Table legs */}
-          <rect x="45"  y="390" width="8"  height="38" fill="#6b4a20"/>
-          <rect x="187" y="390" width="8"  height="38" fill="#6b4a20"/>
-          {/* Table top */}
-          <rect x="38"  y="374" width="172" height="18" fill="#8b6340" rx="3" filter="url(#sketch)"/>
-          {/* Player body */}
-          <rect x="42"  y="322" width="160" height="55" fill="#a07840" rx="5" filter="url(#sketch)"/>
-          {/* Platter */}
-          <circle cx="120" cy="348" r="50" fill="#252525"/>
-          {/* Record — spins when active */}
-          <g className={`spin-group${spinning ? " spinning" : ""}`}>
-            <circle cx="120" cy="348" r="46" fill="#1a1a1a"/>
-            <circle cx="120" cy="348" r="40" fill="none" stroke="#2d2d2d" strokeWidth="2"/>
-            <circle cx="120" cy="348" r="32" fill="none" stroke="#2d2d2d" strokeWidth="1.5"/>
-            <circle cx="120" cy="348" r="22" fill="none" stroke="#2d2d2d" strokeWidth="1"/>
-            <circle cx="120" cy="348" r="14" fill="#c04040"/>
-            <circle cx="120" cy="348" r="3"  fill="#1a1a1a"/>
-          </g>
-          {/* Tone arm */}
-          <circle cx="166" cy="320" r="5" fill="#707070"/>
-          <line x1="166" y1="320" x2="134" y2="343" stroke="#909090" strokeWidth="3" strokeLinecap="round"/>
-          <circle cx="134" cy="344" r="3" fill="#404040"/>
-          {/* Power LED */}
-          <circle cx="184" cy="342" r="4" fill={spinning ? "#60ff80" : "#333"} filter={spinning ? "url(#glow)" : ""}/>
-
-          {/* ── DESK + LAMP + MUG ────────────────────────────────────── */}
-          {/* Desk legs */}
-          <rect x="575" y="360" width="8"  height="38" fill="#7a5030"/>
-          <rect x="787" y="360" width="8"  height="38" fill="#7a5030"/>
-          {/* Desk top */}
-          <rect x="565" y="343" width="238" height="20" fill="#9a7048" rx="3" filter="url(#sketch)"/>
-          {/* Lamp glow halo */}
-          <ellipse cx="787" cy="312" rx="82" ry="62" fill="url(#lampHalo)"/>
-          {/* Lamp post */}
-          <rect x="780" y="293" width="13" height="52" fill="#8a8a8a" rx="2"/>
-          <rect x="770" y="340" width="33" height="6"  fill="#707070" rx="3"/>
-          {/* Lamp shade */}
-          <path d="M770,293 Q788,272 806,293" fill="#e8c840" stroke="#c0a030" strokeWidth="2" filter="url(#sketch)"/>
-          {/* Mug body */}
-          <rect x="658" y="310" width="40" height="35" fill="#f0f0e8" rx="5" filter="url(#sketch)"/>
-          <path d="M698,318 Q713,318 713,328 Q713,338 698,338" stroke="#b0b0a2" strokeWidth="2.8" fill="none" filter="url(#sketch)"/>
-          <text x="666" y="333" fontSize="13" fontFamily="serif" fill="#9a9a8a" opacity=".55">☕</text>
-          {/* Steam */}
-          {([{x:666,d:"1.1s"},{x:675,d:"0s"},{x:684,d:"0.55s"}]).map((s,i) => (
-            <path key={i} className="steam-path" style={{animationDelay:s.d}}
-              d={`M${s.x},310 Q${s.x+3},301 ${s.x},293 Q${s.x-3},285 ${s.x},279`}
-              stroke="#c0c0c0" strokeWidth="1.8" fill="none" strokeLinecap="round" opacity=".58"/>
-          ))}
-          {/* Notebook on desk */}
-          <rect x="598" y="304" width="50" height="41" fill="#f8f0e0" rx="2" transform="rotate(-3 598 304)" filter="url(#sketch)"/>
-          <line x1="605" y1="316" x2="641" y2="315" stroke="#d0c0a0" strokeWidth="1" transform="rotate(-3 598 304)"/>
-          <line x1="605" y1="324" x2="641" y2="323" stroke="#d0c0a0" strokeWidth="1" transform="rotate(-3 598 304)"/>
-          <line x1="605" y1="332" x2="641" y2="331" stroke="#d0c0a0" strokeWidth="1" transform="rotate(-3 598 304)"/>
-
-          {/* ── POLAROIDS ────────────────────────────────────────────── */}
-          {POLAROIDS.map((p, i) => (
-            <g key={i} transform={`rotate(${p.rot} ${p.x+31} ${p.y+40})`}>
-              <rect x={p.x}   y={p.y}   width="62" height="72" fill="white" filter="url(#sketch)"/>
-              <rect x={p.x+5} y={p.y+5} width="52" height="46" fill={p.fill} opacity=".72"/>
-            </g>
-          ))}
-          {/* Push pins */}
-          {([{x:106,y:93},{x:162,y:85},{x:202,y:115}] as {x:number;y:number}[]).map((p,i) => (
-            <circle key={i} cx={p.x} cy={p.y} r="4" fill="#e04040" stroke="#c03030" strokeWidth=".6"/>
-          ))}
-
-          {/* ── INVISIBLE HOTSPOTS ───────────────────────────────────── */}
-          {ITEMS.map(item => (
-            <circle
-              key={item.id}
-              className="hotspot"
-              cx={item.cx} cy={item.cy} r={item.r}
-              fill="transparent"
-              role="button"
-              aria-label={item.label}
-              tabIndex={0}
-              onClick={e => handleClick(item, e)}
-              onKeyDown={e => { if (e.key === "Enter" || e.key === " ") handleClick(item, e as unknown as React.MouseEvent); }}
-            />
-          ))}
-        </svg>
-
-        {/* ─── Sticky note popup ──────────────────────────────────────── */}
-        {activeItem && (
+          {/* ── HEADER ─────────────────────────────────────────────── */}
           <div
-            key={activeItem.id}
-            className="sticky"
-            style={{
-              left: activeItem.px,
-              top:  activeItem.py,
-              background: activeItem.bg,
-              borderRadius: "2px 18px 4px 14px / 14px 4px 18px 2px",
-              "--note-rot": `${activeItem.rot}deg`,
-            } as React.CSSProperties}
-            onClick={e => e.stopPropagation()}
+            className="relative flex items-center justify-center mb-6"
+            style={{ padding: "18px 0 10px" }}
           >
-            <div style={{fontSize:12,color:"#777",fontWeight:600,marginBottom:4,letterSpacing:".03em"}}>
-              {activeItem.emoji} {activeItem.label}
+            {/* Decorative doodles left */}
+            <div className="absolute left-2 top-2 flex items-center gap-3" aria-hidden>
+              <span style={{ fontSize: 13, opacity: 0.55 }}>✦</span>
+              <span style={{ fontSize: 18, opacity: 0.6 }}>🌿</span>
             </div>
-            <div style={{fontSize:24,color:"#333",fontWeight:700,lineHeight:1.25,marginBottom:3}}>
-              {activeItem.note}
-            </div>
-            <div style={{fontSize:19,color:"#555",whiteSpace:"pre-line",lineHeight:1.42}}>
-              {activeItem.subtext}
-            </div>
-            <button
-              onClick={() => setActive(null)}
-              style={{
-                marginTop:10, background:"none", border:"none",
-                cursor:"pointer", fontFamily:"inherit",
-                fontSize:13, color:"#999", fontWeight:600,
-              }}
-            >
-              ✕ close
-            </button>
-          </div>
-        )}
 
-        {/* ─── Hint ───────────────────────────────────────────────────── */}
-        <div className="hint-label">click anything ✦</div>
+            {/* Title */}
+            <div className="flex items-center gap-2">
+              <h1 style={{
+                fontSize: "clamp(32px,6vw,52px)",
+                fontWeight: 700,
+                color: "#2a211c",
+                letterSpacing: "0.02em",
+                lineHeight: 1,
+                margin: 0,
+                textShadow: "1px 1px 0 rgba(42,33,28,0.07)",
+              }}>
+                Maia
+              </h1>
+              {/* Heart — clickable */}
+              <div className="relative">
+                <button
+                  onClick={() => setHeartPop(true)}
+                  onAnimationEnd={() => setHeartPop(false)}
+                  className="bg-transparent border-0 cursor-pointer p-0 leading-none"
+                  aria-label="send heart"
+                  style={{ fontSize: "clamp(24px,4vw,36px)" }}
+                >
+                  <span className="heart-pulse inline-block" style={{ color: "#c07070" }}>♡</span>
+                </button>
+                {heartPop && (
+                  <span
+                    className="float-heart absolute -top-2 left-1/2 -translate-x-1/2 pointer-events-none"
+                    style={{ fontSize: 18 }}
+                    aria-hidden
+                  >
+                    ♡
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Decorative doodles right */}
+            <div className="absolute right-2 top-2 flex items-center gap-3" aria-hidden>
+              <span style={{ fontSize: 18, opacity: 0.6 }}>🐔</span>
+              <span style={{ fontSize: 18, opacity: 0.6 }}>🪴</span>
+            </div>
+          </div>
+
+          {/* ── HERO PANELS ────────────────────────────────────────── */}
+          <div
+            className="w-full mb-5 overflow-hidden"
+            style={{
+              display: "flex",
+              border: "2px solid rgba(42,33,28,0.15)",
+              borderRadius: 16,
+              boxShadow: "0 4px 24px rgba(42,33,28,0.10), inset 0 0 0 1px rgba(255,255,255,0.12)",
+              minHeight: 220,
+              maxHeight: 340,
+            }}
+          >
+            <RoomPanel side="left"  typing={heroTyping.left} />
+            {/* Center divider */}
+            <div style={{ width: 2, background: "rgba(42,33,28,0.15)", flexShrink: 0 }}/>
+            <RoomPanel side="right" typing={heroTyping.right} />
+          </div>
+
+          {/* ── CHAT BOX ───────────────────────────────────────────── */}
+          <motion.div
+            animate={{ opacity: clearing ? 0 : 1 }}
+            transition={{ duration: 0.4 }}
+            style={{
+              background: "rgba(255,250,242,0.92)",
+              border: "1.5px solid rgba(42,33,28,0.12)",
+              borderRadius: 20,
+              padding: "20px 20px 16px",
+              boxShadow: "0 2px 16px rgba(42,33,28,0.07), inset 0 0 0 1px rgba(255,255,255,0.5)",
+              minHeight: 320,
+              display: "flex",
+              flexDirection: "column",
+              gap: 0,
+            }}
+          >
+            {/* "today" divider */}
+            <div className="flex items-center gap-3 mb-4">
+              <div style={{ flex: 1, height: 1, background: "rgba(42,33,28,0.1)" }}/>
+              <span style={{ fontSize: 12, color: "#a08878", letterSpacing: "0.06em" }}>today</span>
+              <div style={{ flex: 1, height: 1, background: "rgba(42,33,28,0.1)" }}/>
+            </div>
+
+            {/* Messages */}
+            <div className="flex flex-col gap-2 flex-1" aria-live="polite" aria-label="chat messages">
+              {visibleMsgs.map((msg, i) => (
+                <MessageBubble key={`${convoIdx}-${i}`} msg={msg} reduced={reduced} />
+              ))}
+              {typingSender && <TypingDots side={typingSender} />}
+              <div ref={chatEndRef}/>
+            </div>
+          </motion.div>
+
+          {/* Subtle hint */}
+          <div className="text-center mt-3" style={{
+            fontSize: 12,
+            color: "#b09080",
+            letterSpacing: "0.04em",
+            fontFamily: '"Segoe Print","Bradley Hand","Comic Sans MS",cursive',
+          }}>
+            another message in a few seconds... ♡
+          </div>
+
+          {/* ── FOOTER DOODLES ─────────────────────────────────────── */}
+          <div
+            className="flex items-end justify-between flex-wrap gap-4 mt-8 px-2"
+            aria-hidden
+          >
+            {/* Left cluster */}
+            <div className="flex items-end gap-4">
+              <span style={{ fontSize: 24, opacity: 0.6 }}>🌱</span>
+              <GardenNote />
+              <span style={{ fontSize: 18, opacity: 0.5 }}>✦</span>
+            </div>
+            {/* Center */}
+            <div className="flex items-center gap-3">
+              <span style={{ fontSize: 20, opacity: 0.5 }}>🌙</span>
+              <span style={{ fontSize: 14, opacity: 0.4 }}>· · ·</span>
+              <span style={{ fontSize: 18, opacity: 0.5 }}>⭒</span>
+            </div>
+            {/* Right cluster */}
+            <div className="flex items-end gap-4">
+              <span style={{ fontSize: 16, opacity: 0.5 }}>✦</span>
+              <ChickenDoodle />
+              <MapleLeafDoodle />
+            </div>
+          </div>
+
+        </div>
       </div>
     </>
   );

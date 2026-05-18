@@ -210,6 +210,75 @@ const CONVOS: Msg[][] = [
     { from: "you",  text: "yeah?",               time: "10:56 PM" },
     { from: "maia", text: "yeah",                time: "10:56 PM" },
   ],
+  [
+    { from: "you",  text: "i miss you",           time: "11:55 PM" },
+    { from: "maia", text: "i know",               time: "11:55 PM" },
+    { from: "you",  text: "come here then",       time: "11:56 PM" },
+    { from: "maia", text: "working on it",        time: "11:56 PM" },
+    { from: "you",  text: "work faster",          time: "11:56 PM" },
+    { from: "maia", text: "lol okay",             time: "11:57 PM" },
+    { from: "you",  text: "i'm serious",          time: "11:57 PM" },
+    { from: "maia", text: "i know",               time: "11:57 PM" },
+  ],
+  [
+    { from: "maia", text: "what would we be doing right now if you were here", time: "12:03 AM" },
+    { from: "you",  text: "nothing",              time: "12:04 AM" },
+    { from: "maia", text: "just nothing?",        time: "12:04 AM" },
+    { from: "you",  text: "yeah just laying there not doing anything", time: "12:04 AM" },
+    { from: "maia", text: "yeah",                 time: "12:05 AM" },
+    { from: "you",  text: "that sounds good",     time: "12:05 AM" },
+    { from: "maia", text: "it does",              time: "12:05 AM" },
+  ],
+  [
+    { from: "maia", text: "i made toast",         time: "1:22 AM" },
+    { from: "you",  text: "at 1am",               time: "1:22 AM" },
+    { from: "maia", text: "yes",                  time: "1:22 AM" },
+    { from: "you",  text: "how is it",            time: "1:23 AM" },
+    { from: "maia", text: "honestly pretty good", time: "1:23 AM" },
+    { from: "you",  text: "living ur best life",  time: "1:23 AM" },
+    { from: "maia", text: "i really am",          time: "1:24 AM" },
+  ],
+  [
+    { from: "you",  text: "what do u want",       time: "10:44 PM" },
+    { from: "maia", text: "what do u mean",       time: "10:44 PM" },
+    { from: "you",  text: "like... eventually",   time: "10:45 PM" },
+    { from: "maia", text: "a house",              time: "10:45 PM" },
+    { from: "you",  text: "yeah",                 time: "10:45 PM" },
+    { from: "maia", text: "chickens",             time: "10:46 PM" },
+    { from: "you",  text: "obviously",            time: "10:46 PM" },
+    { from: "maia", text: "and u",                time: "10:46 PM" },
+    { from: "you",  text: "obviously",            time: "10:46 PM" },
+  ],
+  [
+    { from: "you",  text: "quiet night",          time: "11:18 PM" },
+    { from: "maia", text: "yeah",                 time: "11:18 PM" },
+    { from: "you",  text: "nice though",          time: "11:19 PM" },
+    { from: "maia", text: "mhm",                  time: "11:19 PM" },
+    { from: "you",  text: "u okay",               time: "11:20 PM" },
+    { from: "maia", text: "yeah just thinking",   time: "11:20 PM" },
+    { from: "you",  text: "about what",           time: "11:20 PM" },
+    { from: "maia", text: "you actually",         time: "11:21 PM" },
+  ],
+  [
+    { from: "maia", text: "are u asleep",         time: "2:14 AM" },
+    { from: "you",  text: "no",                   time: "2:14 AM" },
+    { from: "maia", text: "good",                 time: "2:14 AM" },
+    { from: "you",  text: "what's up",            time: "2:15 AM" },
+    { from: "maia", text: "nothing just didn't want to be the only one awake", time: "2:15 AM" },
+    { from: "you",  text: "never",                time: "2:15 AM" },
+  ],
+  [
+    { from: "you",  text: "okay i'm actually going to sleep", time: "12:44 AM" },
+    { from: "maia", text: "okay",                 time: "12:44 AM" },
+    { from: "you",  text: "goodnight",            time: "12:44 AM" },
+    { from: "maia", text: "goodnight",            time: "12:45 AM" },
+    { from: "you",  text: "hey",                  time: "12:45 AM" },
+    { from: "maia", text: "what",                 time: "12:45 AM" },
+    { from: "you",  text: "i love you",           time: "12:45 AM" },
+    { from: "maia", text: "i love you too",       time: "12:46 AM" },
+    { from: "you",  text: "okay NOW goodnight",   time: "12:46 AM" },
+    { from: "maia", text: "lol goodnight",        time: "12:46 AM" },
+  ],
 ];
 
 const GARDEN_LABELS = ["garden ideas", "tomatoes maybe", "chickens eventually", "no people allowed"];
@@ -606,8 +675,9 @@ export default function MaiaPage() {
   const rainFadeRef  = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
   const [raining, setRaining] = useState(false);
 
-  // parallax
-  const [parallax, setParallax] = useState({ x: 0, y: 0 });
+  // parallax + hover side
+  const [parallax,  setParallax]  = useState({ x: 0, y: 0 });
+  const [hoverSide, setHoverSide] = useState<"left" | "right" | null>(null);
 
   // time-aware hint (computed once at mount)
   const [footerHint] = useState(getFooterHint);
@@ -693,15 +763,30 @@ export default function MaiaPage() {
   }, [raining]);
 
   const onHeroMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (reduced) return;
     const rect = heroRef.current?.getBoundingClientRect();
     if (!rect) return;
+    setHoverSide(e.clientX < rect.left + rect.width / 2 ? "left" : "right");
+    if (reduced) return;
     const dx = (e.clientX - (rect.left + rect.width  / 2)) / rect.width;
     const dy = (e.clientY - (rect.top  + rect.height / 2)) / rect.height;
     setParallax({ x: dx * -10, y: dy * -6 });
   }, [reduced]);
 
-  const onHeroMouseLeave = useCallback(() => setParallax({ x: 0, y: 0 }), []);
+  const onHeroMouseLeave = useCallback(() => {
+    setParallax({ x: 0, y: 0 });
+    setHoverSide(null);
+  }, []);
+
+  // swap favicon to heart while on this page
+  useEffect(() => {
+    const existing = document.querySelector("link[rel='icon']") as HTMLLinkElement | null;
+    const link: HTMLLinkElement = existing ?? document.createElement("link");
+    const prev = link.href;
+    link.rel  = "icon";
+    link.href = "/maia-heart.png";
+    if (!existing) document.head.appendChild(link);
+    return () => { link.href = prev; };
+  }, []);
 
   // cleanup on unmount
   useEffect(() => {
@@ -788,6 +873,16 @@ export default function MaiaPage() {
           pointer-events: none;
         }
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        @media (max-width: 600px) {
+          .maia-footer { padding: 12px 14px 18px !important; gap: 8px !important; }
+          .maia-footer-right { gap: 7px !important; }
+          .maia-footer-right img { width: 34px !important; height: 34px !important; }
+          .maia-footer-right svg { width: 20px !important; height: 20px !important; }
+          .maia-note-img { width: 64px !important; height: 64px !important; }
+          .maia-header-right img { width: 34px !important; height: 34px !important; }
+          .maia-header-left img  { width: 30px !important; height: 30px !important; }
+        }
       `}</style>
 
       {/* ── Page background (dot grid + warm glow + noise) ── */}
@@ -802,8 +897,12 @@ export default function MaiaPage() {
         fontFamily: "'Caveat', 'Segoe Print', 'Bradley Hand', cursive, system-ui",
       }}>
 
-        {/* ── Card ── */}
-        <div style={{
+        {/* ── Card (entrance animation) ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 28 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
+          style={{
           width: "100%",
           maxWidth: 860,
           backgroundColor: "#f0e6d0",
@@ -831,7 +930,7 @@ export default function MaiaPage() {
             position: "relative",
             borderBottom: "1.5px solid rgba(42,33,28,0.09)",
           }}>
-            <div style={{ position: "absolute", left: 18, top: "50%", transform: "translateY(-50%)", display: "flex", alignItems: "center", gap: 10 }}>
+            <div className="maia-header-left" style={{ position: "absolute", left: 18, top: "50%", transform: "translateY(-50%)", display: "flex", alignItems: "center", gap: 10 }}>
               <ArtMoon size={46} />
               <ArtLeaves size={26} />
             </div>
@@ -872,9 +971,8 @@ export default function MaiaPage() {
               </h1>
             </div>
 
-            <div style={{ position: "absolute", right: 18, top: "50%", transform: "translateY(-50%)", display: "flex", alignItems: "flex-end", gap: 8 }}>
-              <ArtChicken size={50} />
-              <ArtPlant size={50} />
+            <div className="maia-header-right" style={{ position: "absolute", right: 18, top: "50%", transform: "translateY(-50%)", display: "flex", alignItems: "flex-end", gap: 8 }}>
+              <ArtPlant size={54} />
             </div>
           </div>
 
@@ -901,21 +999,37 @@ export default function MaiaPage() {
               style={{ width: "calc(100% + 20px)", marginLeft: "-10px", display: "block", marginTop: "-16.5%" }}
             />
 
+            {/* Hover glow — Chase's room (left) */}
+            <motion.div
+              animate={{ opacity: hoverSide === "left" ? 1 : 0 }}
+              transition={{ duration: 0.45 }}
+              style={{ position:"absolute", left:0, top:0, width:"50%", height:"100%",
+                background:"linear-gradient(to right, rgba(190,148,80,0.22) 0%, transparent 100%)",
+                pointerEvents:"none", zIndex:4 }}
+            />
+            {/* Hover glow — Maia's room (right) */}
+            <motion.div
+              animate={{ opacity: hoverSide === "right" ? 1 : 0 }}
+              transition={{ duration: 0.45 }}
+              style={{ position:"absolute", right:0, top:0, width:"50%", height:"100%",
+                background:"linear-gradient(to left, rgba(200,130,130,0.22) 0%, transparent 100%)",
+                pointerEvents:"none", zIndex:4 }}
+            />
 
-            {/* Left bubble */}
-            <div style={{ position:"absolute", left:"5%", top:"32%", zIndex:10 }}>
+            {/* Left bubble — floats above Chase's phone */}
+            <div style={{ position:"absolute", left:"5%", top:"48%", zIndex:10 }}>
               <Bubble text={leftText} typing={leftTyping} side="left" time={leftTime}/>
             </div>
 
-            {/* Right bubble */}
-            <div style={{ position:"absolute", right:"5%", top:"32%", zIndex:10, display:"flex", justifyContent:"flex-end" }}>
+            {/* Right bubble — floats above Maia's phone */}
+            <div style={{ position:"absolute", right:"5%", top:"48%", zIndex:10, display:"flex", justifyContent:"flex-end" }}>
               <Bubble text={rightText} typing={rightTyping} side="right" time={rightTime}/>
             </div>
           </div>
 
 
           {/* ── FOOTER ── */}
-          <div style={{
+          <div className="maia-footer" style={{
             padding: "18px 24px 26px",
             display: "flex",
             alignItems: "flex-end",
@@ -937,7 +1051,7 @@ export default function MaiaPage() {
               <ArtHeart size={12}/>
             </div>
 
-            <div style={{ display:"flex", alignItems:"flex-end", gap:12 }}>
+            <div className="maia-footer-right" style={{ display:"flex", alignItems:"flex-end", gap:12 }}>
               <ArtStar size={11}/>
               <ChickenButton size={52}/>
               <MapleButton size={46}/>
@@ -946,7 +1060,7 @@ export default function MaiaPage() {
             </div>
           </div>
 
-        </div>
+        </motion.div>
       </div>
     </>
   );

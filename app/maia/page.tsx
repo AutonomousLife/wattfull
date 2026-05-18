@@ -230,65 +230,33 @@ const DOT_BG    = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/
 
 function ArtHeart({ size = 22, pulse = false }: { size?: number; pulse?: boolean }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 22" fill="none"
-      style={pulse ? { animation: "heartBeat 2.8s ease-in-out infinite", display: "inline-block" } : { display: "inline-block" }}
-      aria-hidden>
-      <path d="M12,20 C11.4,19.4 8.2,17.2 5.5,14.4 C3,11.8 2,9.8 2,7.5 C2,4.4 4.3,2 7.5,2 C9.6,2 11.2,3.1 12,5 C12.8,3.1 14.4,2 16.5,2 C19.7,2 22,4.4 22,7.5 C22,9.8 21,11.8 18.5,14.4 C15.8,17.2 12.6,19.4 12,20 Z"
-        fill="rgba(184,104,104,0.18)" stroke="#b86868" strokeWidth="1.55" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src="/maia-heart.png" alt="" aria-hidden width={size} height={size}
+      style={{
+        display: "inline-block", objectFit: "contain",
+        mixBlendMode: "multiply",
+        animation: pulse ? "heartBeat 2.8s ease-in-out infinite" : undefined,
+      }}
+    />
   );
 }
 
 function ArtChicken({ size = 30 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 40 46" fill="none"
-      stroke="#3a2a1e" strokeWidth="1.55" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      {/* body */}
-      <path d="M9,36 Q6,29 7,23 Q9,15 17,13 Q25,11 30,18 Q34,24 32,33 Q30,40 22,42 Q13,43 9,36 Z"/>
-      {/* head */}
-      <circle cx="25" cy="13" r="7" stroke="#3a2a1e" strokeWidth="1.55" fill="none"/>
-      {/* comb */}
-      <path d="M20,7 Q21.5,4 23.5,6.5 Q25,3.5 27,6 Q28.5,3 30,6"/>
-      {/* beak */}
-      <path d="M31,13 L37,11 L37,15 Z" fill="#3a2a1e" strokeWidth="1"/>
-      {/* eye */}
-      <circle cx="27" cy="11" r="1.6" fill="#3a2a1e" stroke="none"/>
-      {/* wattle */}
-      <path d="M30,16 Q32,19 30,21 Q28,19 30,16"/>
-      {/* wing */}
-      <path d="M10,28 Q15,24 22,25 Q18,31 13,32 Q9,31 10,28"/>
-      {/* tail feathers */}
-      <path d="M8,28 Q3,22 4,15"/>
-      <path d="M8,32 Q2,28 3,21"/>
-      {/* legs */}
-      <path d="M16,42 L15,47"/>
-      <path d="M15,47 L12,46 M15,47 L17,46"/>
-      <path d="M23,43 L22,48"/>
-      <path d="M22,48 L19,47 M22,48 L24,47"/>
-    </svg>
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src="/maia-chicken.png" alt="" aria-hidden width={size} height={size}
+      style={{ display: "block", objectFit: "contain" }}
+    />
   );
 }
 
 function ArtPlant({ size = 30 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 36 44" fill="none"
-      stroke="#3a2a1e" strokeWidth="1.55" strokeLinecap="round" strokeLinejoin="round"
-      style={{ animation: "plantSway 6s ease-in-out infinite", transformOrigin: "18px 42px" }} aria-hidden>
-      {/* pot body */}
-      <path d="M11,32 L13,41 L23,41 L25,32 Z"/>
-      {/* pot rim */}
-      <path d="M9,32 L27,32"/>
-      {/* pot rim curve (soil) */}
-      <path d="M12,32 Q18,34.5 24,32"/>
-      {/* main stem */}
-      <line x1="18" y1="32" x2="18" y2="20"/>
-      {/* left leaf */}
-      <path d="M18,28 Q9,24 8,15 Q15,18 18,26"/>
-      {/* right leaf */}
-      <path d="M18,23 Q27,19 28,10 Q21,13 18,22"/>
-      {/* top sprout */}
-      <path d="M18,20 Q16,14 17,10 Q20,14 18,19"/>
-    </svg>
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src="/maia-plant.png" alt="" aria-hidden width={size} height={size}
+      style={{ display: "block", objectFit: "contain",
+        animation: "plantSway 6s ease-in-out infinite", transformOrigin: "bottom center" }}
+    />
   );
 }
 
@@ -335,18 +303,19 @@ function ArtSeedling({ size = 26 }: { size?: number }) {
 
 function ArtMapleLeaf({ size = 28 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 32 36" fill="none"
-      stroke="#3a2a1e" strokeWidth="1.55" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      {/* maple leaf */}
-      <path d="M16,3 L18,9 L23,7 L20,13 L27,12 L22,18 L25,23 L16,20 L7,23 L10,18 L5,12 L12,13 L9,7 L14,9 Z"/>
-      {/* veins */}
-      <line x1="16" y1="20" x2="16" y2="8"/>
-      <path d="M16,14 L10,12 M16,14 L22,12"/>
-      <path d="M16,17 L11,20 M16,17 L21,20"/>
-      {/* stem */}
-      <line x1="16" y1="20" x2="16" y2="32"/>
-      <path d="M13,32 Q16,31 19,32"/>
-    </svg>
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src="/maia-maple.png" alt="" aria-hidden width={size} height={size}
+      style={{ display: "block", objectFit: "contain" }}
+    />
+  );
+}
+
+function ArtMoon({ size = 32 }: { size?: number }) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src="/maia-moon.png" alt="" aria-hidden width={size} height={size}
+      style={{ display: "block", objectFit: "contain", mixBlendMode: "multiply" }}
+    />
   );
 }
 
@@ -512,44 +481,17 @@ function MapleButton({ size = 30 }: { size?: number }) {
 // ─── Garden note ─────────────────────────────────────────────────────────────
 
 function GardenNote() {
-  const [idx, setIdx] = useState(0);
   return (
-    <motion.button
-      onClick={() => setIdx(i => (i + 1) % GARDEN_LABELS.length)}
-      whileHover={{ rotate: [-1, 1.5], transition: { duration: 0.3 } }}
-      style={{ background: "none", border: "none", cursor: "pointer", padding: 0, transform: "rotate(-3deg)", transformOrigin: "center" }}
-      aria-label="garden note"
+    <motion.div
+      whileHover={{ rotate: 3, scale: 1.06 }}
+      whileTap={{ scale: 0.94 }}
+      style={{ transform: "rotate(-4deg)", transformOrigin: "center", lineHeight: 0, cursor: "default" }}
     >
-      <div style={{
-        background: "rgba(246, 241, 218, 0.92)",
-        border: "1.5px solid rgba(42,33,28,0.18)",
-        borderRadius: "3px 5px 4px 3px",
-        padding: "7px 12px 9px",
-        boxShadow: "2px 3px 8px rgba(42,33,28,0.10), 1px 1px 0 rgba(42,33,28,0.05)",
-        fontFamily: "'Caveat', cursive",
-        fontSize: 12,
-        color: "#4a3828",
-        lineHeight: 1.6,
-        textAlign: "left" as const,
-        minWidth: 88,
-      }}>
-        <svg width="16" height="16" viewBox="0 0 22 22" fill="none" stroke="#3a2a1e" strokeWidth="1.4"
-          strokeLinecap="round" strokeLinejoin="round" style={{ display: "block", marginBottom: 3 }}>
-          <rect x="3" y="2" width="16" height="18" rx="2"/>
-          <line x1="3" y1="7" x2="7" y2="7"/>
-          <line x1="7" y1="2" x2="7" y2="20"/>
-          <line x1="10" y1="9" x2="17" y2="9"/>
-          <line x1="10" y1="13" x2="17" y2="13"/>
-          <line x1="10" y1="17" x2="14" y2="17"/>
-        </svg>
-        <AnimatePresence mode="wait">
-          <motion.span key={idx} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }} style={{ display: "block" }}>
-            {GARDEN_LABELS[idx]}
-          </motion.span>
-        </AnimatePresence>
-      </div>
-    </motion.button>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/maia-note.png" alt="garden ideas" width={72} height={72}
+        style={{ display: "block", objectFit: "contain" }}
+      />
+    </motion.div>
   );
 }
 
@@ -865,8 +807,7 @@ export default function MaiaPage() {
         <div style={{
           width: "100%",
           maxWidth: 860,
-          background: CARD_BG,
-          backgroundImage: NOISE_BG,
+          background: `#f0e6d0 url('/maia-paper.png') center/cover no-repeat`,
           border: "2px solid rgba(42,33,28,0.16)",
           borderRadius: 20,
           overflow: "hidden",
@@ -888,9 +829,8 @@ export default function MaiaPage() {
             borderBottom: "1.5px solid rgba(42,33,28,0.09)",
           }}>
             <div style={{ position: "absolute", left: 18, top: "50%", transform: "translateY(-50%)", display: "flex", alignItems: "center", gap: 8 }}>
-              <ArtStar size={12} />
-              <ArtStar size={9}  />
-              <ArtLeaves size={26} />
+              <ArtMoon size={34} />
+              <ArtLeaves size={24} />
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: 8, position: "relative" }}>
@@ -929,9 +869,9 @@ export default function MaiaPage() {
               </h1>
             </div>
 
-            <div style={{ position: "absolute", right: 18, top: "50%", transform: "translateY(-50%)", display: "flex", alignItems: "center", gap: 10 }}>
-              <ArtChicken size={30} />
-              <ArtPlant size={30} />
+            <div style={{ position: "absolute", right: 18, top: "50%", transform: "translateY(-50%)", display: "flex", alignItems: "flex-end", gap: 8 }}>
+              <ArtChicken size={38} />
+              <ArtPlant size={38} />
             </div>
           </div>
 
@@ -996,8 +936,8 @@ export default function MaiaPage() {
 
             <div style={{ display:"flex", alignItems:"flex-end", gap:12 }}>
               <ArtStar size={11}/>
-              <ChickenButton size={32}/>
-              <MapleButton size={28}/>
+              <ChickenButton size={40}/>
+              <MapleButton size={36}/>
               <RainButton raining={raining} onToggle={toggleRain}/>
               <SpeakerButton playing={playing} onToggle={toggleAudio}/>
             </div>

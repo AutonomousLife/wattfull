@@ -232,76 +232,119 @@ function ArtHeart({ size = 22, pulse = false }: { size?: number; pulse?: boolean
     <svg width={size} height={size} viewBox="0 0 24 22" fill="none"
       style={pulse ? { animation: "heartBeat 2.8s ease-in-out infinite", display: "inline-block" } : { display: "inline-block" }}
       aria-hidden>
-      <path d="M12,20 C12,20 2,13 2,7 C2,3.8 4.5,2 7.5,2 C9.4,2 11,3.1 12,4.7 C13,3.1 14.6,2 16.5,2 C19.5,2 22,3.8 22,7 C22,13 12,20 12,20 Z"
-        stroke="#b86868" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M12,20 C11.4,19.4 8.2,17.2 5.5,14.4 C3,11.8 2,9.8 2,7.5 C2,4.4 4.3,2 7.5,2 C9.6,2 11.2,3.1 12,5 C12.8,3.1 14.4,2 16.5,2 C19.7,2 22,4.4 22,7.5 C22,9.8 21,11.8 18.5,14.4 C15.8,17.2 12.6,19.4 12,20 Z"
+        fill="rgba(184,104,104,0.18)" stroke="#b86868" strokeWidth="1.55" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   );
 }
 
 function ArtChicken({ size = 30 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 38 42" fill="none"
-      stroke="#3a2a1e" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M11,31 Q7,26 8,20 Q9,12 19,11 Q28,10 29,19 Q30,26 27,31 Q23,36 19,36 Q14,36 11,31"/>
-      <path d="M21,11 Q20,5 17,4 Q13,3 13,7 Q12,9.5 15,11"/>
-      <path d="M16,4 Q17.5,1.5 18.5,4 Q20,1.5 21.5,4"/>
-      <circle cx="17" cy="7.5" r="1.3" fill="#3a2a1e"/>
-      <path d="M21,8.5 L25,9.5 L21,11.5"/>
-      <path d="M21,11.5 Q23.5,14 21,15.5"/>
-      <path d="M13,20 Q9.5,22.5 10.5,27 Q13,24.5 15.5,24.5"/>
-      <path d="M13,36 L12,40 M13,36 L15,40"/>
-      <path d="M22,36 L21,40 M22,36 L24,40"/>
+    <svg width={size} height={size} viewBox="0 0 40 46" fill="none"
+      stroke="#3a2a1e" strokeWidth="1.55" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      {/* body */}
+      <path d="M9,36 Q6,29 7,23 Q9,15 17,13 Q25,11 30,18 Q34,24 32,33 Q30,40 22,42 Q13,43 9,36 Z"/>
+      {/* head */}
+      <circle cx="25" cy="13" r="7" stroke="#3a2a1e" strokeWidth="1.55" fill="none"/>
+      {/* comb */}
+      <path d="M20,7 Q21.5,4 23.5,6.5 Q25,3.5 27,6 Q28.5,3 30,6"/>
+      {/* beak */}
+      <path d="M31,13 L37,11 L37,15 Z" fill="#3a2a1e" strokeWidth="1"/>
+      {/* eye */}
+      <circle cx="27" cy="11" r="1.6" fill="#3a2a1e" stroke="none"/>
+      {/* wattle */}
+      <path d="M30,16 Q32,19 30,21 Q28,19 30,16"/>
+      {/* wing */}
+      <path d="M10,28 Q15,24 22,25 Q18,31 13,32 Q9,31 10,28"/>
+      {/* tail feathers */}
+      <path d="M8,28 Q3,22 4,15"/>
+      <path d="M8,32 Q2,28 3,21"/>
+      {/* legs */}
+      <path d="M16,42 L15,47"/>
+      <path d="M15,47 L12,46 M15,47 L17,46"/>
+      <path d="M23,43 L22,48"/>
+      <path d="M22,48 L19,47 M22,48 L24,47"/>
     </svg>
   );
 }
 
 function ArtPlant({ size = 30 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 36 42" fill="none"
-      stroke="#3a2a1e" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"
-      style={{ animation: "plantSway 6s ease-in-out infinite", transformOrigin: "18px 40px" }} aria-hidden>
-      <path d="M10,42 L13,31 L23,31 L26,42"/>
-      <path d="M12,36 L24,36"/>
-      <path d="M13,31 Q18,29 23,31"/>
-      <path d="M18,31 L18,18"/>
-      <path d="M18,25 Q10,20 8,13 Q15,16 18,23"/>
-      <path d="M18,21 Q26,16 28,9 Q21,13 18,20"/>
-      <path d="M18,18 Q17,12 17,9 Q19,13 18,17"/>
+    <svg width={size} height={size} viewBox="0 0 36 44" fill="none"
+      stroke="#3a2a1e" strokeWidth="1.55" strokeLinecap="round" strokeLinejoin="round"
+      style={{ animation: "plantSway 6s ease-in-out infinite", transformOrigin: "18px 42px" }} aria-hidden>
+      {/* pot body */}
+      <path d="M11,32 L13,41 L23,41 L25,32 Z"/>
+      {/* pot rim */}
+      <path d="M9,32 L27,32"/>
+      {/* pot rim curve (soil) */}
+      <path d="M12,32 Q18,34.5 24,32"/>
+      {/* main stem */}
+      <line x1="18" y1="32" x2="18" y2="20"/>
+      {/* left leaf */}
+      <path d="M18,28 Q9,24 8,15 Q15,18 18,26"/>
+      {/* right leaf */}
+      <path d="M18,23 Q27,19 28,10 Q21,13 18,22"/>
+      {/* top sprout */}
+      <path d="M18,20 Q16,14 17,10 Q20,14 18,19"/>
     </svg>
   );
 }
 
 function ArtLeaves({ size = 26 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 34 36" fill="none"
-      stroke="#3a2a1e" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"
-      style={{ animation: "leafSway 4.5s ease-in-out infinite", transformOrigin: "17px 34px" }} aria-hidden>
-      <path d="M17,34 Q13,28 11,22 Q14,24 15,28 Q14,22 9,17 Q14,20 15,24 Q13,19 13,13 Q16,17 16,23"/>
-      <path d="M17,34 Q21,28 23,22 Q20,24 19,28 Q20,22 25,17 Q20,20 19,24 Q21,19 21,13 Q18,17 18,23"/>
-      <path d="M16,34 L18,34"/>
+    <svg width={size} height={size} viewBox="0 0 28 32" fill="none"
+      stroke="#3a2a1e" strokeWidth="1.55" strokeLinecap="round" strokeLinejoin="round"
+      style={{ animation: "leafSway 4.5s ease-in-out infinite", transformOrigin: "14px 30px" }} aria-hidden>
+      {/* stem */}
+      <path d="M14,30 L14,19 Q14,16 14,13"/>
+      {/* left leaf */}
+      <path d="M14,25 Q7,21 6,14 Q12,16 14,24"/>
+      {/* midrib of left leaf */}
+      <path d="M14,25 Q10,21 9,16"/>
+      {/* right leaf */}
+      <path d="M14,20 Q21,16 22,9 Q16,12 14,19"/>
+      {/* midrib of right leaf */}
+      <path d="M14,20 Q18,16 19,12"/>
+      {/* top leaf */}
+      <path d="M14,13 Q13,8 14,5 Q16,9 14,12"/>
     </svg>
   );
 }
 
 function ArtSeedling({ size = 26 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 30 34" fill="none"
-      stroke="#3a2a1e" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M15,32 L15,20"/>
-      <path d="M15,24 Q8,19 7,13 Q13,16 15,22"/>
-      <path d="M15,21 Q22,16 24,10 Q17,12 15,19"/>
-      <path d="M13,32 L17,32"/>
+    <svg width={size} height={size} viewBox="0 0 28 32" fill="none"
+      stroke="#3a2a1e" strokeWidth="1.55" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      {/* ground line */}
+      <path d="M5,28 Q14,30 23,28"/>
+      {/* stem */}
+      <line x1="14" y1="28" x2="14" y2="17"/>
+      {/* left leaf */}
+      <path d="M14,23 Q7,19 6,11 Q12,14 14,22"/>
+      {/* left midrib */}
+      <path d="M14,23 Q10,19 9,14"/>
+      {/* right leaf */}
+      <path d="M14,19 Q21,15 22,7 Q16,11 14,18"/>
+      {/* right midrib */}
+      <path d="M14,19 Q18,15 19,10"/>
     </svg>
   );
 }
 
 function ArtMapleLeaf({ size = 28 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 34 38" fill="none"
-      stroke="#3a2a1e" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M17,3 L19.5,9.5 L25,7 L22,14 L29,13 L24,18 L27,24 L17,21 L7,24 L10,18 L5,13 L12,14 L9,7 L14.5,9.5 Z"/>
-      <line x1="17" y1="21" x2="17" y2="33"/>
-      <path d="M14,33 L17,33 L20,33"/>
+    <svg width={size} height={size} viewBox="0 0 32 36" fill="none"
+      stroke="#3a2a1e" strokeWidth="1.55" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      {/* maple leaf */}
+      <path d="M16,3 L18,9 L23,7 L20,13 L27,12 L22,18 L25,23 L16,20 L7,23 L10,18 L5,12 L12,13 L9,7 L14,9 Z"/>
+      {/* veins */}
+      <line x1="16" y1="20" x2="16" y2="8"/>
+      <path d="M16,14 L10,12 M16,14 L22,12"/>
+      <path d="M16,17 L11,20 M16,17 L21,20"/>
+      {/* stem */}
+      <line x1="16" y1="20" x2="16" y2="32"/>
+      <path d="M13,32 Q16,31 19,32"/>
     </svg>
   );
 }
@@ -309,11 +352,12 @@ function ArtMapleLeaf({ size = 28 }: { size?: number }) {
 function ArtStar({ size = 14 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 16 16" fill="none"
-      stroke="#3a2a1e" strokeWidth="1.4" strokeLinecap="round" aria-hidden>
-      <line x1="8" y1="1" x2="8" y2="15"/>
-      <line x1="1" y1="8" x2="15" y2="8"/>
-      <line x1="2.5" y1="2.5" x2="13.5" y2="13.5"/>
-      <line x1="13.5" y1="2.5" x2="2.5" y2="13.5"/>
+      stroke="#3a2a1e" strokeWidth="1.3" strokeLinecap="round" aria-hidden>
+      {/* 4-point sparkle — each spike tapers to center */}
+      <path d="M8,1 Q8.9,5.5 8,8 Q7.1,5.5 8,1"/>
+      <path d="M15,8 Q10.5,8.9 8,8 Q10.5,7.1 15,8"/>
+      <path d="M8,15 Q7.1,10.5 8,8 Q8.9,10.5 8,15"/>
+      <path d="M1,8 Q5.5,7.1 8,8 Q5.5,8.9 1,8"/>
     </svg>
   );
 }
@@ -645,7 +689,7 @@ export default function MaiaPage() {
               <ArtLeaves size={26} />
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", gap: 7, position: "relative" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, position: "relative" }}>
               <h1 style={{
                 fontSize: "clamp(32px,6vw,52px)",
                 fontWeight: 700,
@@ -659,7 +703,7 @@ export default function MaiaPage() {
               <button
                 onClick={() => setHeartPop(true)}
                 onAnimationEnd={() => setHeartPop(false)}
-                style={{ background: "none", border: "none", cursor: "pointer", padding: 0, position: "relative", lineHeight: 0 }}
+                style={{ background: "none", border: "none", cursor: "pointer", padding: "0 2px", position: "relative", lineHeight: 0 }}
                 aria-label="send heart"
               >
                 <ArtHeart size={30} pulse />
@@ -669,6 +713,16 @@ export default function MaiaPage() {
                   </span>
                 )}
               </button>
+              <h1 style={{
+                fontSize: "clamp(32px,6vw,52px)",
+                fontWeight: 700,
+                color: "#1e1610",
+                letterSpacing: "0.02em",
+                lineHeight: 1,
+                fontFamily: "'Caveat', cursive",
+              }}>
+                Chase
+              </h1>
             </div>
 
             <div style={{ position: "absolute", right: 18, top: "50%", transform: "translateY(-50%)", display: "flex", alignItems: "center", gap: 10 }}>
@@ -693,7 +747,7 @@ export default function MaiaPage() {
             />
 
             {/* Bottom vignette */}
-            <div style={{ position:"absolute", bottom:0, left:0, right:0, height:"40%",
+            <div style={{ position:"absolute", bottom:0, left:0, right:0, height:"18%",
               background:`linear-gradient(to bottom, transparent 0%, ${CARD_BG} 100%)`,
               pointerEvents:"none", zIndex:5 }}/>
 

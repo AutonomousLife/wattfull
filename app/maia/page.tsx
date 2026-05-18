@@ -234,7 +234,6 @@ function ArtHeart({ size = 22, pulse = false }: { size?: number; pulse?: boolean
     <img src="/maia-heart.png" alt="" aria-hidden width={size} height={size}
       style={{
         display: "inline-block", objectFit: "contain",
-        mixBlendMode: "multiply",
         animation: pulse ? "heartBeat 2.8s ease-in-out infinite" : undefined,
       }}
     />
@@ -314,7 +313,7 @@ function ArtMoon({ size = 32 }: { size?: number }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img src="/maia-moon.png" alt="" aria-hidden width={size} height={size}
-      style={{ display: "block", objectFit: "contain", mixBlendMode: "multiply" }}
+      style={{ display: "block", objectFit: "contain" }}
     />
   );
 }

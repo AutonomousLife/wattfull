@@ -951,10 +951,6 @@ export default function MaiaPage() {
               style={{ width: "calc(100% + 20px)", marginLeft: "-10px", display: "block", marginTop: "-16.5%" }}
             />
 
-            {/* Bottom vignette */}
-            <div style={{ position:"absolute", bottom:0, left:0, right:0, height:"18%",
-              background:`linear-gradient(to bottom, transparent 0%, ${CARD_BG} 100%)`,
-              pointerEvents:"none", zIndex:5 }}/>
 
             {/* Left bubble */}
             <div style={{ position:"absolute", left:"5%", top:"32%", zIndex:10 }}>
@@ -967,29 +963,6 @@ export default function MaiaPage() {
             </div>
           </div>
 
-          {/* ── NAME LABELS ── */}
-          <div style={{
-            display: "flex",
-            borderBottom: "1.5px solid rgba(42,33,28,0.08)",
-          }}>
-            <div style={{ flex: 1, textAlign: "center", padding: "7px 0 8px" }}>
-              <span style={{
-                fontFamily: "'Caveat', cursive",
-                fontSize: 13,
-                color: "rgba(42,28,20,0.38)",
-                letterSpacing: "0.1em",
-              }}>chase</span>
-            </div>
-            <div style={{ width: 1, background: "rgba(42,33,28,0.10)", flexShrink: 0 }}/>
-            <div style={{ flex: 1, textAlign: "center", padding: "7px 0 8px" }}>
-              <span style={{
-                fontFamily: "'Caveat', cursive",
-                fontSize: 13,
-                color: "rgba(42,28,20,0.38)",
-                letterSpacing: "0.1em",
-              }}>maia</span>
-            </div>
-          </div>
 
           {/* ── FOOTER ── */}
           <div style={{

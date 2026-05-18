@@ -327,6 +327,7 @@ export default function MaiaPage() {
           55%       { transform: scale(0.88); }
           75%       { transform: scale(1.08); }
         }
+        html, body { background: #e6d9c4 !important; margin: 0; padding: 0; }
         @keyframes floatUp {
           0%   { opacity: 1; transform: translateY(0)    scale(1);   }
           100% { opacity: 0; transform: translateY(-56px) scale(1.4); }
@@ -338,7 +339,6 @@ export default function MaiaPage() {
 
       {/* ── Page wrapper ── */}
       <div style={{
-        minHeight: "100dvh",
         background: "#e6d9c4",
         backgroundImage: `
           radial-gradient(ellipse at 25% 25%, rgba(160,130,90,0.08) 0%, transparent 55%),
@@ -411,33 +411,43 @@ export default function MaiaPage() {
           </div>
 
           {/* ── HERO — image + floating bubbles ── */}
-          <div style={{ position: "relative", width: "100%", lineHeight: 0 }}>
+          {/*
+            Image is 1024×1536 and contains: parchment header (~130px),
+            rooms illustration (~590px), then chat mockup (rest).
+            We crop to show only the rooms: skip top 130px, show 590px.
+            margin-top = -(130/1024)*100% = -12.7% of container width
+            aspect-ratio = 1024/590
+          */}
+          {/*
+            Image: 1024×1536. Layout in px:
+              0–160   parchment header strip  (skip this)
+              160–740 rooms illustration      (show this = 580px)
+              740–    chat mockup             (skip this)
+            CSS crop:
+              margin-top = -(160/1024)*100% = -15.6%  (skip header)
+              aspect-ratio = 1024/580                  (show 580px tall section)
+          */}
+          <div style={{
+            position: "relative",
+            width: "100%",
+            aspectRatio: "1024 / 478",
+            overflow: "hidden",
+            lineHeight: 0,
+          }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/maia-rooms.jpg"
               alt="two cozy rooms at night"
-              style={{ width: "100%", display: "block" }}
+              style={{ width: "100%", display: "block", marginTop: "-16.5%" }}
             />
 
-            {/* Left bubble — above "you" (left person) */}
-            <div style={{
-              position: "absolute",
-              left: "4%",
-              top: "18%",
-              zIndex: 10,
-            }}>
+            {/* Left bubble — floats above left person's head (~25% x, ~38% y) */}
+            <div style={{ position: "absolute", left: "5%", top: "32%", zIndex: 10 }}>
               <Bubble text={leftText} typing={leftTyping} side="left" />
             </div>
 
-            {/* Right bubble — above Maia (right person) */}
-            <div style={{
-              position: "absolute",
-              right: "4%",
-              top: "18%",
-              zIndex: 10,
-              display: "flex",
-              justifyContent: "flex-end",
-            }}>
+            {/* Right bubble — floats above Maia's head (~75% x, ~38% y) */}
+            <div style={{ position: "absolute", right: "5%", top: "32%", zIndex: 10, display: "flex", justifyContent: "flex-end" }}>
               <Bubble text={rightText} typing={rightTyping} side="right" />
             </div>
           </div>

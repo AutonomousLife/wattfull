@@ -677,47 +677,34 @@ export default function MaiaPage() {
             </div>
           </div>
 
-          {/* ── HERO — split panels ── */}
-          {/*
-            Image: 1024×1536. We show original px 169–647.
-            Each panel is 50% wide, image is 200% wide inside it.
-            marginTop = -33% of panel width = -16.5% of full width (same offset).
-            aspectRatio: 512/478 gives each panel same height as single-image approach.
-            Right panel: marginLeft -100% shifts image left to show right half.
-          */}
-          <div style={{ display: "flex", position: "relative" }}>
+          {/* ── HERO — full-width image crop showing only the two rooms ── */}
+          <div style={{
+            position: "relative",
+            width: "100%",
+            aspectRatio: "1024 / 478",
+            overflow: "hidden",
+            lineHeight: 0,
+          }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/maia-rooms.jpg"
+              alt="two cozy rooms at night"
+              style={{ width: "100%", display: "block", marginTop: "-16.5%" }}
+            />
 
-            {/* Left panel */}
-            <div style={{ flex: 1, aspectRatio: "512/478", overflow: "hidden", position: "relative" }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/maia-rooms.jpg" alt="" aria-hidden
-                style={{ width: "200%", display: "block", marginTop: "-33%" }}/>
-              {/* Bottom vignette */}
-              <div style={{ position:"absolute", bottom:0, left:0, right:0, height:"45%",
-                background:`linear-gradient(to bottom, transparent 0%, ${CARD_BG} 100%)`,
-                pointerEvents:"none", zIndex:5 }}/>
-              {/* Left bubble */}
-              <div style={{ position:"absolute", left:"8%", top:"22%", zIndex:10 }}>
-                <Bubble text={leftText} typing={leftTyping} side="left" time={leftTime}/>
-              </div>
+            {/* Bottom vignette */}
+            <div style={{ position:"absolute", bottom:0, left:0, right:0, height:"40%",
+              background:`linear-gradient(to bottom, transparent 0%, ${CARD_BG} 100%)`,
+              pointerEvents:"none", zIndex:5 }}/>
+
+            {/* Left bubble */}
+            <div style={{ position:"absolute", left:"5%", top:"32%", zIndex:10 }}>
+              <Bubble text={leftText} typing={leftTyping} side="left" time={leftTime}/>
             </div>
 
-            {/* Divider */}
-            <div style={{ width: 2, background: "rgba(42,33,28,0.12)", flexShrink: 0, zIndex: 2 }}/>
-
-            {/* Right panel */}
-            <div style={{ flex: 1, aspectRatio: "512/478", overflow: "hidden", position: "relative" }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/maia-rooms.jpg" alt="two cozy rooms at night"
-                style={{ width: "200%", display: "block", marginTop: "-33%", marginLeft: "-100%" }}/>
-              {/* Bottom vignette */}
-              <div style={{ position:"absolute", bottom:0, left:0, right:0, height:"45%",
-                background:`linear-gradient(to bottom, transparent 0%, ${CARD_BG} 100%)`,
-                pointerEvents:"none", zIndex:5 }}/>
-              {/* Right bubble */}
-              <div style={{ position:"absolute", right:"8%", top:"22%", zIndex:10, display:"flex", justifyContent:"flex-end" }}>
-                <Bubble text={rightText} typing={rightTyping} side="right" time={rightTime}/>
-              </div>
+            {/* Right bubble */}
+            <div style={{ position:"absolute", right:"5%", top:"32%", zIndex:10, display:"flex", justifyContent:"flex-end" }}>
+              <Bubble text={rightText} typing={rightTyping} side="right" time={rightTime}/>
             </div>
           </div>
 

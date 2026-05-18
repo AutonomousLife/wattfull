@@ -8,226 +8,207 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 interface Msg {
   from: "you" | "maia";
   text: string;
+  time: string;
 }
 
-// ─── 20 Conversations ────────────────────────────────────────────────────────
+// ─── Conversations (20) ───────────────────────────────────────────────────────
 
 const CONVOS: Msg[][] = [
-  // 1
   [
-    { from: "you",  text: "how was work" },
-    { from: "maia", text: "it was okay" },
-    { from: "you",  text: "people annoying?" },
-    { from: "maia", text: "a little lol" },
-    { from: "you",  text: "what u doing now" },
-    { from: "maia", text: "just got home, making tea" },
-    { from: "you",  text: "nice" },
-    { from: "maia", text: "yep and looking at dumb videos" },
-    { from: "you",  text: "sounds about right" },
+    { from: "you",  text: "how was work",              time: "10:31 PM" },
+    { from: "maia", text: "it was okay",               time: "10:32 PM" },
+    { from: "you",  text: "people annoying?",          time: "10:32 PM" },
+    { from: "maia", text: "a little lol",              time: "10:32 PM" },
+    { from: "you",  text: "what u doing now",          time: "10:33 PM" },
+    { from: "maia", text: "just got home, making tea", time: "10:33 PM" },
+    { from: "you",  text: "nice",                      time: "10:33 PM" },
+    { from: "maia", text: "yep and looking at dumb videos", time: "10:34 PM" },
+    { from: "you",  text: "sounds about right",        time: "10:34 PM" },
   ],
-  // 2
   [
-    { from: "you",  text: "what u doing" },
-    { from: "maia", text: "laying here" },
-    { from: "you",  text: "productive" },
-    { from: "maia", text: "extremely" },
-    { from: "you",  text: "proud of u" },
-    { from: "maia", text: "thanks i worked hard" },
-    { from: "you",  text: "same honestly" },
-    { from: "maia", text: "wow inspiring" },
+    { from: "you",  text: "what u doing",         time: "11:08 PM" },
+    { from: "maia", text: "laying here",           time: "11:08 PM" },
+    { from: "you",  text: "productive",            time: "11:09 PM" },
+    { from: "maia", text: "extremely",             time: "11:09 PM" },
+    { from: "you",  text: "proud of u",            time: "11:09 PM" },
+    { from: "maia", text: "thanks i worked hard",  time: "11:09 PM" },
+    { from: "you",  text: "same honestly",         time: "11:10 PM" },
+    { from: "maia", text: "wow inspiring",         time: "11:10 PM" },
   ],
-  // 3
   [
-    { from: "you",  text: "canada update" },
-    { from: "maia", text: "still cold" },
-    { from: "you",  text: "shocking" },
-    { from: "maia", text: "shut up" },
-    { from: "you",  text: "sorry" },
-    { from: "maia", text: "no ur not" },
-    { from: "you",  text: "true" },
+    { from: "you",  text: "canada update",  time: "9:54 PM" },
+    { from: "maia", text: "still cold",     time: "9:54 PM" },
+    { from: "you",  text: "shocking",       time: "9:55 PM" },
+    { from: "maia", text: "shut up",        time: "9:55 PM" },
+    { from: "you",  text: "sorry",          time: "9:55 PM" },
+    { from: "maia", text: "no ur not",      time: "9:55 PM" },
+    { from: "you",  text: "true",           time: "9:56 PM" },
   ],
-  // 4
   [
-    { from: "you",  text: "still want chickens?" },
-    { from: "maia", text: "yes" },
-    { from: "you",  text: "how many" },
-    { from: "maia", text: "enough" },
-    { from: "you",  text: "suspicious answer" },
-    { from: "maia", text: "normal answer" },
-    { from: "you",  text: "sure" },
-    { from: "maia", text: "we also need tomatoes" },
+    { from: "you",  text: "still want chickens?",          time: "10:17 PM" },
+    { from: "maia", text: "yes",                           time: "10:17 PM" },
+    { from: "you",  text: "how many",                      time: "10:18 PM" },
+    { from: "maia", text: "enough",                        time: "10:18 PM" },
+    { from: "you",  text: "suspicious answer",             time: "10:18 PM" },
+    { from: "maia", text: "normal answer",                 time: "10:18 PM" },
+    { from: "you",  text: "sure",                          time: "10:18 PM" },
+    { from: "maia", text: "we also need tomatoes",         time: "10:19 PM" },
   ],
-  // 5
   [
-    { from: "you",  text: "why are we awake" },
-    { from: "maia", text: "bad choices" },
-    { from: "you",  text: "fair" },
-    { from: "maia", text: "what are u doing" },
-    { from: "you",  text: "nothing" },
-    { from: "maia", text: "same" },
-    { from: "you",  text: "elite lifestyle" },
-    { from: "maia", text: "honestly yeah" },
+    { from: "you",  text: "why are we awake",    time: "1:12 AM" },
+    { from: "maia", text: "bad choices",          time: "1:12 AM" },
+    { from: "you",  text: "fair",                 time: "1:13 AM" },
+    { from: "maia", text: "what are u doing",    time: "1:13 AM" },
+    { from: "you",  text: "nothing",              time: "1:13 AM" },
+    { from: "maia", text: "same",                 time: "1:13 AM" },
+    { from: "you",  text: "elite lifestyle",      time: "1:14 AM" },
+    { from: "maia", text: "honestly yeah",        time: "1:14 AM" },
   ],
-  // 6
   [
-    { from: "you",  text: "u good?" },
-    { from: "maia", text: "yeah i'm fine" },
-    { from: "you",  text: "good" },
-    { from: "maia", text: "u?" },
-    { from: "you",  text: "yeah" },
-    { from: "maia", text: "okay" },
-    { from: "you",  text: "very emotional conversation" },
-    { from: "maia", text: "extremely" },
+    { from: "you",  text: "u good?",                     time: "11:42 PM" },
+    { from: "maia", text: "yeah i'm fine",               time: "11:42 PM" },
+    { from: "you",  text: "good",                        time: "11:43 PM" },
+    { from: "maia", text: "u?",                          time: "11:43 PM" },
+    { from: "you",  text: "yeah",                        time: "11:43 PM" },
+    { from: "maia", text: "okay",                        time: "11:43 PM" },
+    { from: "you",  text: "very emotional conversation", time: "11:44 PM" },
+    { from: "maia", text: "extremely",                   time: "11:44 PM" },
   ],
-  // 7
   [
-    { from: "you",  text: "u got any plans tomorrow" },
-    { from: "maia", text: "not really" },
-    { from: "you",  text: "same" },
-    { from: "maia", text: "maybe go outside if it's not gross" },
-    { from: "you",  text: "ambitious" },
-    { from: "maia", text: "i know" },
-    { from: "you",  text: "proud of us" },
-    { from: "maia", text: "don't overdo it" },
+    { from: "you",  text: "u got any plans tomorrow",            time: "10:05 PM" },
+    { from: "maia", text: "not really",                          time: "10:05 PM" },
+    { from: "you",  text: "same",                                time: "10:06 PM" },
+    { from: "maia", text: "maybe go outside if it's not gross",  time: "10:06 PM" },
+    { from: "you",  text: "ambitious",                           time: "10:06 PM" },
+    { from: "maia", text: "i know",                              time: "10:07 PM" },
+    { from: "you",  text: "proud of us",                         time: "10:07 PM" },
+    { from: "maia", text: "don't overdo it",                     time: "10:07 PM" },
   ],
-  // 8
   [
-    { from: "you",  text: "important question" },
-    { from: "maia", text: "what" },
-    { from: "you",  text: "garden first or chickens first" },
-    { from: "maia", text: "garden" },
-    { from: "you",  text: "controversial" },
-    { from: "maia", text: "chickens need somewhere to judge us from" },
-    { from: "you",  text: "fair point" },
+    { from: "you",  text: "important question",                       time: "9:30 PM" },
+    { from: "maia", text: "what",                                      time: "9:30 PM" },
+    { from: "you",  text: "garden first or chickens first",           time: "9:31 PM" },
+    { from: "maia", text: "garden",                                    time: "9:31 PM" },
+    { from: "you",  text: "controversial",                            time: "9:31 PM" },
+    { from: "maia", text: "chickens need somewhere to judge us from", time: "9:31 PM" },
+    { from: "you",  text: "fair point",                               time: "9:32 PM" },
   ],
-  // 9 — sweet
   [
-    { from: "maia", text: "hey" },
-    { from: "you",  text: "hey" },
-    { from: "maia", text: "nothing i just wanted to say something" },
-    { from: "you",  text: "say it then" },
-    { from: "maia", text: "i love you" },
-    { from: "you",  text: "oh" },
-    { from: "you",  text: "i love you too" },
-    { from: "maia", text: "okay good" },
-    { from: "maia", text: "that's all" },
+    { from: "maia", text: "hey",                    time: "10:48 PM" },
+    { from: "you",  text: "hey",                    time: "10:48 PM" },
+    { from: "maia", text: "nothing i just wanted to say something", time: "10:49 PM" },
+    { from: "you",  text: "say it then",            time: "10:49 PM" },
+    { from: "maia", text: "i love you",             time: "10:50 PM" },
+    { from: "you",  text: "oh",                     time: "10:50 PM" },
+    { from: "you",  text: "i love you too",         time: "10:50 PM" },
+    { from: "maia", text: "okay good",              time: "10:51 PM" },
+    { from: "maia", text: "that's all",             time: "10:51 PM" },
   ],
-  // 10 — missing
   [
-    { from: "you",  text: "i miss you" },
-    { from: "maia", text: "same" },
-    { from: "you",  text: "that's it?" },
-    { from: "maia", text: "i miss you a lot" },
-    { from: "you",  text: "better" },
-    { from: "maia", text: "♡" },
-    { from: "you",  text: "♡" },
+    { from: "you",  text: "i miss you",          time: "11:22 PM" },
+    { from: "maia", text: "same",                time: "11:22 PM" },
+    { from: "you",  text: "that's it?",          time: "11:22 PM" },
+    { from: "maia", text: "i miss you a lot",    time: "11:23 PM" },
+    { from: "you",  text: "better",              time: "11:23 PM" },
+    { from: "maia", text: "♡",                   time: "11:23 PM" },
+    { from: "you",  text: "♡",                   time: "11:23 PM" },
   ],
-  // 11 — food
   [
-    { from: "maia", text: "what did u eat today" },
-    { from: "you",  text: "cereal twice" },
-    { from: "maia", text: "incredible" },
-    { from: "you",  text: "and u" },
-    { from: "maia", text: "toast and sadness" },
-    { from: "you",  text: "we're doing great" },
-    { from: "maia", text: "thriving" },
+    { from: "maia", text: "what did u eat today",  time: "9:18 PM" },
+    { from: "you",  text: "cereal twice",           time: "9:18 PM" },
+    { from: "maia", text: "incredible",             time: "9:19 PM" },
+    { from: "you",  text: "and u",                  time: "9:19 PM" },
+    { from: "maia", text: "toast and sadness",      time: "9:19 PM" },
+    { from: "you",  text: "we're doing great",      time: "9:20 PM" },
+    { from: "maia", text: "thriving",               time: "9:20 PM" },
   ],
-  // 12 — life is a lot
   [
-    { from: "you",  text: "everything is a lot" },
-    { from: "maia", text: "yeah" },
-    { from: "you",  text: "just needed to say that" },
-    { from: "maia", text: "said and received" },
-    { from: "you",  text: "thanks" },
-    { from: "maia", text: "anytime" },
-    { from: "you",  text: "i love you" },
-    { from: "maia", text: "i love you" },
+    { from: "you",  text: "everything is a lot",    time: "10:58 PM" },
+    { from: "maia", text: "yeah",                   time: "10:58 PM" },
+    { from: "you",  text: "just needed to say that",time: "10:59 PM" },
+    { from: "maia", text: "said and received",      time: "10:59 PM" },
+    { from: "you",  text: "thanks",                 time: "11:00 PM" },
+    { from: "maia", text: "anytime",                time: "11:00 PM" },
+    { from: "you",  text: "i love you",             time: "11:00 PM" },
+    { from: "maia", text: "i love you",             time: "11:01 PM" },
   ],
-  // 13 — plants
   [
-    { from: "maia", text: "how many plants is too many" },
-    { from: "you",  text: "trick question" },
-    { from: "maia", text: "correct" },
-    { from: "you",  text: "getting another one?" },
-    { from: "maia", text: "already did" },
-    { from: "you",  text: "obviously" },
-    { from: "maia", text: "her name is linda" },
-    { from: "you",  text: "of course it is" },
+    { from: "maia", text: "how many plants is too many",  time: "8:44 PM" },
+    { from: "you",  text: "trick question",               time: "8:44 PM" },
+    { from: "maia", text: "correct",                      time: "8:45 PM" },
+    { from: "you",  text: "getting another one?",         time: "8:45 PM" },
+    { from: "maia", text: "already did",                  time: "8:45 PM" },
+    { from: "you",  text: "obviously",                    time: "8:46 PM" },
+    { from: "maia", text: "her name is linda",            time: "8:46 PM" },
+    { from: "you",  text: "of course it is",              time: "8:46 PM" },
   ],
-  // 14 — goodnight
   [
-    { from: "you",  text: "okay i should actually sleep" },
-    { from: "maia", text: "probably" },
-    { from: "you",  text: "you too" },
-    { from: "maia", text: "maybe" },
-    { from: "you",  text: "maia." },
-    { from: "maia", text: "fine" },
-    { from: "you",  text: "goodnight ♡" },
-    { from: "maia", text: "goodnight ♡" },
+    { from: "you",  text: "okay i should actually sleep", time: "12:34 AM" },
+    { from: "maia", text: "probably",                      time: "12:34 AM" },
+    { from: "you",  text: "you too",                       time: "12:35 AM" },
+    { from: "maia", text: "maybe",                         time: "12:35 AM" },
+    { from: "you",  text: "maia.",                         time: "12:35 AM" },
+    { from: "maia", text: "fine",                          time: "12:36 AM" },
+    { from: "you",  text: "goodnight ♡",                   time: "12:36 AM" },
+    { from: "maia", text: "goodnight ♡",                   time: "12:36 AM" },
   ],
-  // 15 — quiet
   [
-    { from: "maia", text: "are u still awake" },
-    { from: "you",  text: "yeah" },
-    { from: "maia", text: "good" },
-    { from: "you",  text: "why" },
-    { from: "maia", text: "just wanted to talk" },
-    { from: "you",  text: "how's your brain" },
-    { from: "maia", text: "loud tonight" },
-    { from: "you",  text: "less loud when i talk to u" },
-    { from: "maia", text: "♡" },
+    { from: "maia", text: "are u still awake",              time: "12:02 AM" },
+    { from: "you",  text: "yeah",                           time: "12:02 AM" },
+    { from: "maia", text: "good",                           time: "12:03 AM" },
+    { from: "you",  text: "why",                            time: "12:03 AM" },
+    { from: "maia", text: "just wanted to talk",            time: "12:03 AM" },
+    { from: "you",  text: "how's your brain",               time: "12:04 AM" },
+    { from: "maia", text: "loud tonight",                   time: "12:04 AM" },
+    { from: "you",  text: "less loud when i talk to u",     time: "12:05 AM" },
+    { from: "maia", text: "♡",                              time: "12:05 AM" },
   ],
-  // 16 — han solo
   [
-    { from: "maia", text: "i love you" },
-    { from: "you",  text: "i know" },
-    { from: "maia", text: "okay han solo" },
-    { from: "you",  text: "i love you too obviously" },
-    { from: "maia", text: "better" },
-    { from: "you",  text: "♡" },
+    { from: "maia", text: "i love you",          time: "11:16 PM" },
+    { from: "you",  text: "i know",              time: "11:16 PM" },
+    { from: "maia", text: "okay han solo",       time: "11:17 PM" },
+    { from: "you",  text: "i love you too obviously", time: "11:17 PM" },
+    { from: "maia", text: "better",              time: "11:17 PM" },
+    { from: "you",  text: "♡",                   time: "11:18 PM" },
   ],
-  // 17 — cold canada warmth
   [
-    { from: "you",  text: "how cold is it" },
-    { from: "maia", text: "very" },
-    { from: "you",  text: "i would keep u warm" },
-    { from: "maia", text: "bold claim" },
-    { from: "you",  text: "i'm very warm" },
-    { from: "maia", text: "scientifically?" },
-    { from: "you",  text: "anecdotally" },
-    { from: "maia", text: "♡" },
+    { from: "you",  text: "how cold is it",      time: "10:22 PM" },
+    { from: "maia", text: "very",                time: "10:22 PM" },
+    { from: "you",  text: "i would keep u warm", time: "10:23 PM" },
+    { from: "maia", text: "bold claim",          time: "10:23 PM" },
+    { from: "you",  text: "i'm very warm",       time: "10:23 PM" },
+    { from: "maia", text: "scientifically?",     time: "10:24 PM" },
+    { from: "you",  text: "anecdotally",         time: "10:24 PM" },
+    { from: "maia", text: "♡",                   time: "10:24 PM" },
   ],
-  // 18 — how are you actually
   [
-    { from: "you",  text: "how are you actually" },
-    { from: "maia", text: "tired but okay" },
-    { from: "you",  text: "tired how" },
-    { from: "maia", text: "just the regular kind" },
-    { from: "you",  text: "okay good" },
-    { from: "maia", text: "are u checking on me" },
-    { from: "you",  text: "yes" },
-    { from: "maia", text: "i love you" },
-    { from: "you",  text: "love you" },
+    { from: "you",  text: "how are you actually",    time: "11:36 PM" },
+    { from: "maia", text: "tired but okay",           time: "11:37 PM" },
+    { from: "you",  text: "tired how",               time: "11:37 PM" },
+    { from: "maia", text: "just the regular kind",   time: "11:37 PM" },
+    { from: "you",  text: "okay good",               time: "11:38 PM" },
+    { from: "maia", text: "are u checking on me",    time: "11:38 PM" },
+    { from: "you",  text: "yes",                     time: "11:38 PM" },
+    { from: "maia", text: "i love you",              time: "11:39 PM" },
+    { from: "you",  text: "love you",                time: "11:39 PM" },
   ],
-  // 19 — sun update
   [
-    { from: "you",  text: "update" },
-    { from: "maia", text: "the sun set" },
-    { from: "you",  text: "and?" },
-    { from: "maia", text: "it was there then it wasn't" },
-    { from: "you",  text: "riveting" },
-    { from: "maia", text: "i know right" },
-    { from: "you",  text: "same time tomorrow?" },
-    { from: "maia", text: "probably" },
+    { from: "you",  text: "update",                             time: "9:44 PM" },
+    { from: "maia", text: "the sun set",                        time: "9:44 PM" },
+    { from: "you",  text: "and?",                              time: "9:45 PM" },
+    { from: "maia", text: "it was there then it wasn't",       time: "9:45 PM" },
+    { from: "you",  text: "riveting",                          time: "9:45 PM" },
+    { from: "maia", text: "i know right",                      time: "9:46 PM" },
+    { from: "you",  text: "same time tomorrow?",               time: "9:46 PM" },
+    { from: "maia", text: "probably",                          time: "9:46 PM" },
   ],
-  // 20 — just hearts
   [
-    { from: "you",  text: "♡" },
-    { from: "maia", text: "♡" },
-    { from: "you",  text: "okay that's all i had" },
-    { from: "maia", text: "it was enough" },
-    { from: "you",  text: "yeah?" },
-    { from: "maia", text: "yeah" },
+    { from: "you",  text: "♡",                    time: "10:55 PM" },
+    { from: "maia", text: "♡",                    time: "10:55 PM" },
+    { from: "you",  text: "okay that's all i had",time: "10:55 PM" },
+    { from: "maia", text: "it was enough",        time: "10:56 PM" },
+    { from: "you",  text: "yeah?",               time: "10:56 PM" },
+    { from: "maia", text: "yeah",                time: "10:56 PM" },
   ],
 ];
 
@@ -240,15 +221,18 @@ function sleep(ms: number): Promise<void> {
   return new Promise(r => setTimeout(r, ms));
 }
 
-// ─── Custom SVG art (no emojis) ───────────────────────────────────────────────
+// ─── Paper texture noise (inline SVG data URI) ────────────────────────────────
 
-function ArtHeart({ size = 22, pulse = false, className = "" }: { size?: number; pulse?: boolean; className?: string }) {
+const NOISE_BG = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)' opacity='0.038'/%3E%3C/svg%3E")`;
+
+// ─── SVG Art ──────────────────────────────────────────────────────────────────
+
+function ArtHeart({ size = 22, pulse = false }: { size?: number; pulse?: boolean }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 22" fill="none"
-      className={className}
-      style={pulse ? { animation: "heartBeat 2.8s ease-in-out infinite", display: "inline-block" } : undefined}
+      style={pulse ? { animation: "heartBeat 2.8s ease-in-out infinite", display: "inline-block" } : { display: "inline-block" }}
       aria-hidden>
-      <path d="M12,20 C12,20 2,13 2,7 C2,4 4.5,2 7.5,2 C9.5,2 11,3.2 12,4.8 C13,3.2 14.5,2 16.5,2 C19.5,2 22,4 22,7 C22,13 12,20 12,20 Z"
+      <path d="M12,20 C12,20 2,13 2,7 C2,3.8 4.5,2 7.5,2 C9.4,2 11,3.1 12,4.7 C13,3.1 14.6,2 16.5,2 C19.5,2 22,3.8 22,7 C22,13 12,20 12,20 Z"
         stroke="#b86868" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   );
@@ -256,32 +240,33 @@ function ArtHeart({ size = 22, pulse = false, className = "" }: { size?: number;
 
 function ArtChicken({ size = 30 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 38 40" fill="none"
+    <svg width={size} height={size} viewBox="0 0 38 42" fill="none"
       stroke="#3a2a1e" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M12,30 Q8,26 9,20 Q10,12 19,11 Q28,10 29,19 Q30,26 27,30 Q23,35 19,35 Q14,35 12,30"/>
-      <path d="M21,11 Q20,5 18,4 Q14,3 13,7 Q12,9 15,11"/>
-      <path d="M16,4 Q17,1 18,3 Q19.5,1 21,3"/>
+      <path d="M11,31 Q7,26 8,20 Q9,12 19,11 Q28,10 29,19 Q30,26 27,31 Q23,36 19,36 Q14,36 11,31"/>
+      <path d="M21,11 Q20,5 17,4 Q13,3 13,7 Q12,9.5 15,11"/>
+      <path d="M16,4 Q17.5,1.5 18.5,4 Q20,1.5 21.5,4"/>
       <circle cx="17" cy="7.5" r="1.3" fill="#3a2a1e"/>
-      <path d="M21,8.5 L24.5,9.5 L21,11"/>
-      <path d="M21,11 Q23,13 21,14.5"/>
-      <path d="M13,20 Q10,22 11,26 Q13,24 15,24"/>
-      <path d="M14,35 L13,38.5 M14,35 L16,38.5"/>
-      <path d="M22,35 L21,38.5 M22,35 L24,38.5"/>
+      <path d="M21,8.5 L25,9.5 L21,11.5"/>
+      <path d="M21,11.5 Q23.5,14 21,15.5"/>
+      <path d="M13,20 Q9.5,22.5 10.5,27 Q13,24.5 15.5,24.5"/>
+      <path d="M13,36 L12,40 M13,36 L15,40"/>
+      <path d="M22,36 L21,40 M22,36 L24,40"/>
     </svg>
   );
 }
 
 function ArtPlant({ size = 30 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 36 40" fill="none"
-      stroke="#3a2a1e" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M10,40 L13,30 L23,30 L26,40"/>
-      <path d="M12,34 L24,34"/>
-      <path d="M13,30 Q18,28 23,30"/>
-      <path d="M18,30 L18,18"/>
-      <path d="M18,24 Q11,20 9,13 Q15,16 18,22"/>
-      <path d="M18,20 Q25,16 27,9 Q21,13 18,19"/>
-      <path d="M18,18 Q17,13 17,10 Q19,13 18,17"/>
+    <svg width={size} height={size} viewBox="0 0 36 42" fill="none"
+      stroke="#3a2a1e" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"
+      style={{ animation: "plantSway 6s ease-in-out infinite", transformOrigin: "18px 40px" }} aria-hidden>
+      <path d="M10,42 L13,31 L23,31 L26,42"/>
+      <path d="M12,36 L24,36"/>
+      <path d="M13,31 Q18,29 23,31"/>
+      <path d="M18,31 L18,18"/>
+      <path d="M18,25 Q10,20 8,13 Q15,16 18,23"/>
+      <path d="M18,21 Q26,16 28,9 Q21,13 18,20"/>
+      <path d="M18,18 Q17,12 17,9 Q19,13 18,17"/>
     </svg>
   );
 }
@@ -289,9 +274,10 @@ function ArtPlant({ size = 30 }: { size?: number }) {
 function ArtLeaves({ size = 26 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 34 36" fill="none"
-      stroke="#3a2a1e" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M17,34 Q13,28 11,22 Q14,24 15,28 Q14,23 10,17 Q14,20 15,24 Q13,19 13,13 Q16,17 16,23"/>
-      <path d="M17,34 Q21,28 23,22 Q20,24 19,28 Q20,23 24,17 Q20,20 19,24 Q21,19 21,13 Q18,17 18,23"/>
+      stroke="#3a2a1e" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"
+      style={{ animation: "leafSway 4.5s ease-in-out infinite", transformOrigin: "17px 34px" }} aria-hidden>
+      <path d="M17,34 Q13,28 11,22 Q14,24 15,28 Q14,22 9,17 Q14,20 15,24 Q13,19 13,13 Q16,17 16,23"/>
+      <path d="M17,34 Q21,28 23,22 Q20,24 19,28 Q20,22 25,17 Q20,20 19,24 Q21,19 21,13 Q18,17 18,23"/>
       <path d="M16,34 L18,34"/>
     </svg>
   );
@@ -302,8 +288,8 @@ function ArtSeedling({ size = 26 }: { size?: number }) {
     <svg width={size} height={size} viewBox="0 0 30 34" fill="none"
       stroke="#3a2a1e" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <path d="M15,32 L15,20"/>
-      <path d="M15,24 Q9,20 7,14 Q13,16 15,22"/>
-      <path d="M15,21 Q21,17 23,11 Q17,13 15,20"/>
+      <path d="M15,24 Q8,19 7,13 Q13,16 15,22"/>
+      <path d="M15,21 Q22,16 24,10 Q17,12 15,19"/>
       <path d="M13,32 L17,32"/>
     </svg>
   );
@@ -326,8 +312,8 @@ function ArtStar({ size = 14 }: { size?: number }) {
       stroke="#3a2a1e" strokeWidth="1.4" strokeLinecap="round" aria-hidden>
       <line x1="8" y1="1" x2="8" y2="15"/>
       <line x1="1" y1="8" x2="15" y2="8"/>
-      <line x1="3" y1="3" x2="13" y2="13"/>
-      <line x1="13" y1="3" x2="3" y2="13"/>
+      <line x1="2.5" y1="2.5" x2="13.5" y2="13.5"/>
+      <line x1="13.5" y1="2.5" x2="2.5" y2="13.5"/>
     </svg>
   );
 }
@@ -336,7 +322,7 @@ function ArtStar({ size = 14 }: { size?: number }) {
 
 function TypingDots({ isMaia }: { isMaia: boolean }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "2px 2px" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "2px 0" }}>
       {[0, 1, 2].map(i => (
         <span key={i} style={{
           display: "block", width: 7, height: 7, borderRadius: "50%",
@@ -350,109 +336,110 @@ function TypingDots({ isMaia }: { isMaia: boolean }) {
 
 // ─── Floating bubble ──────────────────────────────────────────────────────────
 
-function Bubble({ text, typing, side }: { text: string | null; typing: boolean; side: "left" | "right" }) {
+function Bubble({ text, typing, side, time }: {
+  text: string | null; typing: boolean; side: "left" | "right"; time?: string;
+}) {
   const isMaia = side === "right";
   const show = typing || text !== null;
+  // slight rotation variation per message
+  const rot = text ? ((text.charCodeAt(0) % 5) - 2) * 0.45 : 0;
 
   return (
     <AnimatePresence mode="wait">
       {show && (
         <motion.div
           key={typing ? `t-${side}` : `m-${text}`}
-          initial={{ opacity: 0, y: 10, scale: 0.92 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -8, scale: 0.96 }}
-          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          style={{
-            position: "relative",
-            display: "inline-block",
-            maxWidth: "min(195px, 40vw)",
-            padding: typing ? "10px 14px" : "10px 15px 11px",
-            background: isMaia
-              ? "rgba(205, 148, 141, 0.72)"
-              : "rgba(240, 225, 200, 0.76)",
-            backdropFilter: "blur(8px)",
-            WebkitBackdropFilter: "blur(8px)",
-            border: `1.5px solid rgba(42,33,28,${isMaia ? "0.12" : "0.10"})`,
-            borderRadius: isMaia ? "16px 3px 16px 16px" : "3px 16px 16px 16px",
-            boxShadow: "0 4px 20px rgba(0,0,0,0.18), 0 1px 4px rgba(0,0,0,0.10)",
-            fontFamily: '"Segoe Print","Bradley Hand","Comic Sans MS",cursive,system-ui',
-            fontSize: "clamp(12px, 2.8vw, 14px)",
-            lineHeight: 1.45,
-            color: "#2a1c14",
-            whiteSpace: "pre-wrap",
-            wordBreak: "break-word",
-          }}
+          initial={{ opacity: 0, x: isMaia ? 18 : -18, y: 4, scale: 0.93 }}
+          animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
+          exit={{ opacity: 0, x: isMaia ? 10 : -10, y: -6, scale: 0.96 }}
+          transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+          style={{ display: "inline-block" }}
         >
-          {typing ? <TypingDots isMaia={isMaia} /> : text}
-          <span style={{
-            position: "absolute",
-            bottom: -8,
-            [isMaia ? "right" : "left"]: 11,
-            width: 0, height: 0,
-            borderLeft: "8px solid transparent",
-            borderRight: "8px solid transparent",
-            borderTop: `8px solid ${isMaia ? "rgba(205,148,141,0.72)" : "rgba(240,225,200,0.76)"}`,
-          }} />
+          <div
+            style={{
+              maxWidth: "min(190px, 38vw)",
+              padding: typing ? "10px 14px" : "9px 14px 10px",
+              background: isMaia
+                ? "rgba(200, 143, 136, 0.70)"
+                : "rgba(238, 222, 196, 0.74)",
+              backdropFilter: "blur(10px)",
+              WebkitBackdropFilter: "blur(10px)",
+              border: `1.5px solid rgba(42,33,28,${isMaia ? "0.13" : "0.11"})`,
+              // Slightly irregular corners for hand-drawn feel
+              borderRadius: isMaia ? "17px 4px 18px 15px" : "4px 18px 15px 17px",
+              boxShadow: isMaia
+                ? "2px 3px 12px rgba(0,0,0,0.16), 1px 1px 0 rgba(42,33,28,0.06)"
+                : "2px 3px 12px rgba(0,0,0,0.14), 1px 1px 0 rgba(42,33,28,0.05)",
+              fontFamily: "'Caveat', 'Segoe Print', 'Bradley Hand', cursive",
+              fontSize: "clamp(13px, 3vw, 15px)",
+              lineHeight: 1.4,
+              color: "#2a1c14",
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word",
+              transform: `rotate(${rot}deg)`,
+              position: "relative",
+            }}
+          >
+            {typing ? <TypingDots isMaia={isMaia} /> : text}
+            {/* Tail */}
+            <span style={{
+              position: "absolute",
+              bottom: -8,
+              [isMaia ? "right" : "left"]: 13,
+              width: 0, height: 0,
+              borderLeft: "8px solid transparent",
+              borderRight: "8px solid transparent",
+              borderTop: `8px solid ${isMaia ? "rgba(200,143,136,0.70)" : "rgba(238,222,196,0.74)"}`,
+            }} />
+          </div>
+          {/* Timestamp */}
+          {!typing && text && time && (
+            <div style={{
+              fontSize: "clamp(9px, 1.6vw, 10px)",
+              color: "rgba(42,28,20,0.32)",
+              marginTop: 4,
+              textAlign: isMaia ? "right" : "left",
+              fontFamily: "'Caveat', cursive",
+              letterSpacing: "0.03em",
+              paddingLeft: isMaia ? 0 : 4,
+              paddingRight: isMaia ? 4 : 0,
+            }}>
+              {time}
+            </div>
+          )}
         </motion.div>
       )}
     </AnimatePresence>
   );
 }
 
-// ─── Garden note (interactive) ────────────────────────────────────────────────
-
-function GardenNote() {
-  const [idx, setIdx] = useState(0);
-  return (
-    <motion.button
-      onClick={() => setIdx(i => (i + 1) % GARDEN_LABELS.length)}
-      whileHover={{ rotate: 1 }}
-      style={{ background: "none", border: "none", cursor: "pointer", padding: 0, transformOrigin: "center" }}
-      aria-label="garden note"
-    >
-      <div style={{
-        background: "#f5f0d4",
-        border: "1.5px solid rgba(42,33,28,0.20)",
-        borderRadius: 4,
-        padding: "7px 12px 9px",
-        boxShadow: "2px 3px 8px rgba(42,33,28,0.10)",
-        fontFamily: '"Segoe Print","Bradley Hand","Comic Sans MS",cursive',
-        fontSize: 11,
-        color: "#4a3828",
-        lineHeight: 1.6,
-        textAlign: "left",
-        transform: "rotate(-3deg)",
-        minWidth: 88,
-      }}>
-        <svg width="18" height="18" viewBox="0 0 22 22" fill="none" stroke="#3a2a1e" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ display: "block", marginBottom: 3 }}>
-          <rect x="3" y="2" width="16" height="18" rx="2"/>
-          <line x1="3" y1="7" x2="7" y2="7"/>
-          <line x1="7" y1="2" x2="7" y2="20"/>
-          <line x1="10" y1="9" x2="17" y2="9"/>
-          <line x1="10" y1="13" x2="17" y2="13"/>
-          <line x1="10" y1="17" x2="14" y2="17"/>
-        </svg>
-        <AnimatePresence mode="wait">
-          <motion.span key={idx} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} style={{ display: "block" }}>
-            {GARDEN_LABELS[idx]}
-          </motion.span>
-        </AnimatePresence>
-      </div>
-    </motion.button>
-  );
-}
-
-// ─── Interactive chicken ──────────────────────────────────────────────────────
+// ─── Interactive chicken (idles with random pecks) ────────────────────────────
 
 function ChickenButton({ size = 32 }: { size?: number }) {
-  const [hop, setHop] = useState(false);
+  const [anim, setAnim] = useState<"idle" | "hop" | "peck">("idle");
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  useEffect(() => {
+    function scheduleIdle() {
+      timerRef.current = setTimeout(() => {
+        setAnim("peck");
+        setTimeout(() => { setAnim("idle"); scheduleIdle(); }, 560);
+      }, rand(8000, 16000));
+    }
+    scheduleIdle();
+    return () => clearTimeout(timerRef.current);
+  }, []);
+
   return (
     <motion.button
-      onClick={() => { setHop(true); setTimeout(() => setHop(false), 380); }}
-      animate={hop ? { y: [0, -11, 0] } : { y: 0 }}
-      transition={{ duration: 0.32 }}
-      style={{ background: "none", border: "none", cursor: "pointer", padding: 0, lineHeight: 0 }}
+      onClick={() => { setAnim("hop"); setTimeout(() => setAnim("idle"), 360); }}
+      animate={
+        anim === "hop"  ? { y: [0, -13, 0], rotate: 0 } :
+        anim === "peck" ? { rotate: [0, 15, 0, 15, 0], y: [0, 2, 0, 2, 0] } :
+        { y: 0, rotate: 0 }
+      }
+      transition={{ duration: anim === "peck" ? 0.52 : 0.34 }}
+      style={{ background: "none", border: "none", cursor: "pointer", padding: 0, lineHeight: 0, display: "block" }}
       aria-label="chicken"
     >
       <ArtChicken size={size} />
@@ -466,13 +453,57 @@ function MapleButton({ size = 30 }: { size?: number }) {
   const [spin, setSpin] = useState(false);
   return (
     <motion.button
-      onClick={() => { setSpin(true); setTimeout(() => setSpin(false), 460); }}
+      onClick={() => { setSpin(true); setTimeout(() => setSpin(false), 480); }}
       animate={spin ? { rotate: 360 } : { rotate: 0 }}
-      transition={{ duration: 0.42 }}
-      style={{ background: "none", border: "none", cursor: "pointer", padding: 0, lineHeight: 0 }}
+      transition={{ duration: 0.44 }}
+      style={{ background: "none", border: "none", cursor: "pointer", padding: 0, lineHeight: 0, display: "block" }}
       aria-label="maple leaf"
     >
       <ArtMapleLeaf size={size} />
+    </motion.button>
+  );
+}
+
+// ─── Garden note ─────────────────────────────────────────────────────────────
+
+function GardenNote() {
+  const [idx, setIdx] = useState(0);
+  return (
+    <motion.button
+      onClick={() => setIdx(i => (i + 1) % GARDEN_LABELS.length)}
+      whileHover={{ rotate: [-1, 1.5], transition: { duration: 0.3 } }}
+      style={{ background: "none", border: "none", cursor: "pointer", padding: 0, transform: "rotate(-3deg)", transformOrigin: "center" }}
+      aria-label="garden note"
+    >
+      <div style={{
+        background: "rgba(246, 241, 218, 0.92)",
+        border: "1.5px solid rgba(42,33,28,0.18)",
+        borderRadius: "3px 5px 4px 3px",
+        padding: "7px 12px 9px",
+        boxShadow: "2px 3px 8px rgba(42,33,28,0.10), 1px 1px 0 rgba(42,33,28,0.05)",
+        fontFamily: "'Caveat', cursive",
+        fontSize: 12,
+        color: "#4a3828",
+        lineHeight: 1.6,
+        textAlign: "left" as const,
+        minWidth: 88,
+      }}>
+        <svg width="16" height="16" viewBox="0 0 22 22" fill="none" stroke="#3a2a1e" strokeWidth="1.4"
+          strokeLinecap="round" strokeLinejoin="round" style={{ display: "block", marginBottom: 3 }}>
+          <rect x="3" y="2" width="16" height="18" rx="2"/>
+          <line x1="3" y1="7" x2="7" y2="7"/>
+          <line x1="7" y1="2" x2="7" y2="20"/>
+          <line x1="10" y1="9" x2="17" y2="9"/>
+          <line x1="10" y1="13" x2="17" y2="13"/>
+          <line x1="10" y1="17" x2="14" y2="17"/>
+        </svg>
+        <AnimatePresence mode="wait">
+          <motion.span key={idx} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }} style={{ display: "block" }}>
+            {GARDEN_LABELS[idx]}
+          </motion.span>
+        </AnimatePresence>
+      </div>
     </motion.button>
   );
 }
@@ -482,54 +513,45 @@ function MapleButton({ size = 30 }: { size?: number }) {
 export default function MaiaPage() {
   const reduced = useReducedMotion() ?? false;
 
-  // Randomize starting conversation on each page load
   const [convoIdx,    setConvoIdx]    = useState(() => Math.floor(Math.random() * CONVOS.length));
   const [leftText,    setLeftText]    = useState<string | null>(null);
   const [rightText,   setRightText]   = useState<string | null>(null);
   const [leftTyping,  setLeftTyping]  = useState(false);
   const [rightTyping, setRightTyping] = useState(false);
+  const [leftTime,    setLeftTime]    = useState<string | undefined>();
+  const [rightTime,   setRightTime]   = useState<string | undefined>();
   const [heartPop,    setHeartPop]    = useState(false);
 
   const stopRef = useRef(false);
 
   const runConvo = useCallback(async (idx: number) => {
     const convo = CONVOS[idx % CONVOS.length];
-    setLeftText(null);
-    setRightText(null);
-    setLeftTyping(false);
-    setRightTyping(false);
+    setLeftText(null); setRightText(null);
+    setLeftTyping(false); setRightTyping(false);
 
     for (const msg of convo) {
       if (stopRef.current) return;
       const isLeft = msg.from === "you";
 
-      // Show typing — slower
       if (isLeft) { setLeftTyping(true);  setLeftText(null);  }
       else         { setRightTyping(true); setRightText(null); }
 
-      await sleep(rand(reduced ? 800 : 3000, reduced ? 1400 : 5500));
+      await sleep(rand(reduced ? 800 : 3200, reduced ? 1500 : 5800));
       if (stopRef.current) return;
 
-      // Show message
-      if (isLeft) { setLeftTyping(false);  setLeftText(msg.text);  }
-      else         { setRightTyping(false); setRightText(msg.text); }
+      if (isLeft) { setLeftTyping(false);  setLeftText(msg.text);  setLeftTime(msg.time);  }
+      else         { setRightTyping(false); setRightText(msg.text); setRightTime(msg.time); }
 
-      // Reading pause — slower
-      await sleep(rand(reduced ? 1000 : 3500, reduced ? 1800 : 6000));
+      await sleep(rand(reduced ? 1000 : 3800, reduced ? 2000 : 6500));
       if (stopRef.current) return;
     }
 
-    await sleep(2200);
+    await sleep(2400);
     if (stopRef.current) return;
-    setLeftText(null);
-    setRightText(null);
-    await sleep(1400);
+    setLeftText(null); setRightText(null);
+    await sleep(1600);
     if (stopRef.current) return;
-    // Pick a different conversation next
-    setConvoIdx(prev => {
-      const next = (prev + rand(1, CONVOS.length - 1)) % CONVOS.length;
-      return next;
-    });
+    setConvoIdx(prev => (prev + rand(1, CONVOS.length - 1)) % CONVOS.length);
   }, [reduced]);
 
   useEffect(() => {
@@ -538,64 +560,99 @@ export default function MaiaPage() {
     return () => { stopRef.current = true; };
   }, [convoIdx, runConvo]);
 
+  // Card background color — must match vignette bottom color
+  const CARD_BG = "#f0e6d0";
+
   return (
     <>
       <style>{`
-        html, body { background: #e6d9c4 !important; margin: 0; padding: 0; }
+        @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&display=swap');
+
+        html, body { background: #d8ccb4 !important; margin: 0; padding: 0; }
+
         @keyframes dotPulse {
-          0%, 60%, 100% { transform: scale(1);    opacity: .38; }
-          30%            { transform: scale(1.5);  opacity: 1;   }
+          0%,60%,100% { transform:scale(1);   opacity:.38; }
+          30%          { transform:scale(1.5); opacity:1;   }
         }
         @keyframes heartBeat {
-          0%, 100% { transform: scale(1); }
-          25%       { transform: scale(1.28); }
-          55%       { transform: scale(0.88); }
-          75%       { transform: scale(1.06); }
+          0%,100% { transform:scale(1); }
+          25%     { transform:scale(1.28); }
+          55%     { transform:scale(0.88); }
+          75%     { transform:scale(1.06); }
         }
         @keyframes floatUp {
-          0%   { opacity: 1; transform: translateY(0) scale(1); }
-          100% { opacity: 0; transform: translateY(-54px) scale(1.35); }
+          0%   { opacity:1; transform:translateY(0) scale(1); }
+          100% { opacity:0; transform:translateY(-56px) scale(1.3); }
         }
-        .float-heart { animation: floatUp .9s ease-out forwards; position: absolute; pointer-events: none; }
+        @keyframes leafSway {
+          0%,100% { transform:rotate(-3deg); }
+          50%     { transform:rotate(3deg); }
+        }
+        @keyframes plantSway {
+          0%,100% { transform:rotate(-2deg); }
+          50%     { transform:rotate(2deg); }
+        }
+
+        .float-heart {
+          animation: floatUp .95s ease-out forwards;
+          position: absolute;
+          pointer-events: none;
+        }
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
       `}</style>
 
+      {/* ── Page background (darker parchment + noise) ── */}
       <div style={{
-        background: "#e6d9c4",
-        backgroundImage: `
-          radial-gradient(ellipse at 20% 20%, rgba(160,130,90,0.09) 0%, transparent 55%),
-          radial-gradient(ellipse at 80% 80%, rgba(140,110,80,0.07) 0%, transparent 50%)`,
+        minHeight: "100dvh",
+        background: "#d8ccb4",
+        backgroundImage: NOISE_BG,
         display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        fontFamily: '"Segoe Print","Bradley Hand","Comic Sans MS",cursive,system-ui',
+        justifyContent: "center",
+        alignItems: "flex-start",
+        padding: "24px 14px 40px",
+        fontFamily: "'Caveat', 'Segoe Print', 'Bradley Hand', cursive, system-ui",
       }}>
-        <div style={{ width: "100%", maxWidth: 900 }}>
+
+        {/* ── Card ── */}
+        <div style={{
+          width: "100%",
+          maxWidth: 860,
+          background: CARD_BG,
+          backgroundImage: NOISE_BG,
+          border: "2px solid rgba(42,33,28,0.16)",
+          borderRadius: 20,
+          overflow: "hidden",
+          boxShadow: [
+            "0 2px 0 rgba(42,33,28,0.07)",
+            "0 5px 0 rgba(42,33,28,0.04)",
+            "0 14px 40px rgba(42,33,28,0.14)",
+            "inset 0 1px 0 rgba(255,255,255,0.45)",
+          ].join(", "),
+        }}>
 
           {/* ── HEADER ── */}
           <div style={{
-            padding: "18px 28px 16px",
+            padding: "18px 28px 15px",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             position: "relative",
             borderBottom: "1.5px solid rgba(42,33,28,0.09)",
           }}>
-            {/* Left doodles */}
             <div style={{ position: "absolute", left: 18, top: "50%", transform: "translateY(-50%)", display: "flex", alignItems: "center", gap: 8 }}>
-              <ArtStar size={13} />
-              <ArtStar size={10} />
+              <ArtStar size={12} />
+              <ArtStar size={9}  />
               <ArtLeaves size={26} />
             </div>
 
-            {/* Title + heart */}
             <div style={{ display: "flex", alignItems: "center", gap: 7, position: "relative" }}>
               <h1 style={{
-                fontSize: "clamp(30px,6vw,50px)",
+                fontSize: "clamp(32px,6vw,52px)",
                 fontWeight: 700,
                 color: "#1e1610",
                 letterSpacing: "0.02em",
                 lineHeight: 1,
+                fontFamily: "'Caveat', cursive",
               }}>
                 Maia
               </h1>
@@ -605,7 +662,7 @@ export default function MaiaPage() {
                 style={{ background: "none", border: "none", cursor: "pointer", padding: 0, position: "relative", lineHeight: 0 }}
                 aria-label="send heart"
               >
-                <ArtHeart size={28} pulse />
+                <ArtHeart size={30} pulse />
                 {heartPop && (
                   <span className="float-heart" style={{ top: -4, left: "50%", transform: "translateX(-50%)" }}>
                     <ArtHeart size={20} />
@@ -614,67 +671,83 @@ export default function MaiaPage() {
               </button>
             </div>
 
-            {/* Right doodles */}
             <div style={{ position: "absolute", right: 18, top: "50%", transform: "translateY(-50%)", display: "flex", alignItems: "center", gap: 10 }}>
               <ArtChicken size={30} />
               <ArtPlant size={30} />
             </div>
           </div>
 
-          {/* ── HERO — image + floating bubbles ── */}
-          <div style={{
-            position: "relative",
-            width: "100%",
-            aspectRatio: "1024 / 478",
-            overflow: "hidden",
-            lineHeight: 0,
-          }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/maia-rooms.jpg"
-              alt="two cozy rooms at night"
-              style={{ width: "100%", display: "block", marginTop: "-16.5%" }}
-            />
+          {/* ── HERO — split panels ── */}
+          {/*
+            Image: 1024×1536. We show original px 169–647.
+            Each panel is 50% wide, image is 200% wide inside it.
+            marginTop = -33% of panel width = -16.5% of full width (same offset).
+            aspectRatio: 512/478 gives each panel same height as single-image approach.
+            Right panel: marginLeft -100% shifts image left to show right half.
+          */}
+          <div style={{ display: "flex", position: "relative" }}>
 
-            {/* Left bubble */}
-            <div style={{ position: "absolute", left: "5%", top: "32%", zIndex: 10 }}>
-              <Bubble text={leftText} typing={leftTyping} side="left" />
+            {/* Left panel */}
+            <div style={{ flex: 1, aspectRatio: "512/478", overflow: "hidden", position: "relative" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/maia-rooms.jpg" alt="" aria-hidden
+                style={{ width: "200%", display: "block", marginTop: "-33%" }}/>
+              {/* Bottom vignette */}
+              <div style={{ position:"absolute", bottom:0, left:0, right:0, height:"45%",
+                background:`linear-gradient(to bottom, transparent 0%, ${CARD_BG} 100%)`,
+                pointerEvents:"none", zIndex:5 }}/>
+              {/* Left bubble */}
+              <div style={{ position:"absolute", left:"8%", top:"22%", zIndex:10 }}>
+                <Bubble text={leftText} typing={leftTyping} side="left" time={leftTime}/>
+              </div>
             </div>
 
-            {/* Right bubble */}
-            <div style={{ position: "absolute", right: "5%", top: "32%", zIndex: 10, display: "flex", justifyContent: "flex-end" }}>
-              <Bubble text={rightText} typing={rightTyping} side="right" />
+            {/* Divider */}
+            <div style={{ width: 2, background: "rgba(42,33,28,0.12)", flexShrink: 0, zIndex: 2 }}/>
+
+            {/* Right panel */}
+            <div style={{ flex: 1, aspectRatio: "512/478", overflow: "hidden", position: "relative" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/maia-rooms.jpg" alt="two cozy rooms at night"
+                style={{ width: "200%", display: "block", marginTop: "-33%", marginLeft: "-100%" }}/>
+              {/* Bottom vignette */}
+              <div style={{ position:"absolute", bottom:0, left:0, right:0, height:"45%",
+                background:`linear-gradient(to bottom, transparent 0%, ${CARD_BG} 100%)`,
+                pointerEvents:"none", zIndex:5 }}/>
+              {/* Right bubble */}
+              <div style={{ position:"absolute", right:"8%", top:"22%", zIndex:10, display:"flex", justifyContent:"flex-end" }}>
+                <Bubble text={rightText} typing={rightTyping} side="right" time={rightTime}/>
+              </div>
             </div>
           </div>
 
           {/* ── FOOTER ── */}
           <div style={{
-            borderTop: "1.5px solid rgba(42,33,28,0.09)",
-            padding: "20px 24px 28px",
+            padding: "18px 24px 26px",
             display: "flex",
             alignItems: "flex-end",
             justifyContent: "space-between",
             flexWrap: "wrap",
-            gap: 16,
+            gap: 14,
+            borderTop: "1.5px solid rgba(42,33,28,0.08)",
           }}>
-            {/* Left */}
-            <div style={{ display: "flex", alignItems: "flex-end", gap: 14 }}>
-              <ArtSeedling size={26} />
-              <GardenNote />
-              <ArtStar size={12} />
+            <div style={{ display:"flex", alignItems:"flex-end", gap:12 }}>
+              <ArtSeedling size={26}/>
+              <GardenNote/>
+              <ArtStar size={11}/>
             </div>
 
-            {/* Center hint */}
-            <div style={{ fontSize: 12, color: "#9a8070", letterSpacing: "0.04em", textAlign: "center", flexGrow: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}>
+            <div style={{ fontSize:12, color:"#9a8070", letterSpacing:"0.04em", textAlign:"center",
+              flexGrow:1, display:"flex", alignItems:"center", justifyContent:"center", gap:5,
+              fontFamily:"'Caveat', cursive" }}>
               another message in a few seconds
-              <ArtHeart size={12} />
+              <ArtHeart size={12}/>
             </div>
 
-            {/* Right */}
-            <div style={{ display: "flex", alignItems: "flex-end", gap: 14 }}>
-              <ArtStar size={12} />
-              <ChickenButton size={32} />
-              <MapleButton size={30} />
+            <div style={{ display:"flex", alignItems:"flex-end", gap:12 }}>
+              <ArtStar size={11}/>
+              <ChickenButton size={32}/>
+              <MapleButton size={28}/>
             </div>
           </div>
 

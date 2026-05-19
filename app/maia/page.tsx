@@ -634,7 +634,7 @@ const CA_ZONES  = ["America/Toronto", "America/Winnipeg", "America/Edmonton", "A
 const CA_LABELS = ["Ontario", "Manitoba", "Alberta", "BC"];
 
 function TimezoneWidget() {
-  const [tzIdx, setTzIdx] = useState(0);
+  const [tzIdx, setTzIdx] = useState(3); // default: Vancouver (BC)
   const [now,   setNow]   = useState(new Date());
   useEffect(() => { const t = setInterval(() => setNow(new Date()), 1000); return () => clearInterval(t); }, []);
 

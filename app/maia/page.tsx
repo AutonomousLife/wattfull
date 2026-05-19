@@ -638,7 +638,7 @@ function TimezoneWidget() {
   const [now,   setNow]   = useState(new Date());
   useEffect(() => { const t = setInterval(() => setNow(new Date()), 1000); return () => clearInterval(t); }, []);
 
-  const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const browserTz = "America/Chicago"; // Chase — Central Time
   const maTz      = CA_ZONES[tzIdx];
 
   function fmt(tz: string, opts: Intl.DateTimeFormatOptions) {

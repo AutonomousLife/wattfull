@@ -352,6 +352,468 @@ const GARDEN_ITEMS = [
   "no people allowed sign",
 ];
 
+// ─── Widget helpers ───────────────────────────────────────────────────────────
+
+function timeAgo(ts: number | null): string {
+  if (!ts) return "";
+  const s = Math.floor((Date.now() - ts) / 1000);
+  if (s < 60)     return "just now";
+  if (s < 3600)   return `${Math.floor(s / 60)}m ago`;
+  if (s < 86400)  return `${Math.floor(s / 3600)}h ago`;
+  return `${Math.floor(s / 86400)}d ago`;
+}
+
+function pickFrom<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function getMaiaResponse(q: string): string {
+  const t = q.toLowerCase();
+  if (/do you love|you love me|love you/.test(t))    return pickFrom(["obviously ♡", "you know i do", "always", "more than you know ♡"]);
+  if (/miss me|do you miss/.test(t))                 return pickFrom(["all the time", "terribly honestly", "more than i say ♡", "yes"]);
+  if (/you ok|are you ok|u ok|you okay/.test(t))     return pickFrom(["yeah i'm fine", "tired but okay ♡", "pretty good actually", "mhm"]);
+  if (/sleep|tired|bed/.test(t))                     return pickFrom(["probably should", "in a bit", "stop asking lol ♡", "soon"]);
+  if (/chicken|coop/.test(t))                        return pickFrom(["obviously yes ♡", "top priority", "it's happening", "very important"]);
+  if (/garden|plant|grow/.test(t))                   return pickFrom(["yes always ♡", "working on the list", "eventually ♡", "obviously"]);
+  if (/cold|canada|winter|snow/.test(t))             return pickFrom(["it's so cold", "freezing actually", "come warm it up ♡", "yes very cold"]);
+  if (/when|soon|how long/.test(t))                  return pickFrom(["working on it ♡", "not soon enough", "soon ♡", "eventually"]);
+  if (/think about|thinking about|think of/.test(t)) return pickFrom(["constantly", "always ♡", "more than sometimes", "obviously"]);
+  if (/happy|good|great/.test(t))                    return pickFrom(["yes ♡", "when i talk to you", "getting there ♡", "mostly yeah"]);
+  if (/why|how come/.test(t))                        return pickFrom(["idk it just is ♡", "because", "long story", "no reason"]);
+  if (q.trim().length <= 3)                          return pickFrom(["♡", "yes", "hi", "maybe", "obviously"]);
+  return pickFrom([
+    "probably yes ♡", "idk maybe", "yes obviously", "ask me later", "yeah",
+    "honestly yes ♡", "maybe", "probably", "shut up yes ♡", "♡", "always",
+    "lol yes", "depends", "mhm ♡", "not really but ♡", "obviously",
+  ]);
+}
+
+const DEFAULT_BUCKET = [
+  "make breakfast together",
+  "go on a walk",
+  "watch something at midnight",
+  "get plants for the garden",
+  "just be in the same room",
+  "sleep in",
+  "cook something new",
+  "sit outside and do nothing",
+];
+
+// ─── Widget: Memory Jar ───────────────────────────────────────────────────────
+
+function MemoryJarWidget() {
+  const LS = "maia-memories";
+  const [memories, setMemories] = useState<string[]>(() => {
+    if (typeof window === "undefined") return [];
+    try { return JSON.parse(localStorage.getItem(LS) || "[]"); } catch { return []; }
+  });
+  const [input, setInput] = useState("");
+  const [highlighted, setHighlighted] = useState<number | null>(null);
+
+  function save(m: string[]) {
+    setMemories(m);
+    try { localStorage.setItem(LS, JSON.stringify(m)); } catch {}
+  }
+  function add() {
+    const t = input.trim(); if (!t) return;
+    save([...memories, t]); setInput("");
+  }
+  function shake() {
+    if (!memories.length) return;
+    const i = rand(0, memories.length - 1);
+    setHighlighted(i);
+    setTimeout(() => setHighlighted(null), 2200);
+  }
+
+  return (
+    <div style={{ padding: "16px 20px 22px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+        <span style={{ fontSize: 15, fontWeight: 700, color: "#2a1c14", fontFamily: "'Caveat', cursive" }}>
+          🫙 memory jar
+        </span>
+        <span style={{ fontSize: 11, color: "#9a8070", fontFamily: "'Caveat', cursive" }}>
+          {memories.length} inside
+        </span>
+        {memories.length > 0 && (
+          <motion.button onClick={shake} whileTap={{ rotate: [0, -15, 15, -8, 8, 0] }} transition={{ duration: 0.5 }}
+            style={{ marginLeft: "auto", background: "rgba(200,143,136,0.25)", border: "1px solid rgba(42,33,28,0.12)", borderRadius: 8, padding: "3px 10px", fontSize: 12, cursor: "pointer", fontFamily: "'Caveat', cursive", color: "#2a1c14" }}>
+            shake ♡
+          </motion.button>
+        )}
+      </div>
+
+      <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
+        <input value={input} onChange={e => setInput(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && add()}
+          placeholder="drop a memory in..." maxLength={100}
+          className="maia-draft-input"
+          style={{ flex: 1, background: "rgba(255,255,255,0.45)", border: "1.5px solid rgba(42,33,28,0.14)", borderRadius: 18, padding: "7px 14px", fontFamily: "'Caveat', cursive", fontSize: 14, color: "#2a1c14" }}
+        />
+        <motion.button onClick={add} whileTap={{ scale: 0.85 }}
+          style={{ background: "rgba(200,143,136,0.55)", border: "1px solid rgba(42,33,28,0.1)", borderRadius: "50%", width: 32, height: 32, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <ArtHeart size={13} />
+        </motion.button>
+      </div>
+
+      {memories.length === 0 ? (
+        <div style={{ textAlign: "center", color: "rgba(42,28,20,0.35)", fontSize: 13, padding: "10px 0", fontFamily: "'Caveat', cursive" }}>
+          the jar is empty — add your first memory ♡
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 6, maxHeight: 180, overflowY: "auto" }}>
+          {memories.map((m, i) => (
+            <motion.div key={i}
+              animate={highlighted === i ? { scale: [1, 1.04, 1], backgroundColor: ["rgba(238,222,196,0.5)", "rgba(200,143,136,0.4)", "rgba(238,222,196,0.5)"] } : {}}
+              transition={{ duration: 0.7 }}
+              style={{
+                background: "rgba(238,222,196,0.5)", border: "1px solid rgba(42,33,28,0.09)",
+                borderRadius: "4px 12px 12px 12px", padding: "7px 10px 7px 12px",
+                fontSize: 13, color: "#2a1c14", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8,
+                transform: `rotate(${((i * 1.4 + 0.3) % 3) - 1.2}deg)`, fontFamily: "'Caveat', cursive",
+                boxShadow: highlighted === i ? "0 2px 12px rgba(200,100,100,0.2)" : "none",
+              }}>
+              <span style={{ flex: 1 }}>{m}</span>
+              <button onClick={() => save(memories.filter((_, j) => j !== i))}
+                style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(42,28,20,0.3)", fontSize: 11, padding: "0 2px", lineHeight: 1 }}>
+                ✕
+              </button>
+            </motion.div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Widget: Thinking of you ──────────────────────────────────────────────────
+
+function ThinkingOfYouWidget() {
+  const LS = "maia-thinking-ts";
+  const [lastTs, setLastTs] = useState<number | null>(() => {
+    if (typeof window === "undefined") return null;
+    const s = localStorage.getItem(LS); return s ? Number(s) : null;
+  });
+  const [justPressed, setJustPressed] = useState(false);
+  const [displayAgo, setDisplayAgo] = useState(() => timeAgo(typeof window !== "undefined" ? Number(localStorage.getItem("maia-thinking-ts") || "0") || null : null));
+
+  // update "X ago" every minute
+  useEffect(() => {
+    const t = setInterval(() => setDisplayAgo(timeAgo(lastTs)), 30000);
+    return () => clearInterval(t);
+  }, [lastTs]);
+
+  function press() {
+    const now = Date.now();
+    setLastTs(now); setDisplayAgo(timeAgo(now));
+    setJustPressed(true);
+    try { localStorage.setItem(LS, String(now)); } catch {}
+    setTimeout(() => setJustPressed(false), 2200);
+  }
+
+  return (
+    <div style={{ padding: "20px 20px 24px", display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+      <div style={{ fontSize: 13, color: "rgba(42,28,20,0.5)", fontFamily: "'Caveat', cursive", textAlign: "center" }}>
+        press when you&#39;re thinking of her
+      </div>
+      <motion.button onClick={press} whileTap={{ scale: 0.88 }}
+        animate={justPressed ? { scale: [1, 1.35, 1.1, 1.18, 1] } : {}}
+        transition={{ duration: 0.55 }}
+        style={{
+          background: justPressed ? "rgba(200,80,80,0.65)" : "rgba(200,143,136,0.38)",
+          border: "2px solid rgba(42,33,28,0.13)", borderRadius: "50%",
+          width: 76, height: 76, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+          transition: "background 0.3s, box-shadow 0.3s",
+          boxShadow: justPressed ? "0 0 24px rgba(200,80,80,0.28)" : "0 2px 8px rgba(0,0,0,0.08)",
+        }}>
+        <ArtHeart size={36} pulse={!justPressed} />
+      </motion.button>
+      <AnimatePresence mode="wait">
+        {justPressed ? (
+          <motion.div key="sent"
+            initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+            style={{ fontSize: 14, color: "#9a5a52", fontFamily: "'Caveat', cursive", letterSpacing: "0.02em" }}>
+            ♡ sent to maia
+          </motion.div>
+        ) : lastTs ? (
+          <motion.div key="ago" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+            style={{ fontSize: 12, color: "rgba(42,28,20,0.4)", fontFamily: "'Caveat', cursive", textAlign: "center" }}>
+            last pressed: {displayAgo}
+          </motion.div>
+        ) : (
+          <motion.div key="never" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+            style={{ fontSize: 12, color: "rgba(42,28,20,0.3)", fontFamily: "'Caveat', cursive" }}>
+            you haven&#39;t pressed yet ♡
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ─── Widget: Ask Maia ─────────────────────────────────────────────────────────
+
+function AskMaiaWidget() {
+  const [question, setQuestion] = useState("");
+  const [answer,   setAnswer]   = useState<string | null>(null);
+  const [isTyping, setIsTyping] = useState(false);
+  const [history,  setHistory]  = useState<{ q: string; a: string }[]>([]);
+
+  function ask() {
+    const q = question.trim(); if (!q) return;
+    setAnswer(null); setIsTyping(true); setQuestion("");
+    const delay = 900 + Math.random() * 900;
+    setTimeout(() => {
+      const a = getMaiaResponse(q);
+      setIsTyping(false); setAnswer(a);
+      setHistory(prev => [...prev.slice(-4), { q, a }]);
+    }, delay);
+  }
+
+  return (
+    <div style={{ padding: "16px 20px 20px" }}>
+      <div style={{ fontSize: 15, fontWeight: 700, color: "#2a1c14", marginBottom: 12, fontFamily: "'Caveat', cursive" }}>
+        ✦ ask maia anything
+      </div>
+
+      {/* History */}
+      {history.length > 0 && (
+        <div style={{ marginBottom: 12, display: "flex", flexDirection: "column", gap: 8, maxHeight: 150, overflowY: "auto" }}>
+          {history.map((h, i) => (
+            <div key={i} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              <div style={{ fontSize: 12, color: "rgba(42,28,20,0.45)", fontFamily: "'Caveat', cursive", textAlign: "left", paddingLeft: 4 }}>
+                {h.q}
+              </div>
+              <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                <div style={{ background: "rgba(200,143,136,0.55)", borderRadius: "15px 3px 15px 13px", padding: "6px 12px", fontSize: 13, fontFamily: "'Caveat', cursive", color: "#2a1c14", maxWidth: 220 }}>
+                  {h.a}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
+        <input value={question} onChange={e => setQuestion(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && ask()}
+          placeholder="do you miss me?" maxLength={80}
+          className="maia-draft-input"
+          style={{ flex: 1, background: "rgba(255,255,255,0.45)", border: "1.5px solid rgba(42,33,28,0.14)", borderRadius: 18, padding: "7px 14px", fontFamily: "'Caveat', cursive", fontSize: 14, color: "#2a1c14" }}
+        />
+        <motion.button onClick={ask} whileTap={{ scale: 0.85 }} disabled={!question.trim()}
+          style={{ background: question.trim() ? "rgba(200,143,136,0.6)" : "rgba(200,143,136,0.2)", border: "1px solid rgba(42,33,28,0.1)", borderRadius: "50%", width: 32, height: 32, cursor: question.trim() ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <svg width={13} height={13} viewBox="0 0 16 16" fill="none" stroke="#3a2a1e" strokeWidth="2" strokeLinecap="round">
+            <path d="M2,8 L14,8 M9,3 L14,8 L9,13"/>
+          </svg>
+        </motion.button>
+      </div>
+
+      <AnimatePresence mode="wait">
+        {isTyping && (
+          <motion.div key="typing" initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
+            style={{ display: "flex", justifyContent: "flex-end" }}>
+            <div style={{ background: "rgba(200,143,136,0.6)", borderRadius: "15px 3px 15px 13px", padding: "8px 14px" }}>
+              <TypingDots isMaia />
+            </div>
+          </motion.div>
+        )}
+        {answer && !isTyping && (
+          <motion.div key={answer} initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }}
+            style={{ display: "flex", justifyContent: "flex-end" }}>
+            <div style={{ background: "rgba(200,143,136,0.6)", borderRadius: "15px 3px 15px 13px", padding: "9px 14px", fontSize: 14, fontFamily: "'Caveat', cursive", color: "#2a1c14", maxWidth: 240 }}>
+              {answer}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ─── Widget: Timezone clocks ──────────────────────────────────────────────────
+
+const CA_ZONES  = ["America/Toronto", "America/Winnipeg", "America/Edmonton", "America/Vancouver"];
+const CA_LABELS = ["Ontario", "Manitoba", "Alberta", "BC"];
+
+function TimezoneWidget() {
+  const [tzIdx, setTzIdx] = useState(0);
+  const [now,   setNow]   = useState(new Date());
+  useEffect(() => { const t = setInterval(() => setNow(new Date()), 1000); return () => clearInterval(t); }, []);
+
+  const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const maTz      = CA_ZONES[tzIdx];
+
+  function fmt(tz: string, opts: Intl.DateTimeFormatOptions) {
+    return new Intl.DateTimeFormat("en-US", { timeZone: tz, ...opts }).format(now);
+  }
+
+  // approximate hour diff
+  const hourDiff = (() => {
+    try {
+      const cH = new Date(now.toLocaleString("en-US", { timeZone: browserTz })).getHours();
+      const mH = new Date(now.toLocaleString("en-US", { timeZone: maTz })).getHours();
+      let d = mH - cH; if (d > 12) d -= 24; if (d < -12) d += 24;
+      return d;
+    } catch { return null; }
+  })();
+
+  const ClockFace = ({ tz, label, color }: { tz: string; label: string; color: string }) => (
+    <div style={{ textAlign: "center", flex: 1, minWidth: 110 }}>
+      <div style={{ fontSize: 11, color: "#9a8070", marginBottom: 6, fontFamily: "'Caveat', cursive" }}>{label}</div>
+      <div style={{ fontSize: "clamp(22px, 5vw, 30px)", fontWeight: 700, color, letterSpacing: "-0.02em", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>
+        {fmt(tz, { hour: "numeric", minute: "2-digit", second: "2-digit", hour12: true })}
+      </div>
+      <div style={{ fontSize: 11, color: "rgba(42,28,20,0.38)", marginTop: 5, fontFamily: "'Caveat', cursive" }}>
+        {fmt(tz, { weekday: "short", month: "short", day: "numeric" })}
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{ padding: "16px 20px 22px" }}>
+      <div style={{ fontSize: 15, fontWeight: 700, color: "#2a1c14", marginBottom: 18, fontFamily: "'Caveat', cursive" }}>
+        🕐 right now
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", flexWrap: "wrap" }}>
+        <ClockFace tz={browserTz} label="chase" color="#2a1c14" />
+        <div style={{ fontSize: 18, color: "rgba(42,28,20,0.18)", flexShrink: 0 }}>♡</div>
+        <ClockFace tz={maTz} label="maia" color="#9a5a52" />
+      </div>
+      <div style={{ textAlign: "center", marginTop: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+        {hourDiff !== null && (
+          <span style={{ fontSize: 11, color: "rgba(42,28,20,0.38)", fontFamily: "'Caveat', cursive" }}>
+            {hourDiff === 0 ? "same hour ♡" : hourDiff > 0 ? `maia is ${Math.abs(hourDiff)}h ahead` : `maia is ${Math.abs(hourDiff)}h behind`}
+          </span>
+        )}
+        <button onClick={() => setTzIdx(i => (i + 1) % CA_ZONES.length)}
+          style={{ background: "rgba(200,143,136,0.2)", border: "1px solid rgba(42,33,28,0.12)", borderRadius: 8, padding: "2px 8px", fontSize: 10, cursor: "pointer", fontFamily: "'Caveat', cursive", color: "rgba(42,28,20,0.5)" }}>
+          {CA_LABELS[tzIdx]} ↻
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Widget: Bucket list ──────────────────────────────────────────────────────
+
+function BucketListWidget() {
+  const LS = "maia-bucket";
+  const [items, setItems] = useState<{ text: string; done: boolean }[]>(() => {
+    if (typeof window === "undefined") return DEFAULT_BUCKET.map(t => ({ text: t, done: false }));
+    try {
+      const s = localStorage.getItem(LS);
+      return s ? JSON.parse(s) : DEFAULT_BUCKET.map(t => ({ text: t, done: false }));
+    } catch { return DEFAULT_BUCKET.map(t => ({ text: t, done: false })); }
+  });
+  const [input, setInput] = useState("");
+
+  function save(arr: typeof items) { setItems(arr); try { localStorage.setItem(LS, JSON.stringify(arr)); } catch {} }
+  function toggle(i: number) { save(items.map((x, j) => j === i ? { ...x, done: !x.done } : x)); }
+  function add() { const t = input.trim(); if (!t) return; save([...items, { text: t, done: false }]); setInput(""); }
+
+  const done = items.filter(x => x.done).length;
+
+  return (
+    <div style={{ padding: "16px 20px 22px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+        <span style={{ fontSize: 15, fontWeight: 700, color: "#2a1c14", fontFamily: "'Caveat', cursive" }}>
+          ☑ when i get there
+        </span>
+        <span style={{ fontSize: 11, color: "#9a8070", fontFamily: "'Caveat', cursive" }}>
+          {done} / {items.length}
+        </span>
+        {done > 0 && done === items.length && (
+          <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} style={{ fontSize: 13 }}>🎉</motion.span>
+        )}
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 7, maxHeight: 190, overflowY: "auto", marginBottom: 12 }}>
+        {items.map((item, i) => (
+          <motion.div key={i} onClick={() => toggle(i)} whileTap={{ scale: 0.97 }}
+            style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
+            <motion.div
+              animate={{ background: item.done ? "rgba(200,143,136,0.7)" : "transparent" }}
+              transition={{ duration: 0.2 }}
+              style={{ width: 18, height: 18, borderRadius: "50%", flexShrink: 0, border: "1.5px solid rgba(42,33,28,0.22)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              {item.done && <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} style={{ fontSize: 9, color: "#fff" }}>✓</motion.span>}
+            </motion.div>
+            <span style={{
+              fontSize: 13, color: item.done ? "rgba(42,28,20,0.38)" : "#2a1c14",
+              textDecoration: item.done ? "line-through" : "none",
+              transition: "all 0.2s", fontFamily: "'Caveat', cursive",
+            }}>
+              {item.text}
+            </span>
+          </motion.div>
+        ))}
+      </div>
+      <div style={{ display: "flex", gap: 6 }}>
+        <input value={input} onChange={e => setInput(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && add()}
+          placeholder="add something..." maxLength={60}
+          className="maia-draft-input"
+          style={{ flex: 1, background: "rgba(255,255,255,0.45)", border: "1.5px solid rgba(42,33,28,0.14)", borderRadius: 18, padding: "6px 14px", fontFamily: "'Caveat', cursive", fontSize: 14, color: "#2a1c14" }}
+        />
+        <motion.button onClick={add} whileTap={{ scale: 0.85 }}
+          style={{ background: "rgba(200,143,136,0.45)", border: "1px solid rgba(42,33,28,0.1)", borderRadius: "50%", width: 30, height: 30, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 18, color: "#2a1c14", lineHeight: 1 }}>
+          +
+        </motion.button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Widget: Vibe presets ─────────────────────────────────────────────────────
+
+interface VibeProps {
+  candleLit: boolean; setCandleLit: (v: boolean) => void;
+  raining:   boolean; toggleRain:   () => void;
+  snowing:   boolean; setSnowing:   (v: boolean) => void;
+  playing:   boolean; toggleAudio:  () => void;
+}
+
+function VibePresetsWidget({ candleLit, setCandleLit, raining, toggleRain, snowing, setSnowing, playing, toggleAudio }: VibeProps) {
+  function applyVibe(preset: string) {
+    const want = {
+      cozy:   { candle: true,  rain: false, snow: false, music: true  },
+      rainy:  { candle: true,  rain: true,  snow: false, music: true  },
+      quiet:  { candle: true,  rain: false, snow: false, music: false },
+      winter: { candle: true,  rain: false, snow: true,  music: true  },
+      clear:  { candle: false, rain: false, snow: false, music: false },
+    }[preset];
+    if (!want) return;
+    if (want.candle !== candleLit)  setCandleLit(want.candle);
+    if (want.snow   !== snowing)    setSnowing(want.snow);
+    if (want.rain   !== raining)    toggleRain();
+    if (want.music  !== playing)    toggleAudio();
+  }
+
+  const PRESETS = [
+    { id: "cozy",   emoji: "🕯️", label: "cozy night",        sub: "candle + lo-fi" },
+    { id: "rainy",  emoji: "🌧️", label: "rainy night",       sub: "candle + rain + lo-fi" },
+    { id: "quiet",  emoji: "🌙", label: "quiet",             sub: "just the candle" },
+    { id: "winter", emoji: "❄️", label: "winter in canada",  sub: "candle + snow + lo-fi" },
+    { id: "clear",  emoji: "◦",  label: "clear everything",  sub: "turn it all off" },
+  ];
+
+  return (
+    <div style={{ padding: "16px 20px 22px" }}>
+      <div style={{ fontSize: 15, fontWeight: 700, color: "#2a1c14", marginBottom: 14, fontFamily: "'Caveat', cursive" }}>
+        ✨ set the vibe
+      </div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+        {PRESETS.map(p => (
+          <motion.button key={p.id} onClick={() => applyVibe(p.id)}
+            whileTap={{ scale: 0.92 }} whileHover={{ scale: 1.03, y: -1 }}
+            style={{ background: "rgba(238,222,196,0.55)", border: "1.5px solid rgba(42,33,28,0.13)", borderRadius: 10, padding: "9px 14px", cursor: "pointer", textAlign: "left", transition: "box-shadow 0.15s", boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "#2a1c14", fontFamily: "'Caveat', cursive" }}>
+              {p.emoji} {p.label}
+            </div>
+            <div style={{ fontSize: 11, color: "rgba(42,28,20,0.45)", fontFamily: "'Caveat', cursive", marginTop: 1 }}>{p.sub}</div>
+          </motion.button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── Art components ───────────────────────────────────────────────────────────
 
 function ArtHeart({ size = 22, pulse = false }: { size?: number; pulse?: boolean }) {
@@ -1119,6 +1581,9 @@ export default function MaiaPage() {
   const [titleSecret, setTitleSecret] = useState<string | null>(null);
   const titleTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
+  // Widget panel
+  const [activeWidget, setActiveWidget] = useState<string | null>(null);
+
   // Time hint
   const [footerHint] = useState(getFooterHint);
 
@@ -1764,6 +2229,64 @@ export default function MaiaPage() {
               aria-label="send message">
               <ArtHeart size={18} />
             </motion.button>
+          </div>
+
+          {/* ── INTERACTIVE WIDGETS ── */}
+          <div style={{ borderTop: "1px solid rgba(42,33,28,0.07)" }}>
+
+            {/* Tab bar */}
+            <div style={{ display: "flex", overflowX: "auto" }}>
+              {[
+                { id: "jar",      icon: "🫙", label: "memories" },
+                { id: "thinking", icon: "♡",  label: "thinking" },
+                { id: "ask",      icon: "✦",  label: "ask maia" },
+                { id: "time",     icon: "🕐", label: "right now" },
+                { id: "list",     icon: "☑",  label: "together" },
+                { id: "vibe",     icon: "✨", label: "vibe" },
+              ].map(w => (
+                <motion.button key={w.id}
+                  onClick={() => setActiveWidget(v => v === w.id ? null : w.id)}
+                  whileTap={{ scale: 0.93 }}
+                  style={{
+                    flex: 1, minWidth: 60, padding: "10px 6px 8px",
+                    background: activeWidget === w.id ? "rgba(200,143,136,0.12)" : "transparent",
+                    border: "none",
+                    borderBottom: `2px solid ${activeWidget === w.id ? "rgba(200,143,136,0.65)" : "transparent"}`,
+                    cursor: "pointer", fontFamily: "'Caveat', cursive",
+                    display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+                    transition: "background 0.18s",
+                  }}>
+                  <span style={{ fontSize: 15, lineHeight: 1 }}>{w.icon}</span>
+                  <span style={{ fontSize: 10, color: activeWidget === w.id ? "#9a5a52" : "rgba(42,28,20,0.45)", whiteSpace: "nowrap", transition: "color 0.18s" }}>{w.label}</span>
+                </motion.button>
+              ))}
+            </div>
+
+            {/* Panel */}
+            <AnimatePresence mode="wait">
+              {activeWidget && (
+                <motion.div key={activeWidget}
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                  style={{ borderTop: "1px solid rgba(42,33,28,0.06)" }}>
+                  {activeWidget === "jar"      && <MemoryJarWidget />}
+                  {activeWidget === "thinking" && <ThinkingOfYouWidget />}
+                  {activeWidget === "ask"      && <AskMaiaWidget />}
+                  {activeWidget === "time"     && <TimezoneWidget />}
+                  {activeWidget === "list"     && <BucketListWidget />}
+                  {activeWidget === "vibe"     && (
+                    <VibePresetsWidget
+                      candleLit={candleLit} setCandleLit={setCandleLit}
+                      raining={raining}     toggleRain={toggleRain}
+                      snowing={snowing}     setSnowing={setSnowing}
+                      playing={playing}     toggleAudio={toggleAudio}
+                    />
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
         </motion.div>

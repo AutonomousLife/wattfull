@@ -139,8 +139,8 @@ const CONVOS: Msg[][] = [
     { from: "you",  text: "getting another one?",         time: "8:45 PM" },
     { from: "maia", text: "already did",                  time: "8:45 PM" },
     { from: "you",  text: "obviously",                    time: "8:46 PM" },
-    { from: "maia", text: "her name is linda",            time: "8:46 PM" },
-    { from: "you",  text: "of course it is",              time: "8:46 PM" },
+    { from: "maia", text: "she's very happy",              time: "8:46 PM" },
+    { from: "you",  text: "obviously",                    time: "8:46 PM" },
   ],
   [
     { from: "you",  text: "okay i should actually sleep", time: "12:34 AM" },
@@ -327,7 +327,7 @@ const MAIA_TOASTS = [
   "i made toast",
   "♡",
   "you should be here",
-  "linda says hi",
+  "the plants say hi",
   "counting down ♡",
   "are u awake",
 ];
@@ -766,7 +766,7 @@ const LETTER_LINES = [
   "we haven't found yet",
   "and the garden",
   "and the chickens",
-  "and linda",
+  "and the plants",
   "",
   "mostly you",
   "",

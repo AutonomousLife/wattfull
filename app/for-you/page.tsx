@@ -1510,9 +1510,119 @@ function getFooterHint(): string {
   return "it's getting late";
 }
 
+// ─── PIN Gate ─────────────────────────────────────────────────────────────────
+
+const UNLOCK_PIN = "78760";
+
+function PinGate({ onUnlock }: { onUnlock: () => void }) {
+  const [input, setInput]   = useState("");
+  const [shake, setShake]   = useState(false);
+  const [pulse, setPulse]   = useState(false);
+  const inputRef            = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+    const t = setInterval(() => setPulse(p => !p), 900);
+    return () => clearInterval(t);
+  }, []);
+
+  function tryUnlock() {
+    if (input === UNLOCK_PIN) {
+      try { sessionStorage.setItem("maia-unlocked", "1"); } catch {}
+      onUnlock();
+    } else {
+      setShake(true);
+      setInput("");
+      setTimeout(() => setShake(false), 550);
+      setTimeout(() => inputRef.current?.focus(), 600);
+    }
+  }
+
+  return (
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 9999,
+      background: "#120d07",
+      display: "flex", flexDirection: "column",
+      alignItems: "center", justifyContent: "center",
+      gap: 32,
+      fontFamily: "'Caveat', cursive",
+    }}>
+      {/* Pulsing heart */}
+      <motion.div
+        animate={{ scale: pulse ? 1.18 : 1, opacity: pulse ? 1 : 0.65 }}
+        transition={{ duration: 0.45, ease: "easeInOut" }}
+        style={{ fontSize: 52, lineHeight: 1, userSelect: "none", cursor: "default" }}
+      >
+        ♡
+      </motion.div>
+
+      <motion.p style={{
+        color: "rgba(220,185,160,0.55)",
+        fontSize: 15,
+        letterSpacing: "0.12em",
+        textTransform: "lowercase",
+        margin: 0,
+        userSelect: "none",
+      }}>
+        for you only
+      </motion.p>
+
+      {/* Input + button */}
+      <motion.div
+        animate={shake ? { x: [0, -10, 10, -8, 8, -4, 4, 0] } : { x: 0 }}
+        transition={{ duration: 0.45 }}
+        style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}
+      >
+        <input
+          ref={inputRef}
+          type="password"
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => { if (e.key === "Enter") tryUnlock(); }}
+          maxLength={10}
+          placeholder="••••••"
+          style={{
+            background: "rgba(255,255,255,0.05)",
+            border: `1.5px solid ${shake ? "rgba(180,80,70,0.7)" : "rgba(200,160,130,0.25)"}`,
+            borderRadius: 12,
+            padding: "12px 22px",
+            fontSize: 22,
+            color: "rgba(235,210,190,0.9)",
+            outline: "none",
+            textAlign: "center",
+            letterSpacing: "0.25em",
+            width: 180,
+            transition: "border-color 0.2s",
+            caretColor: "rgba(200,143,136,0.8)",
+          }}
+        />
+        <motion.button
+          whileHover={{ scale: 1.04, background: "rgba(200,143,136,0.22)" }}
+          whileTap={{ scale: 0.97 }}
+          onClick={tryUnlock}
+          style={{
+            background: "rgba(200,143,136,0.12)",
+            border: "1.5px solid rgba(200,143,136,0.3)",
+            borderRadius: 10,
+            padding: "9px 32px",
+            color: "rgba(235,210,190,0.85)",
+            fontSize: 14,
+            fontFamily: "'Caveat', cursive",
+            letterSpacing: "0.08em",
+            cursor: "pointer",
+            transition: "background 0.2s",
+          }}
+        >
+          enter ♡
+        </motion.button>
+      </motion.div>
+    </div>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default function MaiaPage() {
+function MaiaPageContent() {
   const reduced = useReducedMotion() ?? false;
 
   // Conversation
@@ -2333,4 +2443,17 @@ export default function MaiaPage() {
       </AnimatePresence>
     </>
   );
+}
+
+// ─── Root export (PIN gate wrapper) ───────────────────────────────────────────
+
+export default function MaiaPage() {
+  const [unlocked, setUnlocked] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    try { return sessionStorage.getItem("maia-unlocked") === "1"; } catch { return false; }
+  });
+
+  return unlocked
+    ? <MaiaPageContent />
+    : <PinGate onUnlock={() => setUnlocked(true)} />;
 }

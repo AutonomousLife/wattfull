@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useTheme } from "@/lib/ThemeContext";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Icon } from "@/components/ui/Icon";
@@ -19,15 +20,32 @@ export function ExperimentalPage() {
         A quiet place for Wattfull projects that are still taking shape.
       </p>
 
-      <GlassCard variant="outlined" padding={26} style={{ borderTop: `2px solid ${t.green}`, maxWidth: 620 }}>
-        <div style={{ width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--r-sm)", background: t.greenGlass, border: `1px solid ${t.featuredBorder}`, marginBottom: 18 }}>
-          <Icon name="Wrench" size={20} color={t.green} strokeWidth={1.8} />
-        </div>
-        <div style={{ fontSize: 20, fontWeight: 760, color: t.text, letterSpacing: "-.03em", marginBottom: 8 }}>The bench is clear.</div>
-        <p style={{ fontSize: 14, color: t.textMid, lineHeight: 1.65 }}>
-          Add projects here when they are ready for a small, focused space of their own.
-        </p>
-      </GlassCard>
+      <div style={{ display: "grid", gap: 12, maxWidth: 620 }}>
+        <Link href="/experimental/play" style={{ textDecoration: "none" }}>
+          <GlassCard variant="outlined" padding={26} className="wf-lift" style={{ borderTop: `2px solid ${t.green}` }}>
+            <div style={{ display: "flex", alignItems: "start", justifyContent: "space-between", gap: 18 }}>
+              <div>
+                <div style={{ width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--r-sm)", background: t.greenGlass, border: `1px solid ${t.featuredBorder}`, marginBottom: 18 }}>
+                  <Icon name="Grid" size={20} color={t.green} strokeWidth={1.8} />
+                </div>
+                <div style={{ fontSize: 10, fontWeight: 800, color: t.green, letterSpacing: ".09em", textTransform: "uppercase", marginBottom: 7 }}>Playable prototype</div>
+                <div style={{ fontSize: 22, fontWeight: 760, color: t.text, letterSpacing: "-.035em", marginBottom: 8 }}>Blockworks</div>
+                <p style={{ fontSize: 14, color: t.textMid, lineHeight: 1.65, maxWidth: 440 }}>
+                  A small voxel-survival world with mining, crafting, caves, and optional LAN multiplayer.
+                </p>
+              </div>
+              <Icon name="ArrowRight" size={20} color={t.green} strokeWidth={1.8} />
+            </div>
+          </GlassCard>
+        </Link>
+
+        <GlassCard variant="outlined" padding={22}>
+          <div style={{ fontSize: 16, fontWeight: 730, color: t.text, letterSpacing: "-.02em", marginBottom: 7 }}>The bench is still open.</div>
+          <p style={{ fontSize: 14, color: t.textMid, lineHeight: 1.65 }}>
+            Add projects here when they are ready for a small, focused space of their own.
+          </p>
+        </GlassCard>
+      </div>
     </div>
   );
 }

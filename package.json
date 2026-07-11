@@ -11,7 +11,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx lib/db/seed.ts",
-    "test": "tsx tests/run-tests.mts"
+    "test": "tsx tests/run-tests.mts",
+    "game:server": "node game-server/server.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
@@ -23,7 +24,8 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "recharts": "^3.7.0",
-    "resend": "^6.9.3"
+    "resend": "^6.9.3",
+    "ws": "^8.21.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

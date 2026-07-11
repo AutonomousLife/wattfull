@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Doug's Digs</title>
+<title>Blockworks</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 body{background:#000;overflow:hidden;font-family:'Courier New',monospace;user-select:none;cursor:pointer;}
@@ -85,8 +85,8 @@ canvas{display:block;position:fixed;top:0;left:0;z-index:0;}
 
 <!-- Collection panel -->
 <div id="col" style="display:none;position:fixed;inset:0;background:rgba(2,4,2,.97);z-index:50;overflow-y:auto;padding:28px 32px;">
-  <h2 style="color:#aabbaa;font-size:14px;text-align:center;margin-bottom:4px;letter-spacing:3px;">COLLECTION</h2>
-  <div style="color:#334433;font-size:9px;text-align:center;margin-bottom:18px;letter-spacing:1px;">albums unearthed</div>
+  <h2 style="color:#aabbaa;font-size:14px;text-align:center;margin-bottom:4px;letter-spacing:3px;">ARCHIVE</h2>
+  <div style="color:#334433;font-size:9px;text-align:center;margin-bottom:18px;letter-spacing:1px;">relics unearthed</div>
   <div id="col-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:5px;"></div>
   <button onclick="document.getElementById('col').style.display='none'" style="display:block;margin:18px auto 0;color:#556655;font-size:10px;cursor:pointer;border:1px solid #334433;padding:5px 18px;background:none;font-family:'Courier New',monospace;letter-spacing:2px;">CLOSE</button>
 </div>
@@ -222,7 +222,20 @@ const cloudMat=new THREE.MeshBasicMaterial({color:0x556677,transparent:true,opac
 
 // ═══ WORLD SYSTEM ═════════════════════════════════════════════════════════════
 const chunks=new Map();
+const sharedEdits=new Map();
 const ck=(cx,cz)=>cx+','+cz;
+const bk=(x,y,z)=>x+','+y+','+z;
+
+function rememberSharedEdit(x,y,z,type){
+  sharedEdits.set(bk(x,y,z),{x,y,z,type});
+}
+function applySharedEdits(c){
+  for(const edit of sharedEdits.values()){
+    if(Math.floor(edit.x/CW)!==c.cx||Math.floor(edit.z/CW)!==c.cz) continue;
+    const lx=((edit.x%CW)+CW)%CW,lz=((edit.z%CW)+CW)%CW;
+    c.data[lx*CH*CW+edit.y*CW+lz]=edit.type;
+  }
+}
 
 function hn(x,z){let n=Math.sin(x*127.1+z*311.7)*43758.5453;return n-Math.floor(n);}
 function sn2(x,z){
@@ -269,6 +282,7 @@ function getChunk(cx,cz){
   const k=ck(cx,cz);
   if(chunks.has(k)) return chunks.get(k);
   const c={cx,cz,data:genChunk(cx,cz),mesh:null,dirty:true};
+  applySharedEdits(c);
   chunks.set(k,c);
   return c;
 }
@@ -280,18 +294,20 @@ function getBlock(wx,wy,wz){
   const c=chunks.get(ck(cx,cz));
   return c?c.data[lx*CH*CW+wy*CW+lz]:B.AIR;
 }
-function setBlock(wx,wy,wz,type){
+function setBlock(wx,wy,wz,type,fromNetwork=false){
   if(wy<0||wy>=CH) return;
   const cx=Math.floor(wx/CW),cz=Math.floor(wz/CW);
   const lx=((wx%CW)+CW)%CW,lz=((wz%CW)+CW)%CW;
   const c=chunks.get(ck(cx,cz));
   if(!c) return;
+  rememberSharedEdit(wx,wy,wz,type);
   c.data[lx*CH*CW+wy*CW+lz]=type;
   c.dirty=true;
   if(lx===0){const n=chunks.get(ck(cx-1,cz));if(n)n.dirty=true;}
   if(lx===CW-1){const n=chunks.get(ck(cx+1,cz));if(n)n.dirty=true;}
   if(lz===0){const n=chunks.get(ck(cx,cz-1));if(n)n.dirty=true;}
   if(lz===CW-1){const n=chunks.get(ck(cx,cz+1));if(n)n.dirty=true;}
+  if(!fromNetwork) sendBlockEdit(wx,wy,wz,type);
 }
 
 // ═══ MESH BUILDER ═════════════════════════════════════════════════════════════
@@ -530,6 +546,67 @@ function selectedItem(){return INV[hotSlot];}
 const plr={x:0,y:0,z:0,vx:0,vy:0,vz:0,onGround:false,h:1.8,r:0.32,
   hp:MAX_HP,hunger:MAX_HP,alive:true,spawnX:0,spawnY:0,spawnZ:0,
   fallY:0,hungerT:0,regenT:0,starvT:0,iframes:0};
+
+// Optional LAN world sync. Pass ?server=ws://HOST:2567 to join a local host.
+const serverUrl=new URLSearchParams(location.search).get('server');
+const net={socket:null,id:null,connected:false,lastSync:0};
+const remotePlayers=new Map();
+
+function createRemoteAvatar(color){
+  const g=new THREE.Group();
+  const bodyMat=new THREE.MeshBasicMaterial({color});
+  const headMat=new THREE.MeshBasicMaterial({color:0xf0d2b0});
+  const body=new THREE.Mesh(new THREE.BoxGeometry(.52,.9,.32),bodyMat);
+  const head=new THREE.Mesh(new THREE.BoxGeometry(.5,.5,.5),headMat);
+  body.position.y=.52;head.position.y=1.24;
+  g.add(body,head);scene.add(g);
+  return g;
+}
+function upsertRemotePlayer(player){
+  if(!player||player.id===net.id) return;
+  let remote=remotePlayers.get(player.id);
+  if(!remote){remote={mesh:createRemoteAvatar(player.color||0x88aa88)};remotePlayers.set(player.id,remote);}
+  remote.mesh.position.set(player.x,player.y,player.z);
+  remote.mesh.rotation.y=player.yaw||0;
+}
+function removeRemotePlayer(id){
+  const remote=remotePlayers.get(id);
+  if(!remote) return;
+  scene.remove(remote.mesh);
+  remote.mesh.traverse((node)=>{if(node.geometry)node.geometry.dispose();if(node.material)node.material.dispose();});
+  remotePlayers.delete(id);
+}
+function sendNet(message){
+  if(net.connected&&net.socket&&net.socket.readyState===WebSocket.OPEN) net.socket.send(JSON.stringify(message));
+}
+function sendBlockEdit(x,y,z,block){sendNet({type:'block',x,y,z,block});}
+function connectNetwork(){
+  if(!serverUrl) return;
+  try{net.socket=new WebSocket(serverUrl);}catch{notify('Invalid LAN server address');return;}
+  net.socket.addEventListener('open',()=>{net.connected=true;notify('LAN world connected');});
+  net.socket.addEventListener('close',()=>{net.connected=false;notify('LAN world disconnected');});
+  net.socket.addEventListener('message',(event)=>{
+    let message;try{message=JSON.parse(event.data);}catch{return;}
+    if(message.type==='welcome'){
+      net.id=message.id;
+      for(const edit of message.blocks||[]) setBlock(edit.x,edit.y,edit.z,edit.block,true);
+      for(const player of message.players||[]) upsertRemotePlayer(player);
+    }else if(message.type==='player-join'||message.type==='player-move'){
+      upsertRemotePlayer(message.player);
+    }else if(message.type==='player-leave'){
+      removeRemotePlayer(message.id);
+    }else if(message.type==='block'){
+      setBlock(message.x,message.y,message.z,message.block,true);
+    }
+  });
+}
+function syncNetwork(dt){
+  if(!net.connected) return;
+  net.lastSync-=dt;
+  if(net.lastSync>0) return;
+  net.lastSync=.1;
+  sendNet({type:'move',x:plr.x,y:plr.y,z:plr.z,yaw});
+}
 
 function hurtPlayer(dmg,src){
   if(!plr.alive||plr.iframes>0) return;
@@ -928,8 +1005,9 @@ function refreshHUD(){
   // HUD-R
   const d=surf(Math.floor(plr.x),Math.floor(plr.z))-Math.floor(plr.y);
   document.getElementById('hud-r').innerHTML=
-    'albums '+foundAlbums.size+'/'+ALBUMS.length+'<br>'+
-    (d>0?'depth '+d:'surface')+'<br>[C] craft [E] albums';
+    'relics '+foundAlbums.size+'/'+ALBUMS.length+'<br>'+
+    (d>0?'depth '+d:'surface')+'<br>'+
+    (net.connected?'LAN · '+(remotePlayers.size+1)+' player'+(remotePlayers.size?'s':''):'solo world')+'<br>[C] craft [E] archive';
 }
 
 // Hotbar
@@ -996,6 +1074,7 @@ updateChunks();
 // Give starting items
 addItem(B.DIRT,10);addItem(B.STONE,5);
 refreshHUD();
+connectNetwork();
 
 // ═══ GAME LOOP ════════════════════════════════════════════════════════════════
 let last=performance.now(),hudT=0;
@@ -1030,6 +1109,7 @@ function loop(){
 
   updateDrops(dt);
   updateMobs(dt,dayT);
+  syncNetwork(dt);
 
   // Cloud drift
   for(const cl of clouds){

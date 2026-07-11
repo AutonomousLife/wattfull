@@ -1,7 +1,6 @@
 "use client";
 import Link from "next/link";
 import { useTheme } from "@/lib/ThemeContext";
-import { useSheen } from "@/lib/useSheen";
 import { Icon } from "./Icon";
 
 /**
@@ -22,7 +21,6 @@ import { Icon } from "./Icon";
  */
 export function ToolTile({ icon, title, desc, href, featured = false, cta, chips }) {
   const { t } = useTheme();
-  const sheen = useSheen();
 
   if (featured) {
     return (
@@ -31,8 +29,7 @@ export function ToolTile({ icon, title, desc, href, featured = false, cta, chips
         style={{ gridColumn: "span 2", textDecoration: "none", display: "block" }}
       >
         <div
-          className={`${sheen.className} wf-lift`}
-          {...sheen.handlers}
+          className="wf-lift"
           style={{
             position: "relative",
             background: t.featuredBg,
@@ -40,7 +37,7 @@ export function ToolTile({ icon, title, desc, href, featured = false, cta, chips
             borderRadius: "var(--r-xl)",
             padding: "24px 28px",
             overflow: "hidden",
-            boxShadow: t.shadowLg,
+            boxShadow: "none",
           }}
         >
           {/* ── Top row: icon + eyebrow + title + desc ── */}
@@ -137,31 +134,6 @@ export function ToolTile({ icon, title, desc, href, featured = false, cta, chips
             </div>
           </div>
 
-          {/* Decorative rings */}
-          <div style={{
-            position: "absolute",
-            right: -40,
-            top: "50%",
-            transform: "translateY(-50%)",
-            width: 200,
-            height: 200,
-            borderRadius: "50%",
-            border: `1px solid ${t.featuredBorder}`,
-            opacity: 0.35,
-            pointerEvents: "none",
-          }} />
-          <div style={{
-            position: "absolute",
-            right: -80,
-            top: "50%",
-            transform: "translateY(-50%)",
-            width: 280,
-            height: 280,
-            borderRadius: "50%",
-            border: `1px solid ${t.featuredBorder}`,
-            opacity: 0.2,
-            pointerEvents: "none",
-          }} />
         </div>
       </Link>
     );
@@ -171,8 +143,7 @@ export function ToolTile({ icon, title, desc, href, featured = false, cta, chips
   return (
     <Link href={href} style={{ textDecoration: "none", display: "block" }}>
       <div
-        className={`${sheen.className} wf-lift`}
-        {...sheen.handlers}
+        className="wf-lift"
         style={{
           background: t.white,
           border: `1px solid ${t.borderLight}`,
@@ -182,7 +153,7 @@ export function ToolTile({ icon, title, desc, href, featured = false, cta, chips
           display: "flex",
           flexDirection: "column",
           gap: 10,
-          boxShadow: t.shadowMd,
+          boxShadow: "none",
           transition: "box-shadow var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease)",
         }}
       >

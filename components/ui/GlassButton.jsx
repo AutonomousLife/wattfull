@@ -1,6 +1,5 @@
 "use client";
 import Link from "next/link";
-import { useSheen } from "@/lib/useSheen";
 import { useTheme } from "@/lib/ThemeContext";
 import { Icon } from "./Icon";
 
@@ -36,7 +35,6 @@ export function GlassButton({
   ...props
 }) {
   const { t } = useTheme();
-  const sheen = useSheen();
 
   const SIZES = {
     sm: { padding: "7px 14px",  fontSize: 13, gap: 6,  iconSize: 15, radius: "var(--r-md)" },
@@ -70,19 +68,17 @@ export function GlassButton({
     primary: {
       background: t.green,
       color: "#fff",
-      boxShadow: `0 2px 8px ${t.green}55, 0 1px 2px rgba(0,0,0,.1)`,
+      boxShadow: "none",
     },
     secondary: {
-      background: t.glass,
-      backdropFilter: "blur(16px)",
-      WebkitBackdropFilter: "blur(16px)",
-      border: `1.5px solid ${t.border}`,
+      background: t.white,
+      border: `1px solid ${t.border}`,
       color: t.text,
-      boxShadow: t.shadowMd,
+      boxShadow: "none",
     },
     ghost: {
       background: "transparent",
-      border: `1.5px solid ${t.border}`,
+      border: `1px solid ${t.border}`,
       color: t.textMid,
       boxShadow: "none",
     },
@@ -120,15 +116,12 @@ export function GlassButton({
 
   const handleClick = (e) => {
     if (disabled || loading) { e.preventDefault(); return; }
-    sheen.handlers.onClick(e);
     onClick?.(e);
   };
 
   const commonProps = {
-    className: `${sheen.className} wf-lift ${className}`,
+    className: `wf-lift ${className}`,
     style: combinedStyle,
-    onPointerMove: sheen.handlers.onPointerMove,
-    onPointerLeave: sheen.handlers.onPointerLeave,
     onClick: handleClick,
     ...props,
   };

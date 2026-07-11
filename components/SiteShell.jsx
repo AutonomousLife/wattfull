@@ -17,8 +17,9 @@ export function SiteShell({ children }) {
 
   return (
     <div
+      className="wf-site-shell"
       style={{
-        background: t.bg,
+        backgroundColor: t.bg,
         color: t.text,
         minHeight: "100vh",
         transition: "background .4s ease, color .4s ease",
@@ -58,8 +59,8 @@ export function SiteShell({ children }) {
           top: 0,
           zIndex: 100,
           background: t.navBg,
-          backdropFilter: "blur(20px) saturate(180%)",
-          WebkitBackdropFilter: "blur(20px) saturate(180%)",
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
           borderBottom: `1px solid ${t.navBorder}`,
           padding: "0 clamp(16px,4vw,48px)",
         }}
@@ -96,7 +97,7 @@ export function SiteShell({ children }) {
                 height: 28,
                 borderRadius: "var(--r-sm)",
                 background: t.green,
-                boxShadow: `0 2px 8px ${t.green}55`,
+                boxShadow: "none",
               }}
             >
               <Icon name="Zap" size={16} color="#fff" strokeWidth={2.5} />
@@ -118,8 +119,9 @@ export function SiteShell({ children }) {
                       fontSize: 13,
                       fontWeight: active ? 700 : 500,
                       color: active ? t.green : t.textMid,
-                      background: active ? t.greenGlass : "transparent",
-                      borderRadius: "var(--r-md)",
+                      background: "transparent",
+                      borderRadius: 0,
+                      borderBottom: `1px solid ${active ? t.green : "transparent"}`,
                       textDecoration: "none",
                       whiteSpace: "nowrap",
                     }}

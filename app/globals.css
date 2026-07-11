@@ -10,11 +10,11 @@
   --foreground: #171717;
 
   /* Radius scale */
-  --r-sm:  8px;
-  --r-md:  12px;
-  --r-lg:  18px;
-  --r-xl:  28px;
-  --r-2xl: 40px;
+  --r-sm:  6px;
+  --r-md:  9px;
+  --r-lg:  13px;
+  --r-xl:  18px;
+  --r-2xl: 28px;
 
   /* Shadow scale â€” subtle, premium */
   --sh-xs: 0 1px 2px rgba(0,0,0,.04);
@@ -62,11 +62,12 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-inter), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  font-size: 17px;
+  font-size: 16px;
   line-height: 1.55;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.005em;
   transition: background 0.3s ease, color 0.3s ease;
   -webkit-tap-highlight-color: transparent;
 }
@@ -132,23 +133,18 @@ button:active:not(:disabled):not(.wf-lift),
 
 /* â”€â”€â”€ Signature contour-map motif â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 /* Concentric ring pattern at ~4% opacity â€” used behind hero + section bands */
+.wf-site-shell {
+  background-image: linear-gradient(rgba(27,32,27,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(27,32,27,.035) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+[data-theme="dark"] .wf-site-shell {
+  background-image: linear-gradient(rgba(232,236,227,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(232,236,227,.035) 1px, transparent 1px);
+}
 .wf-motif {
-  background-image: repeating-radial-gradient(
-    circle at 62% 38%,
-    transparent 0,
-    transparent 26px,
-    rgba(74,124,89,0.042) 26px,
-    rgba(74,124,89,0.042) 27.5px
-  );
+  background-image: none;
 }
 [data-theme="dark"] .wf-motif {
-  background-image: repeating-radial-gradient(
-    circle at 62% 38%,
-    transparent 0,
-    transparent 26px,
-    rgba(106,175,123,0.055) 26px,
-    rgba(106,175,123,0.055) 27.5px
-  );
+  background-image: none;
 }
 
 /* â”€â”€â”€ Glass surfaces â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
@@ -291,8 +287,8 @@ button:active:not(:disabled):not(.wf-lift),
     opacity    var(--dur-fast) var(--ease);
 }
 .wf-lift:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--sh-lg);
+  transform: translateY(-1px);
+  box-shadow: var(--sh-sm);
 }
 /* Press: physically push down + compress + dim slightly */
 .wf-lift:active {

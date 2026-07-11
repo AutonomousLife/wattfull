@@ -38,27 +38,26 @@ export function GlassCard({
   const VARIANTS = {
     default: {
       background: t.white,
+      border: `1px solid ${t.borderLight}`,
       boxShadow: t.shadowMd,
       padding,
     },
     outlined: {
       background: t.white,
       border: `1px solid ${t.borderLight}`,
-      boxShadow: t.shadowMd,
+      boxShadow: "none",
       padding,
     },
     glass: {
-      background: t.glass,
+      background: t.card,
       border: `1px solid ${t.glassBorder}`,
-      backdropFilter: "blur(22px) saturate(180%)",
-      WebkitBackdropFilter: "blur(22px) saturate(180%)",
-      boxShadow: `${t.shadowMd}, inset 0 1px 0 ${t.glassBorder}`,
+      boxShadow: "none",
       padding,
     },
     featured: {
       background: t.featuredBg,
       border: `1.5px solid ${t.featuredBorder}`,
-      boxShadow: t.shadowMd,
+      boxShadow: "none",
       padding,
     },
     flat: {

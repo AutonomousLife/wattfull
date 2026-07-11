@@ -192,7 +192,7 @@ function QuickLink({ href, label, icon, t }) {
 }
 
 function HeroPreview({ zip }) {
-  const { t, dark } = useTheme();
+  const { t } = useTheme();
   const st = zip.length === 5 ? zipToState(zip) : null;
   const d = st ? STATE_DATA[st] : null;
 
@@ -206,33 +206,35 @@ function HeroPreview({ zip }) {
   const hasLoc = zip.length === 5 && !!st;
 
   return (
-    <div style={{ position: "relative", paddingBottom: 28 }}>
-      <GlassCard
-        variant="glass"
-        padding={24}
+    <div style={{ position: "relative" }}>
+      <div
         style={{
           position: "relative",
           overflow: "hidden",
-          borderRadius: "var(--r-xl)",
-          boxShadow: t.shadowXl,
+          background: t.white,
+          border: `1px solid ${t.border}`,
+          borderTop: `2px solid ${t.green}`,
+          borderRadius: "var(--r-lg)",
+          padding: 24,
         }}
       >
-        <div style={{ position: "absolute", top: 0, right: 0, width: 200, height: 140, background: dark ? "radial-gradient(ellipse at 100% 0%, rgba(106,175,123,0.12) 0%, transparent 68%)" : "radial-gradient(ellipse at 100% 0%, rgba(74,124,89,0.12) 0%, transparent 68%)", pointerEvents: "none" }} />
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, gap: 12 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{ width: 28, height: 28, borderRadius: 8, background: t.green, display: "flex", alignItems: "center", justifyContent: "center" }}>
               <Icon name="Zap" size={15} color="#fff" strokeWidth={2.25} />
             </div>
             <div>
-              <div style={{ fontSize: 12, fontWeight: 750, color: t.text }}>Preview: EV vs gas</div>
-              <div style={{ fontSize: 10, color: t.textLight }}>A quick local snapshot before the full calculator</div>
+              <div style={{ fontSize: 10, fontWeight: 800, color: t.green, letterSpacing: ".09em", textTransform: "uppercase" }}>Field estimate</div>
+              <div style={{ fontSize: 13, fontWeight: 750, color: t.text, marginTop: 3 }}>EV vs gas baseline</div>
             </div>
           </div>
-          <StatPill icon="MapPin" value={hasLoc ? st : "US avg"} variant="glass" size="sm" />
+          <div style={{ fontSize: 10, fontWeight: 750, color: t.textLight, letterSpacing: ".06em", textTransform: "uppercase" }}>
+            {hasLoc ? `${st} context` : "US average"}
+          </div>
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto", gap: 12, marginBottom: 6 }}>
-          <span style={{ fontSize: 11, fontWeight: 700, color: t.textFaint, textTransform: "uppercase", letterSpacing: ".06em" }}>Model Y vs RAV4 | 12k mi/yr</span>
+          <span style={{ fontSize: 10, fontWeight: 700, color: t.textFaint, textTransform: "uppercase", letterSpacing: ".08em" }}>Model Y vs RAV4 / 12k mi/yr</span>
           <span style={{ fontSize: 11, fontWeight: 750, color: t.green, minWidth: 62, textAlign: "right" }}>EV</span>
           <span style={{ fontSize: 11, fontWeight: 700, color: t.textLight, minWidth: 62, textAlign: "right" }}>Gas</span>
         </div>
@@ -249,10 +251,10 @@ function HeroPreview({ zip }) {
           </div>
         ))}
 
-        <div style={{ margin: "14px 0 12px", padding: "14px 16px", borderRadius: "var(--r-lg)", background: annSav > 0 ? t.greenGlass : t.warnBg, border: `1px solid ${annSav > 0 ? t.featuredBorder : "#F0C060"}` }}>
+        <div style={{ margin: "16px 0 12px", padding: "12px 0 12px 14px", borderLeft: `2px solid ${annSav > 0 ? t.green : t.warn}` }}>
           <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
             <div>
-              <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: ".06em", color: annSav > 0 ? t.green : t.warn, marginBottom: 4 }}>Snapshot result</div>
+              <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: ".09em", color: annSav > 0 ? t.green : t.warn, marginBottom: 4 }}>Annual delta</div>
               <div style={{ fontSize: 14, fontWeight: 700, color: t.text }}>Estimated annual savings</div>
             </div>
             <div style={{ fontSize: 26, fontWeight: 850, color: annSav > 0 ? t.green : t.warn, letterSpacing: "-.03em" }}>
@@ -262,40 +264,40 @@ function HeroPreview({ zip }) {
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: 10 }}>
-          <div style={{ background: t.card, borderRadius: "var(--r-md)", padding: "10px 12px" }}>
-            <div style={{ fontSize: 10, color: t.textLight, fontWeight: 700, marginBottom: 3 }}>5-year savings</div>
+          <div style={{ background: t.card, borderRadius: "var(--r-md)", padding: "10px 12px", border: `1px solid ${t.borderLight}` }}>
+            <div style={{ fontSize: 10, color: t.textLight, fontWeight: 700, marginBottom: 3, textTransform: "uppercase", letterSpacing: ".06em" }}>5-year savings</div>
             <div style={{ fontSize: 17, fontWeight: 800, color: t.text }}>{annSav > 0 ? `+$${(annSav * 5).toLocaleString()}` : "-"}</div>
           </div>
-          <div style={{ background: t.card, borderRadius: "var(--r-md)", padding: "10px 12px" }}>
-            <div style={{ fontSize: 10, color: t.textLight, fontWeight: 700, marginBottom: 3 }}>Break-even</div>
+          <div style={{ background: t.card, borderRadius: "var(--r-md)", padding: "10px 12px", border: `1px solid ${t.borderLight}` }}>
+            <div style={{ fontSize: 10, color: t.textLight, fontWeight: 700, marginBottom: 3, textTransform: "uppercase", letterSpacing: ".06em" }}>Break-even</div>
             <div style={{ fontSize: 17, fontWeight: 800, color: t.text }}>{breakEven && breakEven < 20 ? `~${breakEven.toFixed(1)} yrs` : "-"}</div>
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
-          <StatPill icon="RefreshCw" value="Updated context" variant="glass" size="sm" />
-          <StatPill icon="Zap" value={`${e} cents/kWh`} variant="green" size="sm" />
-          <StatPill icon="Fuel" value={`${hasLoc ? `$${g.toFixed(2)}` : "$3.40"}/gal`} variant="glass" size="sm" />
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 14, paddingTop: 12, borderTop: `1px solid ${t.borderLight}` }}>
+          <span style={{ fontSize: 11, color: t.textLight }}>Rates: <b style={{ color: t.text }}>{e}¢/kWh</b></span>
+          <span style={{ fontSize: 11, color: t.textLight }}>Gas: <b style={{ color: t.text }}>{hasLoc ? `$${g.toFixed(2)}` : "$3.40"}/gal</b></span>
+          <span style={{ fontSize: 11, color: t.textLight }}>Inputs shown in full tool</span>
         </div>
-      </GlassCard>
+      </div>
     </div>
   );
 }
 
 function StartCard({ item, t }) {
   return (
-    <GlassCard variant="outlined" padding={22} style={{ height: "100%", display: "flex", flexDirection: "column", gap: 12 }}>
+    <GlassCard variant="outlined" padding={22} style={{ height: "100%", display: "flex", flexDirection: "column", gap: 12, borderTop: `2px solid ${t.green}` }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-        <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "5px 10px", borderRadius: "999px", background: t.greenGlass, border: `1px solid ${t.featuredBorder}`, fontSize: 11, fontWeight: 700, color: t.green, letterSpacing: ".04em" }}>
+        <div style={{ fontSize: 10, fontWeight: 800, color: t.green, letterSpacing: ".09em", textTransform: "uppercase" }}>
           {item.eyebrow}
         </div>
-        <div style={{ width: 38, height: 38, borderRadius: "var(--r-md)", background: t.greenGlass, border: `1px solid ${t.featuredBorder}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <div style={{ width: 34, height: 34, borderRadius: "var(--r-sm)", background: t.greenGlass, border: `1px solid ${t.featuredBorder}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           <Icon name={item.icon} size={19} color={t.green} strokeWidth={1.75} />
         </div>
       </div>
       <div style={{ fontSize: 21, fontWeight: 800, color: t.text, lineHeight: 1.2, letterSpacing: "-.025em" }}>{item.title}</div>
       <div style={{ fontSize: 14, color: t.textMid, lineHeight: 1.65, flex: 1 }}>{item.desc}</div>
-      <div style={{ fontSize: 12, fontWeight: 700, color: t.text, padding: "10px 12px", borderRadius: "var(--r-md)", background: t.card }}>{item.stat}</div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: t.text, paddingTop: 12, borderTop: `1px solid ${t.borderLight}` }}>{item.stat}</div>
       <div style={{ fontSize: 12, color: t.textLight }}>{item.note}</div>
       <GlassButton href={item.href} variant="secondary" size="sm" iconAfter="ArrowRight">
         Open this path
@@ -383,7 +385,7 @@ function WhyCard({ item, t }) {
 
 export function HomePage() {
   const router = useRouter();
-  const { t, dark, advanced, toggleAdvanced } = useTheme();
+  const { t, advanced, toggleAdvanced } = useTheme();
   const [heroZip, setHeroZip] = useState("");
   const [zipFocused, setZipFocused] = useState(false);
 
@@ -394,24 +396,28 @@ export function HomePage() {
 
   return (
     <div>
-      <section className="wf-motif" style={{ padding: "clamp(36px,6vw,72px) 0 clamp(28px,4vw,52px)", position: "relative" }}>
-        <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: dark ? "radial-gradient(ellipse at 72% 28%, rgba(106,175,123,0.08) 0%, transparent 58%)" : "radial-gradient(ellipse at 72% 28%, rgba(74,124,89,0.08) 0%, transparent 58%)" }} />
+      <section className="wf-home-hero" style={{ padding: "clamp(44px,7vw,88px) 0 clamp(42px,5vw,64px)", position: "relative", borderBottom: `1px solid ${t.borderLight}` }}>
         <div style={{ display: "flex", alignItems: "flex-start", gap: "clamp(28px,5vw,64px)", flexWrap: "wrap", position: "relative" }}>
           <div style={{ flex: "1 1 54%", minWidth: 300, maxWidth: 620 }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px 6px 10px", borderRadius: "999px", background: t.greenGlass, border: `1px solid ${t.featuredBorder}`, marginBottom: 24 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, paddingLeft: 10, borderLeft: `2px solid ${t.green}`, marginBottom: 26 }}>
               <div style={{ width: 18, height: 18, borderRadius: 5, background: t.green, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Icon name="Shield" size={11} color="#fff" strokeWidth={2.25} />
               </div>
               <span style={{ fontSize: 12, fontWeight: 700, color: t.green }}>Independent analysis · Transparent assumptions</span>
             </div>
-            <h1 style={{ fontSize: "clamp(34px,5vw,58px)", fontWeight: 820, color: t.text, lineHeight: 1.05, letterSpacing: "-.045em", maxWidth: 620, marginBottom: 18 }}>
-              Make the expensive energy decision with the real numbers first.
+            <h1 style={{ fontSize: "clamp(42px,6vw,68px)", fontWeight: 800, color: t.text, lineHeight: 0.98, letterSpacing: "-.06em", maxWidth: 620, marginBottom: 20 }}>
+              Know the cost before you commit.
             </h1>
             <p style={{ fontSize: "clamp(15px,1.8vw,17px)", color: t.textMid, lineHeight: 1.65, maxWidth: 520, marginBottom: 22 }}>
               EV ownership, solar payback, and charging economics — source-backed data and plain-language verdicts.
             </p>
+            <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 24 }}>
+              {["Local rates", "Ownership cost", "Payback"].map((label) => (
+                <span key={label} style={{ fontSize: 11, fontWeight: 750, color: t.textLight, letterSpacing: ".06em", textTransform: "uppercase" }}>{label}</span>
+              ))}
+            </div>
             <div style={{ display: "flex", gap: 10, maxWidth: 500, marginBottom: 14, flexWrap: "wrap" }}>
-              <div style={{ flex: "1 1 180px", minWidth: 0, position: "relative", display: "flex", alignItems: "center", background: t.white, border: `1.5px solid ${zipFocused ? t.green : t.border}`, borderRadius: "var(--r-lg)", boxShadow: zipFocused ? `0 0 0 3px ${t.green}22, ${t.shadowMd}` : t.shadowMd, transition: "border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease)" }}>
+              <div style={{ flex: "1 1 180px", minWidth: 0, position: "relative", display: "flex", alignItems: "center", background: t.white, border: `1px solid ${zipFocused ? t.green : t.border}`, borderRadius: "var(--r-md)", boxShadow: zipFocused ? `0 0 0 3px ${t.green}22` : "none", transition: "border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease)" }}>
                 <div style={{ paddingLeft: 14, flexShrink: 0 }}>
                   <Icon name="MapPin" size={16} color={zipFocused ? t.green : t.textLight} strokeWidth={2} />
                 </div>
@@ -431,7 +437,7 @@ export function HomePage() {
                   style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontSize: 15, fontWeight: 650, color: t.text, padding: "13px 14px 13px 10px" }}
                 />
               </div>
-              <GlassButton variant="primary" size="md" iconAfter="ArrowRight" onClick={goToEV}>Start with EV savings</GlassButton>
+              <GlassButton variant="primary" size="md" iconAfter="ArrowRight" onClick={goToEV}>Check EV costs</GlassButton>
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <GlassButton variant="ghost" size="sm" href="/solar" icon="Sun">Solar ROI</GlassButton>
@@ -439,32 +445,24 @@ export function HomePage() {
               {advanced ? <GlassButton variant="ghost" size="sm" href="/states" icon="Map">State grades</GlassButton> : null}
             </div>
           </div>
-          <div style={{ flex: "1 1 38%", minWidth: 300, maxWidth: 440 }}>
+          <div style={{ flex: "1 1 38%", minWidth: 300, maxWidth: 460 }}>
             <HeroPreview zip={heroZip} />
           </div>
         </div>
       </section>
 
-      {!advanced ? (
-        <section style={{ padding: "clamp(28px,3vw,40px) 0 0" }}>
-          <GlassCard variant="outlined" padding={22} style={{ borderRadius: "var(--r-xl)" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 0 }}>
-                <div style={{ width: 42, height: 42, borderRadius: "var(--r-md)", background: t.greenGlass, border: `1px solid ${t.featuredBorder}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <Icon name="SlidersHorizontal" size={20} color={t.green} strokeWidth={1.75} />
-                </div>
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 11, fontWeight: 750, letterSpacing: ".08em", textTransform: "uppercase", color: t.green, marginBottom: 4 }}>Want more?</div>
-                  <div style={{ fontSize: 16, fontWeight: 750, color: t.text, lineHeight: 1.35 }}>Advanced mode unlocks 10 tools, state grades, gear reviews, and the full decision framework.</div>
-                </div>
-              </div>
-              <GlassButton variant="secondary" size="md" iconAfter="ArrowRight" onClick={toggleAdvanced}>
-                Enable advanced mode
-              </GlassButton>
-            </div>
-          </GlassCard>
-        </section>
-      ) : null}
+      <section style={{ padding: "clamp(38px,5vw,68px) 0 0" }}>
+        <div style={{ display: "flex", alignItems: "end", justifyContent: "space-between", gap: 20, flexWrap: "wrap", marginBottom: 20 }}>
+          <div>
+            <div style={{ fontSize: 10, fontWeight: 800, color: t.green, letterSpacing: ".1em", textTransform: "uppercase", marginBottom: 8 }}>Choose your question</div>
+            <h2 style={{ fontSize: "clamp(24px,3vw,34px)", fontWeight: 780, color: t.text, lineHeight: 1.08, letterSpacing: "-.045em" }}>Start where the decision is.</h2>
+          </div>
+          {!advanced ? <GlassButton variant="ghost" size="sm" iconAfter="ArrowRight" onClick={toggleAdvanced}>See all tools</GlassButton> : null}
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 12 }}>
+          {START_PATHS.map((item) => <StartCard key={item.href} item={item} t={t} />)}
+        </div>
+      </section>
 
       {advanced ? (
       <>
@@ -494,13 +492,6 @@ export function HomePage() {
       </>
       ) : null}
 
-      <section style={{ padding: "clamp(36px,4vw,56px) 0 clamp(36px,4vw,56px)" }}>
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-          <GlassButton href={heroZip ? `/ev?zip=${heroZip}` : "/ev"} variant="primary" size="md" iconAfter="ArrowRight">Run EV Calculator</GlassButton>
-          <GlassButton href="/compare" variant="secondary" size="md" iconAfter="ArrowRight">Compare options</GlassButton>
-          <GlassButton href="/solar" variant="ghost" size="md" iconAfter="ArrowRight">Solar ROI</GlassButton>
-        </div>
-      </section>
     </div>
   );
 }

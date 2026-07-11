@@ -37,14 +37,14 @@ export function GameLobbyPage() {
       </div>
       <h1 style={{ fontSize: "clamp(42px,6vw,70px)", fontWeight: 800, color: t.text, lineHeight: 0.98, letterSpacing: "-.06em", marginBottom: 18 }}>Blockworks</h1>
       <p style={{ maxWidth: 610, fontSize: 17, color: t.textMid, lineHeight: 1.65, marginBottom: 36 }}>
-        Mine, craft, and survive in a small procedural voxel world. Solo is ready now; LAN worlds sync player positions and block edits through a lightweight host server.
+        A small block sandbox that runs directly in the browser. Solo is ready now; LAN worlds sync player positions and block edits through a lightweight host server.
       </p>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 12 }}>
         <GlassCard variant="outlined" padding={24} style={{ borderTop: `2px solid ${t.green}` }}>
           <Icon name="Compass" size={22} color={t.green} strokeWidth={1.8} />
           <div style={{ fontSize: 20, fontWeight: 750, color: t.text, letterSpacing: "-.03em", margin: "16px 0 8px" }}>Solo world</div>
-          <p style={{ fontSize: 14, color: t.textMid, lineHeight: 1.6, marginBottom: 20 }}>A self-contained world with mining, placement, crafting, caves, day/night, and relics to find.</p>
+          <p style={{ fontSize: 14, color: t.textMid, lineHeight: 1.6, marginBottom: 20 }}>A self-contained world with mining, placement, a procedural landscape, and zero external game-engine dependencies.</p>
           <GlassButton href="/game/index.html" variant="primary" size="md" iconAfter="ArrowRight">Play solo</GlassButton>
         </GlassCard>
 

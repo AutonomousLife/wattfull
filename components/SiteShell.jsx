@@ -1,7 +1,7 @@
 ﻿"use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTheme } from "@/lib/ThemeContext";
 import { NAV } from "@/lib/data";
 import { ChatWidget } from "@/components/widgets";
@@ -11,9 +11,30 @@ export function SiteShell({ children }) {
   const { t, dark, toggleDark, advanced, toggleAdvanced } = useTheme();
   const pathname = usePathname();
   const [mobileMenu, setMobileMenu] = useState(false);
+  const [experimentalUnlocked, setExperimentalUnlocked] = useState(false);
 
   const isActive = (href) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
-  const visibleNav = advanced ? NAV : NAV.filter((item) => item.core);
+  const baseNav = advanced ? NAV : NAV.filter((item) => item.core);
+  const visibleNav = experimentalUnlocked
+    ? [...baseNav, { id: "experimental", label: "Experimental", href: "/experimental" }]
+    : baseNav;
+
+  useEffect(() => {
+    if (pathname !== "/") return undefined;
+
+    let typed = "";
+    const unlockExperimental = (event) => {
+      if (event.metaKey || event.ctrlKey || event.altKey || event.key.length !== 1) return;
+      typed = `${typed}${event.key.toLowerCase()}`.slice(-6);
+      if (typed === "silver") {
+        setExperimentalUnlocked(true);
+        typed = "";
+      }
+    };
+
+    window.addEventListener("keydown", unlockExperimental);
+    return () => window.removeEventListener("keydown", unlockExperimental);
+  }, [pathname]);
 
   return (
     <div
@@ -48,6 +69,15 @@ export function SiteShell({ children }) {
         .wf-dark-toggle:hover{
           background: ${t.greenGlass}!important;
           border-color: ${t.featuredBorder}!important;
+        }
+        .wf-experimental-tab{
+          animation: wf-experimental-tab-in 460ms cubic-bezier(.16,1,.3,1) both;
+          transform-origin: right center;
+        }
+        @keyframes wf-experimental-tab-in{
+          0%{opacity:0;transform:translateX(12px) scale(.88);filter:blur(3px)}
+          70%{opacity:1;transform:translateX(-2px) scale(1.03);filter:blur(0)}
+          100%{opacity:1;transform:translateX(0) scale(1);filter:blur(0)}
         }
       `}</style>
 
@@ -113,7 +143,7 @@ export function SiteShell({ children }) {
                   <Link
                     key={item.id}
                     href={item.href}
-                    className="wf-nav-link"
+                    className={`wf-nav-link ${item.id === "experimental" ? "wf-experimental-tab" : ""}`}
                     style={{
                       padding: "6px 11px",
                       fontSize: 13,
@@ -220,6 +250,7 @@ export function SiteShell({ children }) {
                 key={item.id}
                 href={item.href}
                 onClick={() => setMobileMenu(false)}
+                className={item.id === "experimental" ? "wf-experimental-tab" : ""}
                 style={{
                   padding: "10px 14px",
                   fontSize: 14,

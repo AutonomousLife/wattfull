@@ -100,6 +100,12 @@ export class UI {
     const bar = $('#hotbar');
     bar.innerHTML = '';
     for (let index = 0; index < 9; index++) bar.append(this.slot(inventory, index, index === inventory.selected, false));
+    this.viewmodel(inventory.slots[inventory.selected]?.id ?? 0, false);
+  }
+
+  viewmodel(id: number, swinging: boolean) {
+    const element = $('#viewmodel');
+    element.className = id ? `tool${isTool(id) ? '' : ' hand'}${swinging ? ' swing' : ''}` : '';
   }
 
   renderInventory(inventory: Inventory, nearBench: boolean) {

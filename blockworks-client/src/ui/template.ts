@@ -66,6 +66,7 @@ export const template = `
   <div id="health"></div>
   <div id="crosshair"></div>
   <div id="mine-progress"><i></i></div>
+  <div id="viewmodel" aria-hidden="true"></div>
   <div id="hotbar" class="slots"></div>
   <div id="message"></div>
   <div id="debug" hidden></div>

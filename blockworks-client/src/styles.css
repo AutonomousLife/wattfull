@@ -74,6 +74,12 @@ dd { margin: 0; text-align: right; }
 #health { position: absolute; left: 20px; bottom: 21px; color: #c98579; font: 650 .72rem/1 system-ui, sans-serif; letter-spacing: .08em; text-shadow: 0 1px #000; }
 #mine-progress { position: absolute; left: 50%; top: calc(50% + 20px); transform: translateX(-50%); width: 86px; height: 3px; background: #151a17; opacity: 0; }
 #mine-progress i { display: block; height: 100%; background: #bdc3b9; width: 0; }
+#viewmodel { position: absolute; right: 8vw; bottom: 5vh; width: 92px; height: 150px; transform: rotate(-14deg); transform-origin: 82% 96%; opacity: 0; transition: transform .09s ease-out, opacity .12s; }
+#viewmodel::before { content: ''; position: absolute; right: 22px; bottom: 0; width: 24px; height: 92px; background: #795238; border: 3px solid #4d372b; }
+#viewmodel::after { content: ''; position: absolute; right: 6px; top: 19px; width: 62px; height: 38px; background: #6c7775; border: 4px solid #3f4847; }
+#viewmodel.tool { opacity: .92; }
+#viewmodel.swing { transform: rotate(16deg) translate(-5px, 10px); }
+#viewmodel.hand::after { display: none; }
 #message { position: absolute; left: 50%; bottom: 82px; transform: translateX(-50%); background: rgba(18, 23, 20, .9); border-left: 2px solid #727c73; padding: .4rem .65rem; opacity: 0; transition: opacity .12s; }
 #debug { position: absolute; right: 15px; top: 15px; background: rgba(8, 12, 9, .88); padding: .65rem; white-space: pre; line-height: 1.45; font: .68rem/1.45 ui-monospace, monospace; }
 #damage { position: fixed; inset: 0; z-index: 15; pointer-events: none; background: rgba(143, 48, 39, 0); transition: background .1s; }

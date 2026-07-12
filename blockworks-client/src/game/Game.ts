@@ -144,13 +144,13 @@ export class Game {
     const axis = this.input.axis();
     const length = Math.hypot(axis.x, axis.z) || 1;
     const sprint = this.input.sprinting() && axis.z > 0;
-    const speed = sprint ? 5.7 : 4.25;
+    const speed = sprint ? 6 : 4.5;
     const forwardX = -Math.sin(this.input.yaw), forwardZ = -Math.cos(this.input.yaw);
     const rightX = Math.cos(this.input.yaw), rightZ = -Math.sin(this.input.yaw);
     const wishX = (rightX * axis.x + forwardX * axis.z) / length;
     const wishZ = (rightZ * axis.x + forwardZ * axis.z) / length;
-    const acceleration = this.grounded ? 48 : 3.8;
-    const deceleration = this.grounded ? 58 : 1.4;
+    const acceleration = this.grounded ? 38 : 7.5;
+    const deceleration = this.grounded ? 48 : 1.8;
     this.velocity.x = this.approach(this.velocity.x, wishX * speed, (axis.x || axis.z ? acceleration : deceleration) * dt);
     this.velocity.z = this.approach(this.velocity.z, wishZ * speed, (axis.x || axis.z ? acceleration : deceleration) * dt);
 
@@ -225,6 +225,7 @@ export class Game {
     if (key !== this.miningKey) { this.miningKey = key; this.mining = 0; }
     const id = this.world.get(block.x, block.y, block.z), definition = BLOCKS[id]!;
     const selected = this.inventory.slots[this.inventory.selected], tier = toolTier(selected?.id ?? 0);
+    this.ui.viewmodel(selected?.id ?? 0, true);
     let multiplier = 1;
     if (definition.tool === 'pickaxe') multiplier = tier < definition.tier ? .14 : tier >= 2 ? 5.4 : 3.6;
     const previous = this.mining;
@@ -240,7 +241,7 @@ export class Game {
     this.cancelMine();
   }
 
-  private cancelMine() { this.mining = 0; this.miningKey = ''; this.ui.mining(0); }
+  private cancelMine() { this.mining = 0; this.miningKey = ''; this.ui.mining(0); this.ui.viewmodel(this.inventory.slots[this.inventory.selected]?.id ?? 0, false); }
 
   private place() {
     if (!this.target) { this.rejectPlacement(); return; }

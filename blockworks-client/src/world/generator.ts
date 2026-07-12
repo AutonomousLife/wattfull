@@ -66,12 +66,20 @@ function exposedCrystalSeam(x: number, y: number, z: number, height: number) {
   return y === height && Math.abs(localX) <= 7 && Math.abs(localZ) <= 4 && seam < 1.15 && (x + z) % 3 !== 0;
 }
 
+function quarryMouth(x: number, y: number, z: number, height: number) {
+  const dx = x - QUARRY.x, dz = z - (QUARRY.z - 9);
+  // A shallow, hand-cut entrance makes the quarry a readable destination
+  // instead of asking the player to tunnel blindly into procedural stone.
+  return Math.abs(dx) <= 2 && Math.abs(dz) <= 1 && y >= height - 3 && y <= height;
+}
+
 export function baseBlock(x: number, y: number, z: number, seed: number): BlockId {
   if (x < 0 || z < 0 || x >= WORLD_SIZE || z >= WORLD_SIZE || y < 0 || y >= WORLD_HEIGHT) {
     return y <= SEA_LEVEL ? BlockId.Water : BlockId.Air;
   }
   const height = terrainHeight(x, z, seed);
   if (y > height) return y <= SEA_LEVEL ? BlockId.Water : BlockId.Air;
+  if (quarryMouth(x, y, z, height)) return BlockId.Air;
   if (caveAt(x, y, z, seed) && y < height - 2) return BlockId.Air;
   if (exposedCrystalSeam(x, y, z, height)) return BlockId.CrystalOre;
   if (crystalVein(x, y, z, seed)) return BlockId.CrystalOre;

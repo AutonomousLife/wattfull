@@ -37,6 +37,10 @@ describe("world generation",()=>{
   it("does not generate resources with no usable progression path",()=>{
     for(let z=0;z<128;z+=7)for(let x=0;x<128;x+=7)for(let y=0;y<64;y+=3)expect(baseBlock(x,y,z,DEFAULT_SEED)).not.toBe(BlockId.CoalOre);
   });
+  it("provides a readable quarry entrance instead of a blind mining destination",()=>{
+    const x=QUARRY.x,z=QUARRY.z-9,height=terrainHeight(x,z,DEFAULT_SEED);
+    expect(baseBlock(x,height,z,DEFAULT_SEED)).toBe(BlockId.Air);expect(baseBlock(x,height-3,z,DEFAULT_SEED)).toBe(BlockId.Air);expect(baseBlock(x,height-4,z,DEFAULT_SEED)).toBe(BlockId.Stone);
+  });
   it("starts with visible tower damage and records the physical repair",()=>{
     const world=new World(DEFAULT_SEED),{x,z,ground}=world.tower;
     expect(world.get(x+2,ground+6,z+2)).toBe(BlockId.Air);expect(world.get(x,ground+6,z)).toBe(BlockId.Air);

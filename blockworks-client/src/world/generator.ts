@@ -60,10 +60,6 @@ function caveAt(x: number, y: number, z: number, seed: number) {
   return tunnel > .76 && chamber > .43;
 }
 
-function coalVein(x: number, y: number, z: number, seed: number) {
-  return y > 8 && y < 34 && hash2(Math.floor(x / 2), Math.floor(z / 2), seed + y * 13) > .91;
-}
-
 function exposedCrystalSeam(x: number, y: number, z: number, height: number) {
   const localX = x - QUARRY.x, localZ = z - QUARRY.z;
   const seam = Math.abs(localZ - localX * .35);
@@ -79,7 +75,6 @@ export function baseBlock(x: number, y: number, z: number, seed: number): BlockI
   if (caveAt(x, y, z, seed) && y < height - 2) return BlockId.Air;
   if (exposedCrystalSeam(x, y, z, height)) return BlockId.CrystalOre;
   if (crystalVein(x, y, z, seed)) return BlockId.CrystalOre;
-  if (coalVein(x, y, z, seed) && y < height - 3) return BlockId.CoalOre;
   if (quarrySurface(x, z) || ridgeSurface(x, z)) return BlockId.Stone;
   const biome = biomeAt(x, z, seed);
   if (y === height) return height <= SEA_LEVEL + 1 || biome === 'scrub' ? BlockId.Sand : BlockId.Grass;

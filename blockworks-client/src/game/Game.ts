@@ -52,6 +52,7 @@ export class Game {
   private fpsTime = 0;
   private worldTime = .32;
   private streamCleanup = 0;
+  private streamRequest = '';
   private drops: Drop[] = [];
   private particles: Particle[] = [];
 
@@ -131,7 +132,11 @@ export class Game {
   }
 
   private fixed(dt: number) {
-    this.world.queueAround(this.player.x, this.player.z, this.settings.renderDistance + 1);
+    const streamRequest = `${Math.floor(this.player.x / 16)},${Math.floor(this.player.z / 16)}:${this.settings.renderDistance}`;
+    if (streamRequest !== this.streamRequest) {
+      this.streamRequest = streamRequest;
+      this.world.queueAround(this.player.x, this.player.z, this.settings.renderDistance + 1);
+    }
     this.world.processGeneration(1);
     this.streamCleanup += dt;
     if (this.streamCleanup > 2) { this.streamCleanup = 0; this.world.unloadFar(this.player.x, this.player.z, this.settings.renderDistance + 2); }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { blockKey, chunkIndex, worldToChunk, worldToLocal } from "../src/world/coords";
-import { biomeAt, findSpawn, QUARRY, shouldTree, terrainHeight, WORKSITE } from "../src/world/generator";
+import { baseBlock, biomeAt, findSpawn, QUARRY, shouldTree, terrainHeight, WORKSITE } from "../src/world/generator";
 import { seedFrom } from "../src/world/noise";
 import { World } from "../src/world/World";
 import { BlockId, ItemId } from "../src/world/blocks";
@@ -33,6 +33,9 @@ describe("world generation",()=>{
     for(let z=0;z<128;z++)for(let x=0;x<128;x++){if(shouldTree(x,z,DEFAULT_SEED))trees++;for(let y=0;y<64;y++)if(world.get(x,y,z)===BlockId.CrystalOre){crystals++;if(world.get(x,y+1,z)===BlockId.Air)exposedCrystals++;}}
     expect(trees).toBeGreaterThan(20);expect(trees).toBeLessThan(120);expect(crystals).toBeGreaterThan(20);expect(exposedCrystals).toBeGreaterThanOrEqual(3);
     expect(terrainHeight(QUARRY.x,QUARRY.z,DEFAULT_SEED)).toBeLessThan(terrainHeight(QUARRY.x-18,QUARRY.z-18,DEFAULT_SEED));
+  });
+  it("does not generate resources with no usable progression path",()=>{
+    for(let z=0;z<128;z+=7)for(let x=0;x<128;x+=7)for(let y=0;y<64;y+=3)expect(baseBlock(x,y,z,DEFAULT_SEED)).not.toBe(BlockId.CoalOre);
   });
   it("starts with visible tower damage and records the physical repair",()=>{
     const world=new World(DEFAULT_SEED),{x,z,ground}=world.tower;

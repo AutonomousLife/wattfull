@@ -46,7 +46,7 @@ The simulation runs at a fixed 60 Hz with an accumulator; rendering runs indepen
 
 ## World and save format
 
-The world is a 64×64 grid of 16×16 chunks with a height of 64 blocks. Chunks are generated deterministically from the seed as the player approaches them, with a protected worksite generated immediately for reliable spawning and collision. The terrain includes broad grassland, forest, scrubby shoreline, wetland, rocky highland, shallow water, coal and crystal veins, and restrained cave tunnels. Base terrain is regenerated from the numeric seed; IndexedDB saves store sparse block edits plus player/spawn positions, health, inventory, objectives, completion state, world time, timestamp, and save version.
+The world is a 64×64 grid of 16×16 chunks with a height of 64 blocks. Chunks are generated deterministically from the seed as the player approaches them, with a protected worksite generated immediately for reliable spawning and collision. The terrain includes broad grassland, forest, scrubby shoreline, wetland, rocky highland, shallow water, crystal veins, and restrained cave tunnels. Base terrain is regenerated from the numeric seed; IndexedDB saves store sparse block edits plus player/spawn positions, health, inventory, objectives, completion state, world time, timestamp, and save version.
 
 Generation and meshing are budgeted: one queued chunk is generated per fixed update and one dirty chunk is rebuilt per render update. This avoids the large synchronous world creation and remesh spikes that the early prototype incurred. The renderer also runs a persisted day-night cycle with a procedural sky color, sun, moon, stars, and time-aware fog.
 

@@ -36,7 +36,7 @@ export class World {
   queueAround(x: number, z: number, radius: number) {
     const cx = worldToChunk(Math.floor(x)), cz = worldToChunk(Math.floor(z));
     for (let distance = 0; distance <= radius; distance++) for (let dz = -distance; dz <= distance; dz++) for (let dx = -distance; dx <= distance; dx++) {
-      if (Math.max(Math.abs(dx), Math.abs(dz)) !== distance) continue;
+      if (Math.max(Math.abs(dx), Math.abs(dz)) !== distance || dx * dx + dz * dz > radius * radius) continue;
       const key = chunkKey(cx + dx, cz + dz);
       if (!this.chunks.has(key) && !this.queued.has(key)) { this.queued.add(key); this.generationQueue.push(key); }
     }

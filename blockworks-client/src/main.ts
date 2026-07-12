@@ -14,7 +14,7 @@ ui.setContinue(!!save);
 ui.onSettings=()=>{void saveSettings(settings);game?.refreshSettings();};
 
 async function launch(name:string,seed:number,existing=save??undefined){
-  game?.stop();game=new Game(name,seed,settings,ui,existing);await game.start();await game.save();
+  game?.stop();game=new Game(name,seed,settings,ui,existing);await game.start();await game.save();save=await loadSave();ui.setContinue(!!save);
 }
 ui.onContinue=()=>{if(save)void launch(save.name,save.seed,save);};
 ui.onNewWorld=(name,seedText)=>{const seed=seedFrom(seedText.trim()||'worksite');save=null;ui.setContinue(false);void launch(name,seed);};

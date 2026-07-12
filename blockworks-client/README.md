@@ -35,7 +35,7 @@ The Vite development URL is printed by `game:dev`. For full site integration, ru
 - `src/game`: fixed-step simulation, progression, player health, item drops, and command coordination
 - `src/world`: deterministic terrain, numeric chunk storage, block registry, exposed-face meshing, and DDA targeting
 - `src/player`: voxel-aware AABB collision primitives
-- `src/rendering`: Three.js scene, chunk mesh lifecycle, selection outline, and beacon beam
+- `src/rendering`: Three.js scene, chunk mesh lifecycle, selection outline, and repaired-tower lighting
 - `src/inventory` and `src/crafting`: pure inventory operations and recipe rules
 - `src/input`: pointer-lock mouse and keyboard command collection
 - `src/audio`: original procedural Web Audio cues
@@ -46,11 +46,11 @@ The simulation runs at a fixed 60 Hz with an accumulator; rendering runs indepen
 
 ## World and save format
 
-The initial world is an 8×8 set of 16×16 chunks with a height of 64 blocks. Each chunk stores numeric block IDs in a `Uint8Array`. The finite world is shaped as a broad island with water at its edges. Base terrain is regenerated from the numeric seed; IndexedDB saves store only sparse block edits plus player/spawn positions, health, inventory, tool durability, objectives, settings, timestamp, and save version.
+The initial world is an 8×8 set of 16×16 chunks with a height of 64 blocks. Each chunk stores numeric block IDs in a `Uint8Array`. The finite world has a flat central worksite, damaged signal tower, grouped woodland, and a lower rocky quarry with an exposed voltaic-crystal seam. Base terrain is regenerated from the numeric seed; IndexedDB saves store only sparse block edits plus player/spawn positions, health, inventory, tool durability, objectives, settings, timestamp, and save version.
 
 ## Assets
 
-Run `npm run game:assets` to recreate `public/assets/atlas.png`. `scripts/generate-assets.mjs` uses seeded procedural patterns and a controlled palette to create the original 16×16 material tiles. Texture licensing is documented in `public/assets/ART_LICENSE.md`.
+Run `npm run game:assets` to recreate `public/assets/atlas.png`. `scripts/generate-assets.mjs` builds intentional 16×16 material patterns—board joins, stone planes, bark, growth rings, leaf clusters, and embedded ore seams—from a controlled palette. Texture licensing is documented in `public/assets/ART_LICENSE.md`.
 
 ## Extending the game
 
@@ -68,7 +68,7 @@ A later authoritative server can accept timestamped player commands (`move`, `lo
 - Terrain is finite and fully generated at startup rather than streamed.
 - Water has no fluid simulation and lighting is not voxel-propagated.
 - Dropped items are session-local and are not yet persisted.
-- Shadows are omitted to keep performance predictable; the setting is reserved for a later renderer pass.
+- Shadows are omitted to keep performance predictable.
 - Touch controls and gamepads are not implemented.
 
 The next sensible milestone is streamed outer chunks with worker-based meshing, followed by broader movement/mining playtesting before authoritative multiplayer.

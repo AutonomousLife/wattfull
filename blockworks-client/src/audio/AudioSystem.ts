@@ -1,10 +1,54 @@
 import type { Footstep } from "../world/blocks";
-export class AudioSystem{
-  private ctx?:AudioContext;private gain?:GainNode;
-  constructor(private volume:()=>number){}
-  start(){if(this.ctx)return;this.ctx=new AudioContext();this.gain=this.ctx.createGain();this.gain.gain.value=this.volume();this.gain.connect(this.ctx.destination);}
-  updateVolume(){if(this.gain)this.gain.gain.value=this.volume();}
-  private tone(freq:number,duration=.08,type:OscillatorType='triangle',gain=.07,slide=0){this.start();const c=this.ctx!,o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.setValueAtTime(freq*(.96+Math.random()*.08),c.currentTime);if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(30,freq+slide),c.currentTime+duration);g.gain.setValueAtTime(gain,c.currentTime);g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+duration);o.connect(g);g.connect(this.gain!);o.start();o.stop(c.currentTime+duration);}
-  footstep(type:Footstep){const f={grass:120,stone:190,wood:150,sand:85,water:70}[type];this.tone(f,.055,'triangle',.025,-25);}
-  jump(){this.tone(180,.1,'sine',.04,80);}land(){this.tone(90,.12,'triangle',.055,-40);}mine(){this.tone(210,.05,'square',.025,-60);}break(){this.tone(105,.14,'sawtooth',.05,-60);}place(){this.tone(140,.08,'triangle',.04,-25);}pickup(){this.tone(430,.09,'sine',.04,280);}craft(){this.tone(340,.12,'triangle',.04,220);}click(){this.tone(280,.035,'sine',.02,50);}damage(){this.tone(110,.16,'sawtooth',.07,-55);}beacon(){this.tone(220,.7,'sine',.07,660);setTimeout(()=>this.tone(440,.7,'sine',.05,440),180);}
+
+export class AudioSystem {
+  private ctx?: AudioContext;
+  private gain?: GainNode;
+  constructor(private volume: () => number) {}
+
+  start() {
+    if (!this.ctx) {
+      this.ctx = new AudioContext();
+      this.gain = this.ctx.createGain();
+      this.gain.gain.value = this.volume();
+      this.gain.connect(this.ctx.destination);
+    } else if (this.ctx.state === 'suspended') void this.ctx.resume();
+  }
+  updateVolume() { if (this.gain) this.gain.gain.value = this.volume(); }
+
+  private tone(freq: number, duration = .08, type: OscillatorType = 'triangle', gain = .03, slide = 0) {
+    this.start();
+    const context = this.ctx!, oscillator = context.createOscillator(), envelope = context.createGain();
+    oscillator.type = type;
+    oscillator.frequency.setValueAtTime(freq, context.currentTime);
+    if (slide) oscillator.frequency.exponentialRampToValueAtTime(Math.max(30, freq + slide), context.currentTime + duration);
+    envelope.gain.setValueAtTime(gain, context.currentTime);
+    envelope.gain.exponentialRampToValueAtTime(.0001, context.currentTime + duration);
+    oscillator.connect(envelope); envelope.connect(this.gain!); oscillator.start(); oscillator.stop(context.currentTime + duration);
+  }
+  private noise(duration: number, gain: number, frequency: number) {
+    this.start();
+    const context = this.ctx!, length = Math.ceil(context.sampleRate * duration), buffer = context.createBuffer(1, length, context.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let index = 0; index < length; index++) data[index] = (Math.random() * 2 - 1) * (1 - index / length);
+    const source = context.createBufferSource(), filter = context.createBiquadFilter(), envelope = context.createGain();
+    source.buffer = buffer; filter.type = 'bandpass'; filter.frequency.value = frequency; filter.Q.value = .7;
+    envelope.gain.setValueAtTime(gain, context.currentTime); envelope.gain.exponentialRampToValueAtTime(.0001, context.currentTime + duration);
+    source.connect(filter); filter.connect(envelope); envelope.connect(this.gain!); source.start(); source.stop(context.currentTime + duration);
+  }
+  private materialFrequency(type: Footstep) { return { grass: 180, stone: 560, wood: 330, sand: 130, water: 100 }[type]; }
+  footstep(type: Footstep) { this.noise(.045, .016, this.materialFrequency(type)); }
+  jump() { this.noise(.05, .014, 170); }
+  land() { this.noise(.09, .032, 120); }
+  mine(type: Footstep) { this.noise(.045, .025, this.materialFrequency(type) * 1.3); }
+  break(type: Footstep) { this.noise(.11, .038, this.materialFrequency(type)); }
+  place() { this.noise(.06, .024, 260); }
+  reject() { this.tone(95, .045, 'triangle', .012, -20); }
+  pickup() { this.tone(390, .065, 'sine', .022, 90); }
+  craft() { this.noise(.08, .022, 420); this.tone(240, .08, 'triangle', .018, 70); }
+  damage() { this.noise(.11, .045, 95); }
+  towerStart() {
+    this.noise(.32, .04, 160);
+    this.tone(110, .75, 'sine', .045, 110);
+    setTimeout(() => this.tone(330, .55, 'sine', .028, 220), 220);
+  }
 }

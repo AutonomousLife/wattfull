@@ -21,6 +21,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+<<<<<<< ours
   metadataBase: new URL(siteUrl),
   title: {
     default: "Wattfull - Energy Decisions, Done Right",
@@ -47,6 +48,10 @@ export const metadata: Metadata = {
     title: "Wattfull - Energy Decisions, Done Right",
     description: "Data-driven EV, solar, and ownership decisions with transparent assumptions and premium tools.",
   },
+=======
+  title: "Wattfull — Energy Decisions, Done Right",
+  description: "Compare EVs and energy gear, estimate runtime, visualize carbon impact, and share savings.",
+>>>>>>> theirs
 };
 
 const darkModeScript = `
@@ -65,11 +70,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
+<<<<<<< ours
     <html lang="en" className={inter.variable} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: darkModeScript }} />
       </head>
       <body>{children}</body>
+=======
+    <html lang="en">
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>{children}</body>
+>>>>>>> theirs
     </html>
   );
 }

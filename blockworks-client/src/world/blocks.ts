@@ -33,18 +33,18 @@ export const BLOCKS: Record<number, BlockDefinition> = {
   [BlockId.Log]: b(BlockId.Log,"Wood Log",true,false,1.25,"axe",0,BlockId.Log,[6,7,7],"wood"),
   [BlockId.Leaves]: b(BlockId.Leaves,"Leaves",true,true,.25,"none",0,0,8,"grass",false,false),
   [BlockId.CoalOre]: b(BlockId.CoalOre,"Coal Ore",true,false,3,"pickaxe",1,101,9,"stone"),
-  [BlockId.CrystalOre]: b(BlockId.CrystalOre,"Crystal Ore",true,false,4,"pickaxe",2,102,10,"stone",true),
+  [BlockId.CrystalOre]: b(BlockId.CrystalOre,"Voltaic Crystal",true,false,3.2,"pickaxe",2,102,10,"stone",true),
   [BlockId.Planks]: b(BlockId.Planks,"Wood Planks",true,false,1,"axe",0,BlockId.Planks,11,"wood"),
   [BlockId.Cobblestone]: b(BlockId.Cobblestone,"Cobblestone",true,false,2.2,"pickaxe",1,BlockId.Cobblestone,12,"stone"),
   [BlockId.CraftingBench]: b(BlockId.CraftingBench,"Crafting Bench",true,false,1.5,"axe",0,BlockId.CraftingBench,13,"wood"),
   [BlockId.Torch]: b(BlockId.Torch,"Torch",false,true,.1,"none",0,BlockId.Torch,14,"wood",true),
-  [BlockId.Beacon]: b(BlockId.Beacon,"Blockworks Beacon",true,true,2,"pickaxe",1,BlockId.Beacon,15,"stone",true),
+  [BlockId.Beacon]: b(BlockId.Beacon,"Voltaic Core",true,false,99,"none",0,BlockId.Beacon,15,"stone",true,false),
 };
 
 export enum ItemId { Stick=100, Coal=101, Crystal=102, WoodPickaxe=110, StonePickaxe=111 }
 export const ITEM_NAMES: Record<number,string> = {
   ...Object.fromEntries(Object.values(BLOCKS).map(v => [v.id, v.name])),
-  [ItemId.Stick]: "Stick", [ItemId.Coal]: "Coal", [ItemId.Crystal]: "Crystal",
+  [ItemId.Stick]: "Stick", [ItemId.Coal]: "Coal", [ItemId.Crystal]: "Voltaic Crystal",
   [ItemId.WoodPickaxe]: "Wooden Pickaxe", [ItemId.StonePickaxe]: "Stone Pickaxe",
 };
 export const MAX_STACK = 64;

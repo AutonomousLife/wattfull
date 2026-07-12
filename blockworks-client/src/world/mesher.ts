@@ -12,7 +12,7 @@ const faces=[
   {n:[0,0,-1],v:[[0,0,0],[0,1,0],[1,1,0],[1,0,0]],shade:.66,side:1},
 ] as const;
 function textureFor(id:number,side:number){const t=BLOCKS[id]!.texture;return Array.isArray(t)?t[side]!:t;}
-function uvFor(tile:number){const col=tile%4,row=Math.floor(tile/4),e=.003;return [[col/4+e,1-(row+1)/4+e],[col/4+e,1-row/4-e],[(col+1)/4-e,1-row/4-e],[(col+1)/4-e,1-(row+1)/4+e]];}
+function uvFor(tile:number){const col=tile%4,row=Math.floor(tile/4),e=.5/64;return [[col/4+e,1-(row+1)/4+e],[col/4+e,1-row/4-e],[(col+1)/4-e,1-row/4-e],[(col+1)/4-e,1-(row+1)/4+e]];}
 function geometry(world:World,chunk:Chunk,transparent:boolean){const pos:number[]=[],nor:number[]=[],uv:number[]=[],colors:number[]=[],idx:number[]=[];let vi=0;
   for(let y=0;y<WORLD_HEIGHT;y++)for(let z=0;z<CHUNK_SIZE;z++)for(let x=0;x<CHUNK_SIZE;x++){const wx=chunk.cx*16+x,wz=chunk.cz*16+z,id=world.get(wx,y,wz),def=BLOCKS[id];if(!def||id===BlockId.Air||def.transparent!==transparent)continue;
     for(const f of faces){const nx=wx+f.n[0],ny=y+f.n[1],nz=wz+f.n[2],neighbor=BLOCKS[world.get(nx,ny,nz)]!;if(neighbor.solid&&!neighbor.transparent)continue;if(transparent&&neighbor.id===id)continue;const tile=textureFor(id,f.side),tuv=uvFor(tile);for(let i=0;i<4;i++){const v=f.v[i]!;pos.push(x+v[0],y+v[1],z+v[2]);nor.push(...f.n);uv.push(...tuv[i]!);colors.push(f.shade,f.shade,f.shade);}idx.push(vi,vi+1,vi+2,vi,vi+2,vi+3);vi+=4;}

@@ -5,7 +5,6 @@ export type Settings = {
   fov: number;
   sensitivity: number;
   headBob: boolean;
-  shadows: boolean;
   volume: number;
   objectives: boolean;
 };
@@ -25,10 +24,3 @@ export type SaveData = {
   completed: boolean;
   savedAt: number;
 };
-
-export type GameEvent =
-  | { type: "block-broken"; block: number; position: Vec3 }
-  | { type: "block-placed"; block: number; position: Vec3 }
-  | { type: "crafted"; item: number }
-  | { type: "damage"; amount: number }
-  | { type: "objective"; index: number };

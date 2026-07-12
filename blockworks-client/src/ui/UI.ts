@@ -1,40 +1,149 @@
 import type { Settings } from "../shared/types";
 import type { Inventory } from "../inventory/Inventory";
-import { ITEM_NAMES, isTool } from "../world/blocks";
+import { BlockId, ITEM_NAMES, ItemId, isTool } from "../world/blocks";
 import { RECIPES, canCraft } from "../crafting/recipes";
 import { OBJECTIVES } from "../game/objectives";
+import { TOWER_REPAIR } from "../game/repair";
 
-const $=<T extends HTMLElement>(selector:string)=>document.querySelector<T>(selector)!;
-export class UI{
-  onNewWorld:(name:string,seed:string)=>void=()=>{};onContinue:()=>void=()=>{};onResume:()=>void=()=>{};onSave:()=>void=()=>{};onQuit:()=>void=()=>{};onCraft:(id:string)=>void=()=>{};onMoveSlot:(a:number,b:number)=>void=()=>{};onSettings:()=>void=()=>{};
-  private active='title';private previous='title';private messageTimer=0;private moving:number|null=null;
-  constructor(public settings:Settings){
-    $('[id="new-world"]').onclick=()=>this.open('new-dialog');$('#continue').onclick=()=>this.onContinue();$('#resume').onclick=()=>this.onResume();$('#save').onclick=()=>this.onSave();$('#quit').onclick=()=>this.onQuit();
-    document.querySelectorAll<HTMLElement>('[data-open]').forEach(b=>b.onclick=()=>this.open(b.dataset.open!));document.querySelectorAll<HTMLElement>('[data-close]').forEach(b=>b.onclick=()=>this.closeOverlay());
-    $('form').onsubmit=e=>{e.preventDefault();this.onNewWorld($<HTMLInputElement>('#world-name').value||'Frontier',$<HTMLInputElement>('#world-seed').value);};
-    this.bindSetting('render-distance','renderDistance',Number);this.bindSetting('fov','fov',Number);this.bindSetting('sensitivity','sensitivity',v=>Number(v)*.001);this.bindSetting('volume','volume',Number);this.bindCheck('head-bob','headBob');this.bindCheck('objectives','objectives');this.syncSettings();
+const $ = <T extends HTMLElement>(selector: string) => document.querySelector<T>(selector)!;
+
+export class UI {
+  onNewWorld: (name: string, seed: string) => void = () => {};
+  onContinue: () => void = () => {};
+  onResume: () => void = () => {};
+  onSave: () => void = () => {};
+  onQuit: () => void = () => {};
+  onCraft: (id: string) => void = () => {};
+  onMoveSlot: (from: number, to: number) => void = () => {};
+  onSettings: () => void = () => {};
+  private active = 'title';
+  private previous = 'title';
+  private messageTimer = 0;
+  private moving: number | null = null;
+
+  constructor(public settings: Settings) {
+    $('#new-world').onclick = () => this.open('new-dialog');
+    $('#continue').onclick = () => this.onContinue();
+    $('#resume').onclick = () => this.onResume();
+    $('#save').onclick = () => this.onSave();
+    $('#quit').onclick = () => this.onQuit();
+    document.querySelectorAll<HTMLElement>('[data-open]').forEach(button => button.onclick = () => this.open(button.dataset.open!));
+    document.querySelectorAll<HTMLElement>('[data-close]').forEach(button => button.onclick = () => this.closeOverlay());
+    $('form').onsubmit = event => {
+      event.preventDefault();
+      this.onNewWorld($<HTMLInputElement>('#world-name').value || 'Worksite', $<HTMLInputElement>('#world-seed').value);
+    };
+    this.bindSetting('render-distance', 'renderDistance', Number);
+    this.bindSetting('fov', 'fov', Number);
+    this.bindSetting('sensitivity', 'sensitivity', value => Number(value) * .001);
+    this.bindSetting('volume', 'volume', Number);
+    this.bindCheck('head-bob', 'headBob');
+    this.bindCheck('objectives', 'objectives');
+    this.syncSettings();
   }
-  private bindSetting(id:string,key:keyof Settings,parse:(v:string)=>number){const el=$<HTMLInputElement>(`#${id}`);el.oninput=()=>{(this.settings[key] as number)=parse(el.value);this.syncSettings();this.onSettings();};}
-  private bindCheck(id:string,key:keyof Settings){const el=$<HTMLInputElement>(`#${id}`);el.onchange=()=>{(this.settings[key] as boolean)=el.checked;this.onSettings();};}
-  syncSettings(){const s=this.settings;$<HTMLInputElement>('#render-distance').value=String(s.renderDistance);$<HTMLInputElement>('#fov').value=String(s.fov);$<HTMLInputElement>('#sensitivity').value=String(s.sensitivity*1000);$<HTMLInputElement>('#volume').value=String(s.volume);$<HTMLInputElement>('#head-bob').checked=s.headBob;$<HTMLInputElement>('#objectives').checked=s.objectives;$('#render-out').textContent=String(s.renderDistance);$('#fov-out').textContent=String(s.fov);$('#objective').style.display=s.objectives?'block':'none';}
-  setContinue(enabled:boolean){$<HTMLButtonElement>('#continue').disabled=!enabled;$('#delete-world').hidden=!enabled;}
-  showTitle(){this.hideAll();this.open('title');$('#hud').hidden=true;}
-  showGame(){this.hideAll();$('#hud').hidden=false;this.active='game';}
-  pause(){this.open('pause');}
-  inventory(inventory:Inventory,nearBench:boolean){this.renderInventory(inventory,nearBench);this.open('inventory');}
-  closeOverlay(){if(this.active==='completion'){this.onResume();return;}if(['settings','controls','new-dialog'].includes(this.active)){const target=this.previous==='pause'?'pause':'title';this.open(target);return;}this.onResume();}
-  open(id:string){if(id!==this.active)this.previous=this.active;this.hideAll();const el=$(`#${id}`);el.classList.add('active');this.active=id;}
-  hideAll(){document.querySelectorAll('.screen').forEach(e=>e.classList.remove('active'));}
-  isMenu(){return this.active!=='game';}
-  renderHUD(inventory:Inventory,health:number,objective:number,completed:boolean){
-    $('#health').textContent=`${'◆'.repeat(Math.ceil(health/2))}${'◇'.repeat(10-Math.ceil(health/2))}`;$('#objective-text').textContent=completed?'Expedition complete · build freely':OBJECTIVES[objective]??'Explore freely';
-    const bar=$('#hotbar');bar.innerHTML='';for(let i=0;i<9;i++)bar.append(this.slot(inventory,i,i===inventory.selected,false));
+
+  private bindSetting(id: string, key: keyof Settings, parse: (value: string) => number) {
+    const element = $<HTMLInputElement>(`#${id}`);
+    element.oninput = () => {
+      (this.settings[key] as number) = parse(element.value);
+      this.syncSettings();
+      this.onSettings();
+    };
   }
-  renderInventory(inventory:Inventory,nearBench:boolean){const grid=$('#inventory-grid');grid.innerHTML='';inventory.slots.forEach((_,i)=>{const el=this.slot(inventory,i,false,true);el.onclick=()=>{if(this.moving===null){this.moving=i;el.classList.add('selected');}else{this.onMoveSlot(this.moving,i);this.moving=null;this.renderInventory(inventory,nearBench);}};grid.append(el);});const recipes=$('#recipes');recipes.innerHTML='';for(const recipe of RECIPES){const button=document.createElement('button');button.className='recipe';button.disabled=!canCraft(inventory,recipe,nearBench);button.innerHTML=`<b>${recipe.name}</b><span>×${recipe.output.count}</span><small>${recipe.ingredients.map(i=>`${inventory.count(i.id)}/${i.count} ${ITEM_NAMES[i.id]}`).join(' · ')}${recipe.bench?' · BENCH':''}</small>`;button.onclick=()=>this.onCraft(recipe.id);recipes.append(button);}}
-  private slot(inventory:Inventory,i:number,selected=false,title=false){const button=document.createElement('button'),s=inventory.slots[i];button.className='slot'+(selected?' selected':'');button.title=s?ITEM_NAMES[s.id]??'Unknown item':`Empty slot ${i+1}`;button.innerHTML=s?`<b>${(ITEM_NAMES[s.id]??'?').split(' ').map(w=>w[0]).join('').slice(0,3)}</b><span class="count">${s.count>1?s.count:''}</span>${isTool(s.id)?`<span class="durability"><i style="width:${Math.max(0,(s.durability??0)/(s.id===110?45:110)*100)}%"></i></span>`:''}`:'';if(title&&s)button.setAttribute('aria-label',`${ITEM_NAMES[s.id]} ${s.count}`);return button;}
-  mining(progress:number){const el=$('#mine-progress');el.style.opacity=progress>0?'1':'0';el.querySelector<HTMLElement>('i')!.style.width=`${Math.min(100,progress*100)}%`;}
-  message(text:string){const el=$('#message');el.textContent=text;el.style.opacity='1';clearTimeout(this.messageTimer);this.messageTimer=window.setTimeout(()=>el.style.opacity='0',1800);}
-  damage(){const el=$('#damage');el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),140);}
-  complete(){this.open('completion');}
-  debug(text:string,show:boolean){const el=$('#debug');el.hidden=!show;el.textContent=text;}
+  private bindCheck(id: string, key: keyof Settings) {
+    const element = $<HTMLInputElement>(`#${id}`);
+    element.onchange = () => {
+      (this.settings[key] as boolean) = element.checked;
+      this.syncSettings();
+      this.onSettings();
+    };
+  }
+  syncSettings() {
+    const settings = this.settings;
+    $<HTMLInputElement>('#render-distance').value = String(settings.renderDistance);
+    $<HTMLInputElement>('#fov').value = String(settings.fov);
+    $<HTMLInputElement>('#sensitivity').value = String(settings.sensitivity * 1000);
+    $<HTMLInputElement>('#volume').value = String(settings.volume);
+    $<HTMLInputElement>('#head-bob').checked = settings.headBob;
+    $<HTMLInputElement>('#objectives').checked = settings.objectives;
+    $('#render-out').textContent = String(settings.renderDistance);
+    $('#fov-out').textContent = String(settings.fov);
+    $('#objective').style.display = settings.objectives ? 'block' : 'none';
+  }
+  setContinue(enabled: boolean) { $<HTMLButtonElement>('#continue').disabled = !enabled; $('#delete-world').hidden = !enabled; }
+  showTitle() { this.hideAll(); this.open('title'); $('#hud').hidden = true; }
+  showGame() { this.hideAll(); $('#hud').hidden = false; this.active = 'game'; }
+  pause() { this.open('pause'); }
+  inventory(inventory: Inventory, nearBench: boolean) { this.renderInventory(inventory, nearBench); this.open('inventory'); }
+  closeOverlay() {
+    if (['settings', 'controls', 'new-dialog'].includes(this.active)) {
+      this.open(this.previous === 'pause' ? 'pause' : 'title');
+      return;
+    }
+    this.onResume();
+  }
+  open(id: string) { if (id !== this.active) this.previous = this.active; this.hideAll(); $(`#${id}`).classList.add('active'); this.active = id; }
+  hideAll() { document.querySelectorAll('.screen').forEach(element => element.classList.remove('active')); }
+  isMenu() { return this.active !== 'game'; }
+
+  renderHUD(inventory: Inventory, health: number, objective: number, completed: boolean) {
+    $('#health').textContent = `HEALTH ${health}/20`;
+    const objectiveElement = $('#objective');
+    objectiveElement.style.display = completed || !this.settings.objectives ? 'none' : 'block';
+    let text = OBJECTIVES[objective] ?? '';
+    if (objective === 5) text = `Mine voltaic crystal · ${Math.min(3, inventory.count(ItemId.Crystal))}/3`;
+    if (objective === 7) {
+      const core = inventory.count(BlockId.Beacon) ? 'core ready' : 'core missing';
+      text = `Repair tower · ${inventory.count(BlockId.Planks)}/${TOWER_REPAIR.planks} planks · ${inventory.count(BlockId.Cobblestone)}/${TOWER_REPAIR.cobblestone} stone · ${core}`;
+    }
+    $('#objective-text').textContent = text;
+    const bar = $('#hotbar');
+    bar.innerHTML = '';
+    for (let index = 0; index < 9; index++) bar.append(this.slot(inventory, index, index === inventory.selected, false));
+  }
+
+  renderInventory(inventory: Inventory, nearBench: boolean) {
+    const grid = $('#inventory-grid');
+    grid.innerHTML = '';
+    inventory.slots.forEach((_, index) => {
+      const element = this.slot(inventory, index, false, true);
+      element.onclick = () => {
+        if (this.moving === null) { this.moving = index; element.classList.add('selected'); }
+        else { this.onMoveSlot(this.moving, index); this.moving = null; this.renderInventory(inventory, nearBench); }
+      };
+      grid.append(element);
+    });
+    const recipes = $('#recipes');
+    recipes.innerHTML = '';
+    for (const recipe of RECIPES) {
+      const button = document.createElement('button');
+      button.className = 'recipe';
+      button.disabled = !canCraft(inventory, recipe, nearBench);
+      const requirements = recipe.ingredients.map(item => `${inventory.count(item.id)}/${item.count} ${ITEM_NAMES[item.id]}`).join(' · ');
+      button.innerHTML = `<b>${recipe.name}</b><span>×${recipe.output.count}</span><small>${requirements}${recipe.bench ? ' · bench' : ''}</small>`;
+      button.onclick = () => this.onCraft(recipe.id);
+      recipes.append(button);
+    }
+  }
+
+  private slot(inventory: Inventory, index: number, selected = false, labelled = false) {
+    const button = document.createElement('button');
+    const stack = inventory.slots[index];
+    button.className = `slot${selected ? ' selected' : ''}`;
+    if (stack) {
+      const name = ITEM_NAMES[stack.id] ?? 'Unknown item';
+      button.setAttribute('aria-label', `${name}${stack.count > 1 ? ` ${stack.count}` : ''}`);
+      const icon = stack.id < 16
+        ? `<i class="item-icon" style="background-position:${(stack.id % 4) * 100 / 3}% ${Math.floor(stack.id / 4) * 100 / 3}%"></i>`
+        : `<b class="item-mark">${stack.id === ItemId.WoodPickaxe || stack.id === ItemId.StonePickaxe ? 'PICK' : stack.id === ItemId.Crystal ? 'CORE' : name.slice(0, 4).toUpperCase()}</b>`;
+      button.innerHTML = `${icon}<span class="count">${stack.count > 1 ? stack.count : ''}</span>${isTool(stack.id) ? `<span class="durability"><i style="width:${Math.max(0, (stack.durability ?? 0) / (stack.id === ItemId.WoodPickaxe ? 45 : 110) * 100)}%"></i></span>` : ''}`;
+      if (labelled) button.dataset.item = name;
+    } else button.setAttribute('aria-label', `Empty slot ${index + 1}`);
+    return button;
+  }
+  mining(progress: number) { const element = $('#mine-progress'); element.style.opacity = progress > 0 ? '1' : '0'; element.querySelector<HTMLElement>('i')!.style.width = `${Math.min(100, progress * 100)}%`; }
+  message(text: string) { const element = $('#message'); element.textContent = text; element.style.opacity = '1'; clearTimeout(this.messageTimer); this.messageTimer = window.setTimeout(() => element.style.opacity = '0', 1400); }
+  reject() { const crosshair = $('#crosshair'); crosshair.classList.add('reject'); setTimeout(() => crosshair.classList.remove('reject'), 120); }
+  damage() { const element = $('#damage'); element.classList.add('flash'); setTimeout(() => element.classList.remove('flash'), 100); }
+  debug(text: string, show: boolean) { const element = $('#debug'); element.hidden = !show; element.textContent = text; }
 }

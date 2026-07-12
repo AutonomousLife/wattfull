@@ -5,6 +5,7 @@
    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 :root {
+<<<<<<< ours
   /* Surface */
   --background: #F3F1EC;
   --foreground: #171717;
@@ -48,15 +49,24 @@
   --sheen-hi:  rgba(255,255,255,0.18);
   --sheen-lo:  rgba(255,255,255,0.09);
   --reflect-hi: rgba(255,255,255,0.36);
+=======
+  --background: #f7f7f2;
+  --foreground: #182017;
+>>>>>>> theirs
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  transition: background-color 0.35s ease, color 0.35s ease;
 }
 
+<<<<<<< ours
 /* â”€â”€â”€ Base â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 body {
   background: var(--background);
@@ -216,6 +226,21 @@ button:active:not(:disabled):not(.wf-lift),
 @keyframes wf-reflect {
   0%   { transform: scale(0);   opacity: 1; }
   100% { transform: scale(3.2); opacity: 0; }
+=======
+* {
+  box-sizing: border-box;
+}
+
+@keyframes floatIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+>>>>>>> theirs
 }
 
 /* â”€â”€â”€ Skeleton shimmer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */

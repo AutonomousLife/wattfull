@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { blockKey, chunkIndex, worldToChunk, worldToLocal } from "../src/world/coords";
-import { findSpawn, QUARRY, shouldTree, terrainHeight, WORKSITE } from "../src/world/generator";
+import { biomeAt, findSpawn, QUARRY, shouldTree, terrainHeight, WORKSITE } from "../src/world/generator";
 import { seedFrom } from "../src/world/noise";
 import { World } from "../src/world/World";
 import { BlockId, ItemId } from "../src/world/blocks";
@@ -42,6 +42,13 @@ describe("world generation",()=>{
   it("marks both sides of a chunk-boundary edit dirty",()=>{
     const world=new World(DEFAULT_SEED);for(const chunk of world.chunks.values())chunk.dirty=false;
     world.edit(15,35,15,BlockId.Planks);expect(world.getChunk(15,15)?.dirty).toBe(true);expect(world.getChunk(16,15)?.dirty).toBe(true);expect(world.getChunk(15,16)?.dirty).toBe(true);
+  });
+  it("streams deterministic chunks instead of building the full world at startup",()=>{
+    const world=new World(DEFAULT_SEED),initial=world.chunks.size;
+    expect(initial).toBeLessThan(16);expect(biomeAt(240,180,DEFAULT_SEED)).toBe(biomeAt(240,180,DEFAULT_SEED));
+    world.queueAround(240,180,1);expect(world.pendingGeneration()).toBeGreaterThan(0);world.processGeneration(1);
+    expect(world.chunks.size).toBeGreaterThan(initial);expect(world.get(240,terrainHeight(240,180,DEFAULT_SEED),180)).not.toBe(BlockId.Air);
+    world.ensureChunk(30,30);world.unloadFar(WORKSITE.x,WORKSITE.z,2);expect(world.getChunk(480,480)).toBeUndefined();
   });
 });
 describe("targeting and collision",()=>{

@@ -50,6 +50,8 @@ export class Game {
   private fps = 0;
   private frames = 0;
   private fpsTime = 0;
+  private worldTime = .32;
+  private streamCleanup = 0;
   private drops: Drop[] = [];
   private particles: Particle[] = [];
 
@@ -65,6 +67,7 @@ export class Game {
     this.inventory = new Inventory(27, save?.inventory);
     this.objective = save?.objective ?? 0;
     this.completed = save?.completed ?? false;
+    this.worldTime = save?.worldTime ?? .32;
     if (this.completed) this.world.repairTower();
     this.renderer = new Renderer(this.world, settings);
     this.input = new Input(this.renderer.renderer.domElement, () => settings.sensitivity);
@@ -89,8 +92,8 @@ export class Game {
     canvas.addEventListener('click', () => { this.audio.start(); if (!this.ui.isMenu() && document.pointerLockElement !== canvas) this.lockPointer(); });
     document.addEventListener('pointerlockchange', () => {
       if (this.stopped) return;
-      if (document.pointerLockElement === canvas) { this.running = true; this.ui.showGame(); }
-      else if (this.running) { this.running = false; this.input.clear(); this.ui.pause(); void this.save(); }
+      if (document.pointerLockElement === canvas) { this.running = true; this.input.setEnabled(true); this.ui.showGame(); }
+      else if (this.running) { this.running = false; this.input.setEnabled(false); this.ui.pause(); void this.save(); }
     });
     addEventListener('keydown', event => {
       if (this.stopped) return;
@@ -114,21 +117,28 @@ export class Game {
     if (this.stopped) return;
     const dt = Math.min(.1, (time - this.last) / 1000 || 0);
     this.last = time;
-    this.accumulator += dt;
-    while (this.accumulator >= 1 / 60) { if (this.running) this.fixed(1 / 60); this.accumulator -= 1 / 60; }
+    this.accumulator = Math.min(.15, this.accumulator + dt);
+    let steps = 0;
+    while (this.accumulator >= 1 / 60 && steps++ < 5) { if (this.running) this.fixed(1 / 60); this.accumulator -= 1 / 60; }
+    if (steps === 5) this.accumulator = 0;
     this.updateView(dt);
     this.renderer.render();
     this.frames++;
     this.fpsTime += dt;
     if (this.fpsTime >= .5) { this.fps = Math.round(this.frames / this.fpsTime); this.frames = 0; this.fpsTime = 0; }
-    this.ui.debug(`FPS ${this.fps}\nXYZ ${this.player.x.toFixed(2)} ${this.player.y.toFixed(2)} ${this.player.z.toFixed(2)}\nCHUNK ${Math.floor(this.player.x / 16)}, ${Math.floor(this.player.z / 16)}\nLOADED ${this.world.chunks.size}\nTRIANGLES ${this.renderer.triangles()}\nSEED ${this.seed}\nGROUNDED ${this.grounded}`, this.debug);
+    this.ui.debug(`FPS ${this.fps}\nXYZ ${this.player.x.toFixed(2)} ${this.player.y.toFixed(2)} ${this.player.z.toFixed(2)}\nCHUNK ${Math.floor(this.player.x / 16)}, ${Math.floor(this.player.z / 16)}\nLOADED ${this.world.chunks.size}\nQUEUED ${this.world.pendingGeneration()}\nTIME ${Math.floor(this.worldTime * 24)}:00\nTRIANGLES ${this.renderer.triangles()}\nSEED ${this.seed}\nGROUNDED ${this.grounded}`, this.debug);
     requestAnimationFrame(next => this.loop(next));
   }
 
   private fixed(dt: number) {
+    this.world.queueAround(this.player.x, this.player.z, this.settings.renderDistance + 1);
+    this.world.processGeneration(1);
+    this.streamCleanup += dt;
+    if (this.streamCleanup > 2) { this.streamCleanup = 0; this.world.unloadFar(this.player.x, this.player.z, this.settings.renderDistance + 2); }
+    this.worldTime = (this.worldTime + dt / 720) % 1;
     const axis = this.input.axis();
     const length = Math.hypot(axis.x, axis.z) || 1;
-    const sprint = (this.input.keys.has('ShiftLeft') || this.input.keys.has('ShiftRight')) && axis.z > 0;
+    const sprint = this.input.sprinting() && axis.z > 0;
     const speed = sprint ? 5.7 : 4.25;
     const forwardX = -Math.sin(this.input.yaw), forwardZ = -Math.cos(this.input.yaw);
     const rightX = Math.cos(this.input.yaw), rightZ = -Math.sin(this.input.yaw);
@@ -187,10 +197,11 @@ export class Game {
     const targetBob = this.settings.headBob && this.grounded && moving > .2 ? Math.sin(this.bobPhase) * .012 : 0;
     this.bob += (targetBob - this.bob) * Math.min(1, dt * 14);
     this.landing = Math.max(0, this.landing - dt * .65);
-    const sprinting = this.grounded && moving > 5.1 && (this.input.keys.has('ShiftLeft') || this.input.keys.has('ShiftRight'));
-    this.renderer.setFov(this.settings.fov + (sprinting ? 1.5 : 0));
+    const sprinting = this.grounded && moving > 5.1 && this.input.sprinting();
+    this.renderer.setFov(this.settings.fov + (sprinting ? 3.5 : 0), dt);
     this.renderer.setCamera(this.player, this.input.yaw, this.input.pitch, this.bob, this.landing);
-    this.renderer.rebuildDirty();
+    this.renderer.updateSky(this.worldTime);
+    this.renderer.rebuildDirty(1);
   }
 
   private updateTarget() {
@@ -330,7 +341,7 @@ export class Game {
     }
     return false;
   }
-  private openInventory() { this.running = false; document.exitPointerLock(); this.ui.inventory(this.inventory, this.nearBench()); }
+  private openInventory() { this.running = false; this.input.setEnabled(false); document.exitPointerLock(); this.ui.inventory(this.inventory, this.nearBench()); }
   private doCraft(id: string) {
     const recipe = RECIPES.find(value => value.id === id);
     if (!recipe || !craft(this.inventory, recipe, this.nearBench())) { this.ui.message('Need materials or a bench'); this.audio.reject(); return; }
@@ -367,10 +378,10 @@ export class Game {
     this.ui.renderHUD(this.inventory, this.health, this.objective, this.completed);
   }
   async save(announce = false) {
-    await saveWorld({ version: 1, name: this.name, seed: this.seed, edits: [...this.world.edits], player: { ...this.player }, spawn: { ...this.spawn }, health: this.health, inventory: this.inventory.serialize(), objective: this.objective, completed: this.completed, savedAt: Date.now() });
+    await saveWorld({ version: 1, name: this.name, seed: this.seed, edits: [...this.world.edits], player: { ...this.player }, spawn: { ...this.spawn }, health: this.health, inventory: this.inventory.serialize(), objective: this.objective, completed: this.completed, worldTime: this.worldTime, savedAt: Date.now() });
     if (announce) this.ui.message('Saved');
   }
-  stop() { this.stopped = true; this.running = false; document.exitPointerLock(); }
+  stop() { this.stopped = true; this.running = false; this.input.setEnabled(false); document.exitPointerLock(); }
   private lockPointer() {
     try { const result = this.renderer.renderer.domElement.requestPointerLock(); void result?.catch(() => this.ui.message('Click to resume')); }
     catch { this.ui.message('Click to resume'); }

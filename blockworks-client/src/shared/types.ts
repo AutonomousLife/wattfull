@@ -22,5 +22,6 @@ export type SaveData = {
   inventory: ItemStack[];
   objective: number;
   completed: boolean;
+  worldTime?: number;
   savedAt: number;
 };

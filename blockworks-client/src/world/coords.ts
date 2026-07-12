@@ -1,6 +1,8 @@
 export const CHUNK_SIZE = 16;
 export const WORLD_HEIGHT = 64;
-export const WORLD_CHUNKS = 8;
+// The world is generated on demand. This keeps the playable area large without
+// constructing thousands of chunks before the player can move.
+export const WORLD_CHUNKS = 64;
 export const WORLD_SIZE = CHUNK_SIZE * WORLD_CHUNKS;
 
 export const floorDiv = (n: number, d: number) => Math.floor(n / d);

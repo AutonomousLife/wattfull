@@ -5,6 +5,7 @@ import { hash2, valueNoise } from "./noise";
 export const SEA_LEVEL = 20;
 export const WORKSITE = { x: 64, z: 62, level: 29 } as const;
 export const QUARRY = { x: 92, z: 86 } as const;
+export type Biome = 'grassland' | 'forest' | 'highland' | 'scrub' | 'wetland';
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 const smoothstep = (a: number, b: number, value: number) => {
@@ -17,9 +18,10 @@ const radial = (x: number, z: number, cx: number, cz: number, radius: number) =>
 export function terrainHeight(x: number, z: number, seed: number): number {
   const edge = Math.min(x, z, WORLD_SIZE - 1 - x, WORLD_SIZE - 1 - z);
   const island = smoothstep(1, 18, edge);
-  const broad = (valueNoise(x / 46, z / 46, seed) - .5) * 5;
+  const broad = (valueNoise(x / 46, z / 46, seed) - .5) * 7;
   const secondary = (valueNoise(x / 24, z / 24, seed + 71) - .5) * 2;
-  const ridge = radial(x, z, 91, 55, 24) * 5;
+  const rugged = Math.max(0, valueNoise(x / 115, z / 115, seed + 303) - .54);
+  const ridge = radial(x, z, 91, 55, 24) * 5 + rugged * 13;
   const northRise = radial(x, z, 46, 35, 30) * 2;
   const quarry = radial(x, z, QUARRY.x, QUARRY.z, 19);
   let height = 20 + island * 8 + broad + secondary + ridge + northRise - quarry * quarry * 7;
@@ -31,6 +33,16 @@ export function terrainHeight(x: number, z: number, seed: number): number {
   return clamp(Math.floor(height), 17, WORLD_HEIGHT - 10);
 }
 
+export function biomeAt(x: number, z: number, seed: number): Biome {
+  const moisture = valueNoise(x / 95, z / 95, seed + 1207);
+  const rugged = valueNoise(x / 115, z / 115, seed + 303);
+  const height = terrainHeight(x, z, seed);
+  if (height <= SEA_LEVEL + 2) return moisture > .62 ? 'wetland' : 'scrub';
+  if (rugged > .66 || height > 33) return 'highland';
+  if (moisture > .57) return 'forest';
+  return 'grassland';
+}
+
 const quarrySurface = (x: number, z: number) => Math.hypot(x - QUARRY.x, z - QUARRY.z) < 16;
 const ridgeSurface = (x: number, z: number) => x > 79 && x < 105 && z > 41 && z < 69;
 
@@ -39,6 +51,17 @@ function crystalVein(x: number, y: number, z: number, seed: number) {
   if (distance > 13 || y < 17 || y > 27) return false;
   const seam = Math.abs((y - 20) - Math.sin((x + z) * .38) * 2);
   return seam < 1.25 && hash2(Math.floor(x / 2), Math.floor(z / 2), seed + 911) > .32;
+}
+
+function caveAt(x: number, y: number, z: number, seed: number) {
+  if (y < 7 || y > 23 || Math.hypot(x - WORKSITE.x, z - WORKSITE.z) < 28) return false;
+  const tunnel = valueNoise((x + y * .31) / 15, (z - y * .43) / 15, seed + 2501);
+  const chamber = valueNoise(x / 37, z / 37, seed + 2549);
+  return tunnel > .76 && chamber > .43;
+}
+
+function coalVein(x: number, y: number, z: number, seed: number) {
+  return y > 8 && y < 34 && hash2(Math.floor(x / 2), Math.floor(z / 2), seed + y * 13) > .91;
 }
 
 function exposedCrystalSeam(x: number, y: number, z: number, height: number) {
@@ -53,11 +76,14 @@ export function baseBlock(x: number, y: number, z: number, seed: number): BlockI
   }
   const height = terrainHeight(x, z, seed);
   if (y > height) return y <= SEA_LEVEL ? BlockId.Water : BlockId.Air;
+  if (caveAt(x, y, z, seed) && y < height - 2) return BlockId.Air;
   if (exposedCrystalSeam(x, y, z, height)) return BlockId.CrystalOre;
   if (crystalVein(x, y, z, seed)) return BlockId.CrystalOre;
+  if (coalVein(x, y, z, seed) && y < height - 3) return BlockId.CoalOre;
   if (quarrySurface(x, z) || ridgeSurface(x, z)) return BlockId.Stone;
-  if (y === height) return height <= SEA_LEVEL + 1 ? BlockId.Sand : BlockId.Grass;
-  if (y > height - 3) return height <= SEA_LEVEL + 1 ? BlockId.Sand : BlockId.Dirt;
+  const biome = biomeAt(x, z, seed);
+  if (y === height) return height <= SEA_LEVEL + 1 || biome === 'scrub' ? BlockId.Sand : BlockId.Grass;
+  if (y > height - 3) return height <= SEA_LEVEL + 1 || biome === 'scrub' ? BlockId.Sand : BlockId.Dirt;
   return BlockId.Stone;
 }
 
@@ -77,14 +103,16 @@ export function shouldTree(x: number, z: number, seed: number): boolean {
     radial(x, z, 46, 86, 22),
     radial(x, z, 70, 34, 19),
   );
-  if (forest < .24 || terrainHeight(x, z, seed) <= SEA_LEVEL + 1) return false;
+  const biome = biomeAt(x, z, seed);
+  if ((forest < .24 && biome !== 'forest') || terrainHeight(x, z, seed) <= SEA_LEVEL + 1) return false;
 
   // One candidate per five-block cell creates legible stands with open ground
   // between them instead of uniformly scattered individual trees.
   const cellX = Math.floor(x / 5), cellZ = Math.floor(z / 5);
   const offsetX = 1 + Math.floor(hash2(cellX, cellZ, seed + 421) * 3);
   const offsetZ = 1 + Math.floor(hash2(cellZ, cellX, seed + 733) * 3);
-  return x === cellX * 5 + offsetX && z === cellZ * 5 + offsetZ && hash2(cellX, cellZ, seed + 109) < forest;
+  const density = biome === 'forest' ? Math.max(.48, forest) : forest;
+  return x === cellX * 5 + offsetX && z === cellZ * 5 + offsetZ && hash2(cellX, cellZ, seed + 109) < density;
 }
 
 export function findSpawn(seed: number) {

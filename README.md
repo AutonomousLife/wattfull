@@ -1,5 +1,9 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Experimental game
+
+Blockworks is maintained as an independent Vite/TypeScript/Three.js client in [`blockworks-client`](./blockworks-client/README.md). Use `npm run game:dev`, `npm run game:test`, and `npm run game:build`. Its production output is served at `/blockworks/` and linked from the hidden Experimental shelf.
+
 ## Getting Started
 
 First, run the development server:

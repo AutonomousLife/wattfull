@@ -1,0 +1,22 @@
+{
+  "name": "blockworks-client",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "assets": "node scripts/generate-assets.mjs",
+    "build": "npm run assets && tsc --noEmit && vite build",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "three": "^0.181.0"
+  },
+  "devDependencies": {
+    "@types/three": "^0.181.0",
+    "pngjs": "^7.0.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.2.2",
+    "vitest": "^4.0.8"
+  }
+}

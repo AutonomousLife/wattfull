@@ -31,7 +31,7 @@ export function ExperimentalPage() {
                 <div style={{ fontSize: 10, fontWeight: 800, color: t.green, letterSpacing: ".09em", textTransform: "uppercase", marginBottom: 7 }}>Playable prototype</div>
                 <div style={{ fontSize: 22, fontWeight: 760, color: t.text, letterSpacing: "-.035em", marginBottom: 8 }}>Blockworks</div>
                 <p style={{ fontSize: 14, color: t.textMid, lineHeight: 1.65, maxWidth: 440 }}>
-                  A small voxel-survival world with mining, crafting, caves, and optional LAN multiplayer.
+                  A first-person voxel expedition with procedural terrain, crafting, local saves, and a complete beacon objective.
                 </p>
               </div>
               <Icon name="ArrowRight" size={20} color={t.green} strokeWidth={1.8} />

@@ -4,7 +4,7 @@ export const template = `
 <section id="title" class="screen active">
   <div class="title-panel">
     <h1>BLOCK<span>WORKS</span></h1>
-    <p>Repair the signal tower.</p>
+    <p>Run the quarry. Restore the signal tower.</p>
     <div class="menu">
       <button id="continue">Continue</button>
       <button id="new-world" class="primary">New World</button>
@@ -54,6 +54,16 @@ export const template = `
   </div>
 </section>
 
+<section id="completion" class="screen">
+  <div class="panel modal completion-panel">
+    <small>SIGNAL RESTORED</small>
+    <h2>Run complete</h2>
+    <p>The worksite beacon is live. You brought the signal back online.</p>
+    <button id="explore" class="primary">Keep exploring</button>
+    <button id="complete-quit">Save &amp; Exit</button>
+  </div>
+</section>
+
 <section id="inventory" class="screen">
   <div class="panel inventory-panel">
     <header><h2>Inventory</h2><button data-close>Close</button></header>
@@ -62,7 +72,7 @@ export const template = `
 </section>
 
 <div id="hud" hidden>
-  <div id="objective"><small>TOWER REPAIR</small><b id="objective-text"></b></div>
+  <div id="objective"><small id="objective-label">EXTRACTION RUN</small><b id="objective-text"></b></div>
   <div id="health"></div>
   <div id="crosshair"></div>
   <div id="mine-progress"><i></i></div>

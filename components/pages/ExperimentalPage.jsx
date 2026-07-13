@@ -21,6 +21,22 @@ export function ExperimentalPage() {
       </p>
 
       <div style={{ display: "grid", gap: 12, maxWidth: 620 }}>
+        <Link href="/experimental/arcade" style={{ textDecoration: "none" }}>
+          <GlassCard variant="outlined" padding={26} className="wf-lift" style={{ borderTop: `2px solid ${t.green}` }}>
+            <div style={{ display: "flex", alignItems: "start", justifyContent: "space-between", gap: 18 }}>
+              <div>
+                <div style={{ width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "var(--r-sm)", background: t.greenGlass, border: `1px solid ${t.featuredBorder}`, marginBottom: 18 }}>
+                  <Icon name="Zap" size={20} color={t.green} strokeWidth={1.8} />
+                </div>
+                <div style={{ fontSize: 10, fontWeight: 800, color: t.green, letterSpacing: ".09em", textTransform: "uppercase", marginBottom: 7 }}>Instant arcade</div>
+                <div style={{ fontSize: 22, fontWeight: 760, color: t.text, letterSpacing: "-.035em", marginBottom: 8 }}>Three small games</div>
+                <p style={{ fontSize: 14, color: t.textMid, lineHeight: 1.65, maxWidth: 440 }}>A reaction run, a lane-dodging sprint, and a tiny circuit puzzle. Play in seconds.</p>
+              </div>
+              <Icon name="ArrowRight" size={20} color={t.green} strokeWidth={1.8} />
+            </div>
+          </GlassCard>
+        </Link>
+
         <Link href="/experimental/play" style={{ textDecoration: "none" }}>
           <GlassCard variant="outlined" padding={26} className="wf-lift" style={{ borderTop: `2px solid ${t.green}` }}>
             <div style={{ display: "flex", alignItems: "start", justifyContent: "space-between", gap: 18 }}>

@@ -110,6 +110,8 @@ export class Game {
     this.ui.onResume = () => { this.ui.showGame(); this.lockPointer(); };
     this.ui.onSave = () => void this.save(true);
     this.ui.onQuit = () => { void this.save().then(() => { this.stop(); this.ui.showTitle(); }); };
+    this.ui.onCompleteExplore = () => { this.ui.showGame(); this.lockPointer(); };
+    this.ui.onCompleteQuit = () => { void this.save().then(() => { this.stop(); this.ui.showTitle(); }); };
     this.ui.onCraft = id => this.doCraft(id);
     this.ui.onMoveSlot = (from, to) => { this.inventory.move(from, to); this.ui.renderHUD(this.inventory, this.health, this.objective, this.completed); };
   }
@@ -144,21 +146,23 @@ export class Game {
     const axis = this.input.axis();
     const length = Math.hypot(axis.x, axis.z) || 1;
     const sprint = this.input.sprinting() && axis.z > 0;
-    const speed = sprint ? 6 : 4.5;
+    const speed = sprint ? 5.55 : 4.15;
     const forwardX = -Math.sin(this.input.yaw), forwardZ = -Math.cos(this.input.yaw);
     const rightX = Math.cos(this.input.yaw), rightZ = -Math.sin(this.input.yaw);
     const wishX = (rightX * axis.x + forwardX * axis.z) / length;
     const wishZ = (rightZ * axis.x + forwardZ * axis.z) / length;
-    const acceleration = this.grounded ? 38 : 7.5;
-    const deceleration = this.grounded ? 48 : 1.8;
+    // Strong ground traction and intentionally limited air control stop the
+    // player from skating across terrain while preserving a responsive jump.
+    const acceleration = this.grounded ? 54 : 12;
+    const deceleration = this.grounded ? 66 : 11;
     this.velocity.x = this.approach(this.velocity.x, wishX * speed, (axis.x || axis.z ? acceleration : deceleration) * dt);
     this.velocity.z = this.approach(this.velocity.z, wishZ * speed, (axis.x || axis.z ? acceleration : deceleration) * dt);
 
     if (this.input.consumeJump()) this.jumpBuffer = .1;
     else this.jumpBuffer = Math.max(0, this.jumpBuffer - dt);
-    this.coyote = this.grounded ? .08 : Math.max(0, this.coyote - dt);
+    this.coyote = this.grounded ? .1 : Math.max(0, this.coyote - dt);
     if (this.jumpBuffer > 0 && this.coyote > 0) {
-      this.velocity.y = 7.05;
+      this.velocity.y = 8.15;
       this.grounded = false;
       this.coyote = 0;
       this.jumpBuffer = 0;
@@ -166,9 +170,10 @@ export class Game {
     }
 
     const oldX = this.player.x, oldZ = this.player.z;
-    this.velocity.y = Math.max(-32, this.velocity.y - 22 * dt);
-    if (moveAxis(this.player, 'x', this.velocity.x * dt, (x, y, z) => this.world.isSolid(x, y, z))) this.velocity.x = 0;
-    if (moveAxis(this.player, 'z', this.velocity.z * dt, (x, y, z) => this.world.isSolid(x, y, z))) this.velocity.z = 0;
+    const gravity = this.velocity.y > 0 && !this.input.jumpHeld() ? 52 : 32;
+    this.velocity.y = Math.max(-38, this.velocity.y - gravity * dt);
+    if (this.moveHorizontal('x', this.velocity.x * dt)) this.velocity.x = 0;
+    if (this.moveHorizontal('z', this.velocity.z * dt)) this.velocity.z = 0;
     const fallSpeed = -this.velocity.y;
     const hitY = moveAxis(this.player, 'y', this.velocity.y * dt, (x, y, z) => this.world.isSolid(x, y, z));
     this.grounded = hitY && this.velocity.y <= 0;
@@ -207,6 +212,19 @@ export class Game {
     this.renderer.setCamera(this.player, this.input.yaw, this.input.pitch, this.bob, this.landing);
     this.renderer.updateSky(this.worldTime);
     this.renderer.rebuildDirty(1);
+  }
+
+  private moveHorizontal(axis: 'x' | 'z', amount: number) {
+    const solid = (x: number, y: number, z: number) => this.world.isSolid(x, y, z);
+    if (!moveAxis(this.player, axis, amount, solid)) return false;
+    // Small steps keep the worksite traversable without allowing block climbs.
+    if (!this.grounded || moveAxis(this.player, 'y', .52, solid)) return true;
+    if (!moveAxis(this.player, axis, amount, solid)) {
+      moveAxis(this.player, 'y', -.54, solid);
+      return false;
+    }
+    moveAxis(this.player, 'y', -.54, solid);
+    return true;
   }
 
   private updateTarget() {
@@ -276,6 +294,10 @@ export class Game {
     this.completed = true;
     this.ui.message('Tower repaired');
     this.ui.renderHUD(this.inventory, this.health, this.objective, true);
+    this.running = false;
+    this.input.setEnabled(false);
+    document.exitPointerLock();
+    this.ui.complete();
     void this.save();
   }
 
@@ -361,6 +383,8 @@ export class Game {
     if (this.completed) return;
     if (objectiveSatisfied(this.objective, event, id => this.inventory.count(id))) {
       this.objective++;
+      this.audio.objective();
+      this.ui.message(this.objective < 8 ? `Objective ${this.objective}/8` : 'Return to the signal tower');
       this.ui.renderHUD(this.inventory, this.health, this.objective, this.completed);
     }
   }

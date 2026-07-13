@@ -37,6 +37,7 @@ export class Input {
   setEnabled(enabled: boolean) { this.enabled = enabled; if (!enabled) this.clear(); }
   axis() { return { x: Number(this.keys.has('KeyD')) - Number(this.keys.has('KeyA')), z: Number(this.keys.has('KeyW')) - Number(this.keys.has('KeyS')) }; }
   sprinting() { return this.keys.has('ShiftLeft') || this.keys.has('ShiftRight'); }
+  jumpHeld() { return this.keys.has('Space'); }
   consumeJump() { const value = this.jumpQueued; this.jumpQueued = false; return value; }
   consumePlace() { const value = this.placeRequested; this.placeRequested = false; return value; }
   consumeWheel() { const value = this.wheel; this.wheel = 0; return value; }

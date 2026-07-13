@@ -1,14 +1,14 @@
 import { BlockId, ItemId } from "../world/blocks";
 
 export const OBJECTIVES = [
-  'Gather a log',
-  'Make planks',
-  'Make a wooden pickaxe',
-  'Mine cobblestone',
-  'Make a stone pickaxe',
-  'Mine 3 voltaic crystal',
-  'Craft the voltaic core',
-  'Repair the tower',
+  'Salvage a log from the worksite',
+  'Process the log into planks',
+  'Build a wooden pickaxe',
+  'Break into the quarry stone',
+  'Craft a stone pickaxe at the bench',
+  'Extract 3 voltaic crystals from the quarry',
+  'Assemble a voltaic core at the bench',
+  'Install the core and repair the signal tower',
 ] as const;
 
 export function objectiveSatisfied(index: number, event: { kind: string; id: number }, count: (id: number) => number) {

@@ -1,7 +1,7 @@
 ﻿"use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTheme } from "@/lib/ThemeContext";
 import { NAV } from "@/lib/data";
 import { ChatWidget } from "@/components/widgets";
@@ -12,58 +12,6 @@ export function SiteShell({ children }) {
   const pathname = usePathname();
   const [mobileMenu, setMobileMenu] = useState(false);
   const [experimentalUnlocked, setExperimentalUnlocked] = useState(false);
-  const [animeVisible, setAnimeVisible] = useState(false);
-  const [animeMuted, setAnimeMuted] = useState(false);
-  const animeAudio = useRef(null);
-
-  const stopAnimeAudio = () => {
-    if (animeAudio.current) {
-      animeAudio.current.close().catch(() => {});
-      animeAudio.current = null;
-    }
-  };
-
-  const playAnimeAudio = () => {
-    stopAnimeAudio();
-    const Context = window.AudioContext || window.webkitAudioContext;
-    if (!Context) return;
-    const context = new Context();
-    animeAudio.current = context;
-    const master = context.createGain();
-    master.gain.value = 0.055;
-    master.connect(context.destination);
-    const now = context.currentTime;
-    for (let beat = 0; beat < 32; beat++) {
-      const time = now + beat * .25;
-      const kick = context.createOscillator(), kickGain = context.createGain();
-      kick.type = "sine"; kick.frequency.setValueAtTime(104, time); kick.frequency.exponentialRampToValueAtTime(46, time + .11);
-      kickGain.gain.setValueAtTime(.9, time); kickGain.gain.exponentialRampToValueAtTime(.0001, time + .12);
-      kick.connect(kickGain); kickGain.connect(master); kick.start(time); kick.stop(time + .13);
-      if (beat % 2 === 1) {
-        const clap = context.createOscillator(), clapGain = context.createGain();
-        clap.type = "triangle"; clap.frequency.value = 420;
-        clapGain.gain.setValueAtTime(.24, time); clapGain.gain.exponentialRampToValueAtTime(.0001, time + .08);
-        clap.connect(clapGain); clapGain.connect(master); clap.start(time); clap.stop(time + .09);
-      }
-    }
-    [659, 784, 988, 784, 587, 659, 784, 988].forEach((frequency, index) => {
-      const time = now + index * .5 + .12, lead = context.createOscillator(), leadGain = context.createGain();
-      lead.type = "square"; lead.frequency.value = frequency;
-      leadGain.gain.setValueAtTime(.0001, time); leadGain.gain.exponentialRampToValueAtTime(.13, time + .025); leadGain.gain.exponentialRampToValueAtTime(.0001, time + .22);
-      lead.connect(leadGain); leadGain.connect(master); lead.start(time); lead.stop(time + .24);
-    });
-    window.setTimeout(() => { if (animeAudio.current === context) stopAnimeAudio(); }, 8100);
-  };
-
-  const openAnimeDance = () => {
-    setAnimeVisible(true);
-    if (!animeMuted) playAnimeAudio();
-  };
-
-  const closeAnimeDance = () => {
-    setAnimeVisible(false);
-    stopAnimeAudio();
-  };
 
   const isActive = (href) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
   const baseNav = advanced ? NAV : NAV.filter((item) => item.core);
@@ -72,25 +20,21 @@ export function SiteShell({ children }) {
     : baseNav;
 
   useEffect(() => {
+    if (pathname !== "/") return undefined;
+
     let typed = "";
     const unlockExperimental = (event) => {
       if (event.metaKey || event.ctrlKey || event.altKey || event.key.length !== 1) return;
       typed = `${typed}${event.key.toLowerCase()}`.slice(-6);
-      if (pathname === "/" && typed === "silver") {
+      if (typed === "silver") {
         setExperimentalUnlocked(true);
         typed = "";
       }
-      if (typed.endsWith("anime")) { typed = ""; openAnimeDance(); }
     };
 
-    const escapeDance = (event) => { if (event.key === "Escape" && animeVisible) closeAnimeDance(); };
-
     window.addEventListener("keydown", unlockExperimental);
-    window.addEventListener("keydown", escapeDance);
-    return () => { window.removeEventListener("keydown", unlockExperimental); window.removeEventListener("keydown", escapeDance); };
-  }, [pathname, animeVisible, animeMuted]);
-
-  useEffect(() => () => stopAnimeAudio(), []);
+    return () => window.removeEventListener("keydown", unlockExperimental);
+  }, [pathname]);
 
   return (
     <div
@@ -135,14 +79,6 @@ export function SiteShell({ children }) {
           70%{opacity:1;transform:translateX(-2px) scale(1.03);filter:blur(0)}
           100%{opacity:1;transform:translateX(0) scale(1);filter:blur(0)}
         }
-        .wf-anime-stage{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:24px;background:rgba(5,8,14,.84);backdrop-filter:blur(8px);animation:wf-anime-fade-in .24s ease-out both}
-        .wf-anime-card{position:relative;width:min(560px,100%);min-height:min(700px,calc(100vh - 48px));display:grid;place-items:end center;overflow:hidden;border:1px solid rgba(119,214,202,.5);background:linear-gradient(155deg,#132229,#1b1732 52%,#302038);box-shadow:0 24px 80px rgba(0,0,0,.5)}
-        .wf-anime-card:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(110deg,transparent 0 28px,rgba(109,230,218,.11) 29px 30px);pointer-events:none}
-        .wf-anime-dancer{position:relative;z-index:1;display:block;width:min(94%,510px);max-height:calc(100vh - 90px);object-fit:contain;object-position:bottom;filter:drop-shadow(0 18px 15px rgba(0,0,0,.45));animation:wf-anime-dance 1.1s cubic-bezier(.45,0,.55,1) infinite alternate}
-        .wf-anime-title{position:absolute;z-index:2;top:24px;left:26px;margin:0;color:#e9fbf8;font-size:clamp(22px,5vw,38px);line-height:.95;letter-spacing:.08em;text-transform:uppercase;text-shadow:0 2px 0 #203a3c}.wf-anime-title small{display:block;margin-top:9px;color:#91ded6;font-size:11px;letter-spacing:.18em}
-        .wf-anime-actions{position:absolute;z-index:3;right:16px;top:16px;display:flex;gap:8px}.wf-anime-actions button{border:1px solid rgba(224,255,251,.45);background:rgba(9,16,23,.56);color:#effffb;border-radius:999px;padding:7px 11px;font-size:12px;cursor:pointer}
-        @keyframes wf-anime-fade-in{from{opacity:0}to{opacity:1}}@keyframes wf-anime-dance{0%{transform:translate(-9px,3px) rotate(-2deg) scale(1)}45%{transform:translate(8px,-12px) rotate(2deg) scale(1.018)}100%{transform:translate(-3px,0) rotate(-1deg) scale(1)}}
-        @media(prefers-reduced-motion:reduce){.wf-anime-dancer,.wf-anime-stage{animation:none}}
       `}</style>
 
       <a href="#main-content" className="wf-skip">Skip to content</a>
@@ -400,18 +336,6 @@ export function SiteShell({ children }) {
       </footer>
 
       <ChatWidget />
-      {animeVisible ? (
-        <div className="wf-anime-stage" role="dialog" aria-modal="true" aria-label="Anime dance" onClick={closeAnimeDance}>
-          <div className="wf-anime-card" onClick={(event) => event.stopPropagation()}>
-            <h2 className="wf-anime-title">Dance break<small>Type anime anywhere · Esc to close</small></h2>
-            <div className="wf-anime-actions">
-              <button onClick={() => { const muted = !animeMuted; setAnimeMuted(muted); if (muted) stopAnimeAudio(); else playAnimeAudio(); }}>{animeMuted ? "Play sound" : "Mute"}</button>
-              <button onClick={closeAnimeDance}>Close</button>
-            </div>
-            <img className="wf-anime-dancer" src="/anime-dancer.png" alt="Anime dancer performing an upbeat pose" />
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }

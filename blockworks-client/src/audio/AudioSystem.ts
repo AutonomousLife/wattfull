@@ -45,6 +45,7 @@ export class AudioSystem {
   reject() { this.tone(95, .045, 'triangle', .012, -20); }
   pickup() { this.tone(390, .065, 'sine', .022, 90); }
   craft() { this.noise(.08, .022, 420); this.tone(240, .08, 'triangle', .018, 70); }
+  objective() { this.tone(330, .07, 'sine', .018, 55); setTimeout(() => this.tone(495, .1, 'sine', .018, 80), 65); }
   damage() { this.noise(.11, .045, 95); }
   towerStart() {
     this.noise(.32, .04, 160);
